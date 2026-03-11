@@ -24,7 +24,7 @@ export const en: Record<string, string> = {
   'playground.keys.add': 'Add',
   'playground.keys.random': 'Random',
   'playground.keys.restore': 'Restore Defaults',
-  'playground.context.title': 'Script Context',
+  'playground.context.title': 'Address Type',
   'playground.context.wsh': 'SegWit v0 (P2WSH)',
   'playground.context.tr': 'Taproot',
   'playground.context.comingSoon': 'Coming Soon',
