@@ -1,15 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { EditorView, keymap, placeholder as cmPlaceholder } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { lineNumbers } from '@codemirror/view';
-import { AlignLeft, Trash2, Copy, Share2 } from 'lucide-react';
+import { AlignLeft, Trash2, Copy, Share2, Check } from 'lucide-react';
 import { policyExtensions } from '@/lib/editor/policy-language';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils/cn';
+import { buildShareUrl } from '@/lib/utils/share';
 import type { FriendlyError } from '@/lib/engine/types';
 
 function formatPolicy(raw: string): string {
@@ -45,7 +46,11 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
   const viewRef = useRef<EditorView | null>(null);
   const policy = usePlaygroundStore((s) => s.policy);
   const setPolicy = usePlaygroundStore((s) => s.setPolicy);
+  const keyVariables = usePlaygroundStore((s) => s.keyVariables);
+  const context = usePlaygroundStore((s) => s.context);
+  const network = usePlaygroundStore((s) => s.network);
   const suppressSync = useRef(false);
+  const [shareCopied, setShareCopied] = useState(false);
 
   const onDocChange = useCallback(
     (newDoc: string) => {
@@ -131,11 +136,14 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
     navigator.clipboard.writeText(policy);
   }, [policy]);
 
-  const handleShare = useCallback(() => {
-    const url = new URL(window.location.href);
-    url.searchParams.set('s', btoa(policy));
-    navigator.clipboard.writeText(url.toString());
-  }, [policy]);
+  const handleShare = useCallback(async () => {
+    try {
+      const url = buildShareUrl({ policy, keyVariables, context, network });
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch {}
+  }, [policy, keyVariables, context, network]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -143,7 +151,12 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
         <ToolbarButton icon={AlignLeft} label={t('playground.editor.format')} onClick={handleFormat} />
         <ToolbarButton icon={Trash2} label={t('playground.editor.clear')} onClick={handleClear} />
         <ToolbarButton icon={Copy} label={t('playground.editor.copy')} onClick={handleCopy} />
-        <ToolbarButton icon={Share2} label={t('playground.editor.share')} onClick={handleShare} />
+        <ToolbarButton
+          icon={shareCopied ? Check : Share2}
+          label={shareCopied ? t('playground.editor.shareCopied') : t('playground.editor.share')}
+          onClick={handleShare}
+          active={shareCopied}
+        />
       </div>
 
       <div
@@ -162,18 +175,21 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
   );
 }
 
-function ToolbarButton({ icon: Icon, label, onClick }: {
+function ToolbarButton({ icon: Icon, label, onClick, active }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   onClick: () => void;
+  active?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
       title={label}
       className={cn(
-        'flex h-6 items-center gap-1 rounded px-1.5 text-[11px] text-text-muted',
-        'transition-colors hover:bg-surface-elevated hover:text-text-secondary',
+        'flex h-6 items-center gap-1 rounded px-1.5 text-[11px] transition-colors',
+        active
+          ? 'text-semantic-satisfied'
+          : 'text-text-muted hover:bg-surface-elevated hover:text-text-secondary',
       )}
     >
       <Icon className="h-3 w-3" />

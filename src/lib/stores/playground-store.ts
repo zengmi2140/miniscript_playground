@@ -39,6 +39,7 @@ interface PlaygroundActions {
   setRightPanelOpen: (open: boolean) => void;
 
   loadScenario: (scenarioId: string) => void;
+  restoreSession: (payload: { policy: string; keyVariables: KeyVariable[]; context: ScriptContext; network: Network }) => void;
   reset: () => void;
 }
 
@@ -144,6 +145,25 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
       compilationError: null,
       semanticTree: null,
       spendingPaths: [],
+      selectedPathIndex: null,
+      activeResultTab: 'paths',
+    });
+  },
+
+  restoreSession: (payload) => {
+    set({
+      policy: payload.policy,
+      context: payload.context,
+      network: payload.network,
+      keyVariables: [...payload.keyVariables],
+      activeScenarioId: null,
+      compilationResult: null,
+      compilationError: null,
+      semanticTree: null,
+      spendingPaths: [],
+      availableKeys: new Set<string>(),
+      availableHashes: new Set<string>(),
+      currentTimeBlocks: 0,
       selectedPathIndex: null,
       activeResultTab: 'paths',
     });
