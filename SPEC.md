@@ -342,7 +342,7 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 - [+ 添加] [🎲 随机生成] [恢复默认] 按钮
 - 密钥格式提示：MVP 使用压缩公钥（66 字符 hex，用于 P2WSH）
 
-**区域 D: 上下文选择**
+**区域 D: 地址类型选择**
 
 - 单选按钮组：SegWit v0 (P2WSH) | Taproot (Coming Soon)
   - P2WSH：可选择，为 MVP 默认值
@@ -1217,7 +1217,7 @@ const GLOSSARY: Record<string, { zh: string; en: string; explain_zh: string; exp
   "playground.keys.add": "添加",
   "playground.keys.random": "🎲 随机",
   "playground.keys.restore": "恢复默认",
-  "playground.context.title": "脚本上下文",
+  "playground.context.title": "地址类型",
   "playground.context.wsh": "SegWit v0 (P2WSH)",
   "playground.context.tr": "Taproot",
   "playground.pathmap.title": "花费路径地图",
@@ -1484,7 +1484,7 @@ miniscript-lab/
 - 输入 500ms 后自动编译，结果写入 store
 - 编译错误在编辑器下方显示中文友好消息
 - Key 变量管理：可添加/删除/编辑，支持随机生成测试密钥
-- 上下文选择：P2WSH 为默认值，Taproot 选项显示 "Coming Soon" 且不可选择
+- 地址类型选择：P2WSH 为默认值，Taproot 选项显示 "Coming Soon" 且不可选择
 - [格式化] [清空] [复制] 按钮功能正常
 
 ### Phase 6: 花费路径图（Day 3 下午 - Day 4）
