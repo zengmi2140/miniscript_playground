@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useRef, Suspense } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { Monitor, ArrowLeft } from 'lucide-react';
 import { ThreeColumnLayout } from '@/components/playground/ThreeColumnLayout';
 import { LeftPanel } from '@/components/playground/LeftPanel';
 import { CenterPanel } from '@/components/playground/CenterPanel';
@@ -11,8 +13,37 @@ import { useCompiler } from '@/lib/hooks/useCompiler';
 import { useAutoSave } from '@/lib/hooks/useAutoSave';
 import { decodeSharePayload } from '@/lib/utils/share';
 import { loadSession } from '@/lib/utils/storage';
+import { useI18n } from '@/lib/i18n/context';
+
+function MobileFallback() {
+  const { t } = useI18n();
+
+  return (
+    <div className="flex flex-1 items-center justify-center px-6 py-16">
+      <div className="max-w-sm text-center">
+        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-elevated">
+          <Monitor className="h-8 w-8 text-text-muted" />
+        </div>
+        <h2 className="mb-3 text-[20px] font-semibold text-text-primary">
+          {t('playground.mobile.title')}
+        </h2>
+        <p className="mb-8 text-body text-text-secondary">
+          {t('playground.mobile.description')}
+        </p>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 rounded-button border border-border-default bg-surface-elevated px-5 py-2.5 text-body font-medium text-text-primary transition-all hover:border-border-hover"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t('playground.mobile.goScenarios')}
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 function PlaygroundContent() {
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   const loadScenario = usePlaygroundStore((s) => s.loadScenario);
   const restoreSession = usePlaygroundStore((s) => s.restoreSession);
@@ -57,11 +88,18 @@ function PlaygroundContent() {
   }, [searchParams, loadScenario, activeScenarioId]);
 
   return (
-    <ThreeColumnLayout
-      left={<LeftPanel />}
-      center={<CenterPanel />}
-      right={<RightPanel />}
-    />
+    <>
+      <div className="hidden flex-1 flex-col md:flex">
+        <ThreeColumnLayout
+          left={<LeftPanel />}
+          center={<CenterPanel />}
+          right={<RightPanel />}
+        />
+      </div>
+      <div className="flex flex-1 flex-col md:hidden">
+        <MobileFallback />
+      </div>
+    </>
   );
 }
 

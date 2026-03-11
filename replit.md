@@ -85,6 +85,18 @@ Custom lightweight i18n in `src/lib/i18n/`:
 `src/lib/glossary/data.ts` — `GLOSSARY` record maps keys like `pk`, `older`, `after`, `sha256`, `hash256`, `ripemd160`, `hash160` to bilingual title + explanation objects.
 `ConditionNode` in `FlowNodes.tsx` directly handles hover state with `onPointerEnter`/`onPointerLeave` and renders the tooltip via React portal to `document.body`. The `nodrag nopan` classes prevent React Flow from intercepting pointer events.
 
+### Framer-motion Animations
+All three flow node types (`RootNode`, `OperatorNode`, `ConditionNode`) use `motion.div` from framer-motion. The `animate` prop drives `borderColor`, `backgroundColor`, and `color` based on node status, with a 300ms `easeInOut` transition. Colors are defined as explicit hex values in `STATUS_COLORS`.
+
+### Mobile Adaptation
+- **Header** (`src/components/layout/Header.tsx`): Desktop nav is `hidden md:flex`. A hamburger button (`Menu`/`X` icon, `md:hidden`) toggles a mobile dropdown nav.
+- **Playground page**: The three-column layout is `hidden md:flex`; a `MobileFallback` component is `flex md:hidden`, showing a "请使用桌面端" / "Desktop Required" message with a link back to the Scenarios gallery.
+- **Scenarios page**: Already uses responsive grid (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`), with adjusted mobile padding.
+
+### OG / Social
+- `src/app/layout.tsx`: Full `Metadata` with `metadataBase`, OpenGraph (title, description, image, locale), Twitter card, robots.
+- `src/app/opengraph-image.tsx`: Dynamic OG image (1200×630) using `next/og` `ImageResponse`, rendered as edge function. Features Bitcoin branding, feature tags, dark background with glow effects.
+
 ### Theme
 Custom dark/light theme in `src/lib/theme/context.tsx`:
 - Toggles `dark` class on `<html>`

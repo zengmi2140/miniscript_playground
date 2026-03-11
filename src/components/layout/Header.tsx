@@ -1,8 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Sun, Moon, Bitcoin } from 'lucide-react';
+import { Sun, Moon, Bitcoin, Menu, X } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
 import { useTheme } from '@/lib/theme/context';
 import { cn } from '@/lib/utils/cn';
@@ -17,12 +18,17 @@ export function Header() {
   const { locale, setLocale, t } = useI18n();
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 h-14 border-b border-border-subtle bg-surface-base/80 backdrop-blur-md">
-      <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between px-4">
+    <header className="sticky top-0 z-50 border-b border-border-subtle bg-surface-base/80 backdrop-blur-md">
+      <div className="mx-auto flex h-14 max-w-[1440px] items-center justify-between px-4">
         <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
+          <Link
+            href="/"
+            className="flex items-center gap-2 transition-opacity hover:opacity-80"
+            onClick={() => setMobileOpen(false)}
+          >
             <div className="flex h-8 w-8 items-center justify-center rounded-button bg-btc-500">
               <Bitcoin className="h-5 w-5 text-text-inverse" />
             </div>
@@ -84,8 +90,49 @@ export function Header() {
               <Moon className="h-4 w-4" />
             )}
           </button>
+
+          <button
+            onClick={() => setMobileOpen((v) => !v)}
+            className="flex h-8 w-8 items-center justify-center rounded-button text-text-secondary transition-colors hover:bg-surface-elevated hover:text-text-primary md:hidden"
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </button>
         </div>
       </div>
+
+      {mobileOpen && (
+        <div className="border-t border-border-subtle bg-surface-base md:hidden">
+          <nav className="flex flex-col px-4 py-2">
+            {navItems.map((item) => {
+              const isActive =
+                item.path === '/'
+                  ? pathname === '/'
+                  : pathname.startsWith(item.path);
+              const isComingSoon = item.path === '/compare';
+
+              return (
+                <Link
+                  key={item.path}
+                  href={item.path}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    'flex items-center gap-2 rounded-button px-3 py-3 text-body transition-colors',
+                    isActive
+                      ? 'text-btc-500'
+                      : 'text-text-secondary hover:text-text-primary',
+                  )}
+                >
+                  {t(item.key)}
+                  {isComingSoon && (
+                    <span className="text-[10px] italic text-text-muted">Soon</span>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }
