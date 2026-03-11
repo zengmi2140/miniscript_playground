@@ -73,4 +73,12 @@ export const en: Record<string, string> = {
   'warnings.malleable': '{count} path(s) have malleable witness data, which may affect fee estimation',
   'warnings.largeWitness': 'Maximum witness size is ~{size} vB; larger witnesses mean higher fees',
   'glossary.tooltip.label': 'What is this',
+  'playground.mobile.title': 'Desktop Required',
+  'playground.mobile.description': 'The Playground works best on a larger screen. Please open it on a desktop or laptop.',
+  'playground.mobile.goScenarios': 'Browse Scenarios',
+  'compare.featureList.title': 'Planned Features',
+  'compare.feature.1': 'Side-by-side compilation results for two Policies',
+  'compare.feature.2': 'Visual diff of spending paths',
+  'compare.feature.3': 'Script size and fee comparison',
+  'compare.feature.4': 'Export to Markdown / JSON report',
 };

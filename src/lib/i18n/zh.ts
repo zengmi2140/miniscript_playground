@@ -73,4 +73,12 @@ export const zh: Record<string, string> = {
   'warnings.malleable': '{count} 条路径的见证数据可被第三方篡改（malleable），可能影响手续费预估',
   'warnings.largeWitness': '最大见证数据约 {size} vB，较大的 witness 意味着更高的手续费',
   'glossary.tooltip.label': '是什么',
+  'playground.mobile.title': '请使用桌面端',
+  'playground.mobile.description': 'Playground 需要较大屏幕才能获得最佳体验，请在电脑上打开。',
+  'playground.mobile.goScenarios': '浏览场景',
+  'compare.featureList.title': '计划功能',
+  'compare.feature.1': '并排对比两个 Policy 的编译结果',
+  'compare.feature.2': '花费路径差异可视化',
+  'compare.feature.3': '脚本大小与手续费对比',
+  'compare.feature.4': '导出 Markdown / JSON 报告',
 };
