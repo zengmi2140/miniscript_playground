@@ -7,17 +7,19 @@ import { treeToFlow } from '@/lib/flow/tree-to-flow';
 import { nodeTypes } from './FlowNodes';
 import { edgeTypes } from './PathEdge';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
+import { useI18n } from '@/lib/i18n/context';
 
 function PathMapInner() {
   const semanticTree = usePlaygroundStore((s) => s.semanticTree);
   const availableKeys = usePlaygroundStore((s) => s.availableKeys);
   const availableHashes = usePlaygroundStore((s) => s.availableHashes);
   const currentTimeBlocks = usePlaygroundStore((s) => s.currentTimeBlocks);
+  const { locale } = useI18n();
 
   const { nodes, edges } = useMemo(() => {
     if (!semanticTree) return { nodes: [], edges: [] };
-    return treeToFlow(semanticTree, availableKeys, availableHashes, currentTimeBlocks);
-  }, [semanticTree, availableKeys, availableHashes, currentTimeBlocks]);
+    return treeToFlow(semanticTree, availableKeys, availableHashes, currentTimeBlocks, locale);
+  }, [semanticTree, availableKeys, availableHashes, currentTimeBlocks, locale]);
 
   if (!semanticTree) return null;
 
