@@ -100,3 +100,44 @@
     font-family: var(--font-mono), ui-monospace, 'Cascadia Code', monospace;
   }
 }
+
+@layer components {
+  .slider-input {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .slider-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #F7931A;
+    border: 2px solid #0C0A09;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+
+  .slider-input::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+
+  .slider-input::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #F7931A;
+    border: 2px solid #0C0A09;
+    cursor: pointer;
+  }
+
+  .slider-input::-moz-range-track {
+    height: 4px;
+    border-radius: 2px;
+  }
+}
