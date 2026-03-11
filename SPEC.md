@@ -1,0 +1,1625 @@
+# Miniscript Lab -- 完整产品规格与实施计划
+
+> **本文档是产品的唯一真相来源（Single Source of Truth）。**  
+> 任何 AI 开发工具（Claude Code、Codex、Cursor、v0、Replit、Bolt、Wrap 等）均应依据本文档实现产品。  
+> 如有歧义，以本文档为准。
+
+---
+
+## 1. 产品概述
+
+### 1.1 一句话定位
+
+**"一个场景优先、以花费路径为中心的 Miniscript 教学实验室：先让用户看懂'谁能在什么时候怎么花'，再暴露 Policy、Miniscript、Script 和 Address。"**
+
+它不是 "Miniscript IDE with education features"，而是 **"以花费路径为中心的教学实验室，IDE 只是其中一个视图"**。
+
+### 1.2 核心差异化
+
+别人展示语法树，我们展示**资金在时间和条件里的运动**。
+
+市面上已有的工具（sipa.be、min.sc、miniscript.fun、adys.dev）全部以"语法/编译"为中心。**没有任何工具**做到：
+
+- 让新手一眼看懂"钱到底怎么花出去"
+- 用时间滑块演示 `older()` 和 `after()` 的区别
+- 用条件开关模拟"谁签了名、谁没签"
+- 以中文提供教育内容
+
+### 1.3 目标用户
+
+
+| 用户层级 | 描述                      | 核心需求                     |
+| ---- | ----------------------- | ------------------------ |
+| 入门者  | 听过比特币多签/时间锁，但没写过 Policy | 看懂场景 → 理解路径 → 建立直觉       |
+| 学习者  | 正在学习 Miniscript，需要动手实验  | 编辑 Policy → 看编译结果 → 理解差异 |
+| 实践者  | 自我托管用户或开发者，要设计真实策略      | 搭建策略 → 分析路径/成本 → 导出/分享   |
+
+
+### 1.4 产品边界（不做什么）
+
+- **不处理私钥 / 助记词 / 签名** -- 只碰公钥和测试数据
+- **不连接任何区块链网络** -- 纯前端模拟
+- **不构造或广播交易** -- 不是钱包
+- **地址生成仅支持 testnet / regtest / signet**
+- **数据仅保存在浏览器 localStorage** -- 不上传服务器
+- **MVP 仅支持 P2WSH（SegWit v0）** -- Taproot (P2TR) 在 V2 实现
+- **不依赖任何 LLM / AI API** -- 所有功能纯确定性计算，无外部 API 调用
+
+---
+
+## 2. 设计系统
+
+### 2.1 设计原则
+
+1. **克制** -- Miniscript 天然信息密度高，UI 必须留白充分，单屏最多一个焦点
+2. **温暖** -- 比特币社区是温暖的，用暖色调，不用冷色调
+3. **诚实** -- 不要花哨装饰，每个视觉元素都传递信息
+4. **分层** -- 默认只展示一层抽象，底层细节"可达"但不"扑面而来"
+
+### 2.2 色彩系统
+
+#### 深色模式（默认）
+
+使用 Tailwind `stone` 暖灰色阶作为基底，比特币橙作为品牌点缀。
+
+```css
+/* ===== 背景层级 ===== */
+--bg-base:      #0C0A09;  /* stone-950, 最深背景 */
+--bg-surface:   #1C1917;  /* stone-900, 卡片/面板背景 */
+--bg-elevated:  #292524;  /* stone-800, 悬停/抬升表面 */
+--bg-overlay:   #44403C;  /* stone-700, 下拉/弹出覆盖 */
+
+/* ===== 比特币橙色阶 ===== */
+--orange-50:    #FFF8F0;
+--orange-100:   #FFECD4;
+--orange-200:   #FFD6A5;
+--orange-300:   #FFBA6B;
+--orange-400:   #FF9F35;
+--orange-500:   #F7931A;  /* ★ 主品牌色 */
+--orange-600:   #D97706;
+--orange-700:   #B45309;
+--orange-800:   #92400E;
+--orange-900:   #78350F;
+
+/* ===== 文字 ===== */
+--text-primary:   #FAFAF9;  /* stone-50, 主要文字 */
+--text-secondary: #A8A29E;  /* stone-400, 次要文字 */
+--text-muted:     #78716C;  /* stone-500, 弱化文字 */
+--text-inverse:   #0C0A09;  /* 橙色按钮上的文字 */
+
+/* ===== 边框 ===== */
+--border-subtle:  #292524;  /* stone-800 */
+--border-default: #44403C;  /* stone-700 */
+--border-hover:   #57534E;  /* stone-600 */
+--border-active:  #F7931A;  /* 激活态用橙色 */
+
+/* ===== 语义色（路径可视化） ===== */
+--semantic-key:       #EAB308;  /* yellow-500, 暖金色 = 签名/密钥 */
+--semantic-timelock:  #F7931A;  /* 比特币橙 = 时间条件 */
+--semantic-hashlock:  #A78BFA;  /* violet-400, 柔紫 = 哈希/密码学 */
+--semantic-satisfied: #22C55E;  /* green-500 = 已满足 */
+--semantic-locked:    #57534E;  /* stone-600 = 锁定/不可用 */
+--semantic-warning:   #EF4444;  /* red-500 = 警告 */
+```
+
+#### 亮色模式
+
+```css
+--bg-base:        #FAFAF9;  /* stone-50 */
+--bg-surface:     #FFFFFF;
+--bg-elevated:    #F5F5F4;  /* stone-100 */
+--text-primary:   #1C1917;  /* stone-900 */
+--text-secondary: #57534E;  /* stone-600 */
+--text-muted:     #A8A29E;  /* stone-400 */
+--border-subtle:  #E7E5E4;  /* stone-200 */
+--border-default: #D6D3D1;  /* stone-300 */
+```
+
+#### 语义色使用规则
+
+
+| 语义      | 颜色                         | 用在哪                          |
+| ------- | -------------------------- | ---------------------------- |
+| 签名 / 密钥 | `--semantic-key` 暖金        | pk() 节点、密钥 chip、签名开关         |
+| 时间条件    | `--semantic-timelock` 比特币橙 | older() / after() 节点、时间滑块    |
+| 哈希条件    | `--semantic-hashlock` 柔紫   | sha256() / hash160() 节点、哈希开关 |
+| 已满足     | `--semantic-satisfied` 绿   | 满足条件的路径边框/背景                 |
+| 锁定/不可用  | `--semantic-locked` 暖灰     | 不可满足的路径、灰化的节点                |
+| 警告/错误   | `--semantic-warning` 红     | 编译错误、安全警告                    |
+
+
+### 2.3 字体
+
+```css
+/* 正文 / 标题 */
+font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+
+/* 代码 / 等宽 */
+font-family: "IBM Plex Mono", ui-monospace, "Cascadia Code", monospace;
+```
+
+均通过 `next/font/google` 加载，字体文件自动托管。
+
+#### 字号层级
+
+
+| 用途          | 大小               | 字重             | 字体                |
+| ----------- | ---------------- | -------------- | ----------------- |
+| 页面标题        | 32px / 2rem      | 700 (Bold)     | Plus Jakarta Sans |
+| 区域标题        | 20px / 1.25rem   | 600 (SemiBold) | Plus Jakarta Sans |
+| 正文          | 14px / 0.875rem  | 400 (Regular)  | Plus Jakarta Sans |
+| 次要说明        | 12px / 0.75rem   | 400            | Plus Jakarta Sans |
+| 代码 / Policy | 13px / 0.8125rem | 400            | IBM Plex Mono     |
+| 状态标签（大号）    | 18px / 1.125rem  | 600            | Plus Jakarta Sans |
+| 条件 chip     | 12px / 0.75rem   | 500 (Medium)   | Plus Jakarta Sans |
+
+
+### 2.4 间距与圆角
+
+- 基础间距单位：4px
+- 面板内边距：16px（紧凑）或 24px（宽松）
+- 卡片圆角：12px
+- 按钮圆角：8px
+- Chip/Tag 圆角：6px
+- 图节点圆角：10px
+
+### 2.5 组件规范
+
+#### 按钮
+
+
+| 类型        | 背景                   | 文字                 | 边框                 | 用途         |
+| --------- | -------------------- | ------------------ | ------------------ | ---------- |
+| Primary   | `--orange-500`       | `--text-inverse`   | 无                  | 编译、主要操作    |
+| Secondary | `--bg-elevated`      | `--text-primary`   | `--border-default` | 次要操作       |
+| Ghost     | 透明                   | `--text-secondary` | 无                  | Tab 切换、工具栏 |
+| Danger    | `--semantic-warning` | 白                  | 无                  | 清除、删除      |
+
+
+hover 态：Primary → `--orange-600`；Secondary → `--bg-overlay`
+
+#### 条件 Chip
+
+```
+┌─────────────────────┐
+│ 🔑 Alice 签名        │  ← semantic-key 背景色 10% 透明度 + 左侧色条
+└─────────────────────┘
+┌─────────────────────┐
+│ ⏳ 等待 30 天         │  ← semantic-timelock 背景色 10% 透明度 + 左侧色条
+└─────────────────────┘
+┌─────────────────────┐
+│ 🔐 揭示 Secret       │  ← semantic-hashlock 背景色 10% 透明度 + 左侧色条
+└─────────────────────┘
+```
+
+每个 chip 高度 28px，内边距 6px 12px，左侧 3px 色条标识类型。
+
+#### 路径卡片
+
+```
+┌──────────────────────────────────────────┐
+│ 路径 A: 正常花费  ●  可满足                │  ← 标题 + 状态
+│──────────────────────────────────────────│
+│ 🔑 Alice  🔑 Service                     │  ← 条件 chips
+│──────────────────────────────────────────│
+│ 预估费用: ~110 vB                         │  ← 成本信息
+└──────────────────────────────────────────┘
+```
+
+激活态（当前条件可满足）：左边框变为 `--semantic-satisfied` 绿色 3px。
+不可用态：整体透明度降低到 50%，灰色左边框。
+
+---
+
+## 3. 信息架构
+
+### 3.1 顶部导航
+
+固定在页面顶部，高度 56px。
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  ₿ Miniscript Lab    [场景]  [Playground]  [对比]    🌐 中/EN │
+└──────────────────────────────────────────────────────────────┘
+```
+
+- Logo: `₿` 符号 + "Miniscript Lab" 文字，点击回首页
+- 导航项：场景（首页）、Playground、对比（V2 标注 "Coming Soon"）
+- 右侧：语言切换（中/EN）、主题切换（日/月图标）
+
+### 3.2 页面结构
+
+
+| 路由                       | 页面               | 描述           |
+| ------------------------ | ---------------- | ------------ |
+| `/`                      | 场景画廊             | 首页，场景卡片入口    |
+| `/playground`            | Playground       | 三栏工作台 + 底部抽屉 |
+| `/playground?s=<base64>` | Playground（分享链接） | 从 URL 恢复状态   |
+| `/compare`               | 对比模式（V2）         | 双面板 diff     |
+
+
+---
+
+## 4. 页面规格
+
+### 4.1 场景画廊页（`/`）
+
+#### 布局
+
+```
+┌──────────────────────────────────────────────────┐
+│                     Header                        │
+├──────────────────────────────────────────────────┤
+│                                                   │
+│   ₿ Miniscript Lab                               │
+│   把 Bitcoin 的花费条件讲清楚                       │
+│                                                   │
+│   ┌────────┐ ┌────────┐ ┌────────┐               │
+│   │ 场景1   │ │ 场景2   │ │ 场景3   │               │
+│   └────────┘ └────────┘ └────────┘               │
+│   ┌────────┐ ┌────────┐ ┌────────┐               │
+│   │ 场景4   │ │ 场景5   │ │ 场景6   │               │
+│   └────────┘ └────────┘ └────────┘               │
+│                                                   │
+│   ──── 或者自己写 ────                             │
+│   [ 打开空白 Playground →  ]                       │
+│                                                   │
+│   底部: 简短说明 + GitHub 链接 + 版权               │
+└──────────────────────────────────────────────────┘
+```
+
+#### 场景卡片规格
+
+每张卡片包含：
+
+- 顶部色条（4px，用该场景主要条件类型的语义色）
+- 图标（Lucide icon，32px）
+- 标题（16px, SemiBold）
+- 一句话描述（13px, Regular, `--text-secondary`）
+- 涉及的条件类型标签（tiny chips: "多签" "时间锁" 等）
+
+卡片网格：桌面端 3 列，平板 2 列，手机 1 列。卡片宽度最小 280px，最大 380px。
+hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
+点击：导航到 `/playground?scenario=<id>`。
+
+#### 页面底部
+
+"或者自己写" 区域：一个 Ghost 按钮 "打开空白 Playground →"，导航到 `/playground`。
+
+### 4.2 Playground 页（`/playground`）
+
+这是产品的核心页面。
+
+#### 整体布局
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                        Header (56px)                          │
+├──────────┬──────────────────────────────┬────────────────────┤
+│ 左栏      │         中栏                  │ 右栏               │
+│ 280px    │         flex: 1               │ 320px              │
+│ 可折叠    │                              │ 可折叠              │
+│          │                              │                    │
+│ 场景选择   │      花费路径地图               │  Tab 面板:         │
+│ ───────  │      (React Flow)            │   Policy           │
+│ Policy   │                              │   Miniscript       │
+│ 编辑器    │                              │   Script/ASM       │
+│ ───────  │      ──────────────          │   Descriptor       │
+│ 角色变量   │      条件开关:                 │   Address          │
+│ ───────  │      🔑A 🔑B 🔐H              │   Cost             │
+│ 上下文    │      时间滑块:                 │   Warnings         │
+│ 选择     │      T0 ◀━━━━━▶ 1y           │                    │
+├──────────┴──────────────────────────────┴────────────────────┤
+│              底部抽屉: 栈机模拟器 (V2, 默认收起)                  │
+└──────────────────────────────────────────────────────────────┘
+```
+
+左右栏可通过按钮折叠，折叠后中栏占据全部宽度。移动端默认左右栏折叠为底部 sheet。
+
+#### 4.2.1 左栏：意图与输入
+
+从上到下排列以下区域（可折叠的 section）：
+
+**区域 A: 场景选择器**
+
+- 当前场景名称 + 一句话描述
+- 下拉选择切换场景
+- 切换场景时自动填充 Policy 和 Key 变量
+
+**区域 B: Policy 编辑器**
+
+- CodeMirror 6 编辑器
+- 高度自适应（最小 120px，最大 300px，可拖拽调整）
+- 语法高亮（见 §6.3）
+- 编辑后 500ms 防抖自动编译
+- 编译错误在编辑器下方显示（红色文字 + 友好中文描述）
+- 工具栏：[格式化] [清空] [复制] [分享🔗]
+
+**区域 C: 角色与 Key 变量**
+
+- 可折叠面板，标题 "🔑 角色变量"
+- 列表：变量名（如 Alice）→ 对应公钥（可编辑，默认用测试密钥）
+- [+ 添加] [🎲 随机生成] [恢复默认] 按钮
+- 密钥格式提示：MVP 使用压缩公钥（66 字符 hex，用于 P2WSH）
+
+**区域 D: 上下文选择**
+
+- 单选按钮组：SegWit v0 (P2WSH) | Taproot (Coming Soon)
+  - P2WSH：可选择，为 MVP 默认值
+  - Taproot：按钮置灰不可选择，右侧显示 "Coming Soon" 标签（小号、`--text-muted` 色、斜体）
+- 网络：Testnet | Regtest | Signet
+
+#### 4.2.2 中栏：花费路径地图
+
+这是产品的**核心创新区**。
+
+**上半部分：React Flow 路径图**
+
+将 Miniscript 编译结果转化为简化的语义决策树（不是原始 AST）：
+
+- AND 节点：显示为"都需要"的并列条件
+- OR 节点：显示为分支选择
+- 叶子节点：条件（签名/时间锁/哈希锁），用语义 chip 样式
+- thresh(k,...) 节点：显示为 "k-of-n" 圆角矩形
+
+节点状态根据条件开关和时间滑块实时变化：
+
+- 已满足：绿色边框 + 绿色背景 10%
+- 暂不可满足（时间未到）：琥珀色边框 + 橙色背景 10%
+- 缺条件（签名/哈希缺失）：灰色边框 + 灰色背景
+
+边（连线）样式：
+
+- AND 分支：实线，表示"都要"
+- OR 分支：虚线，表示"任选"
+- 满足路径上的边：颜色加深为绿色
+
+图布局：使用 Dagre 自顶向下（TB）布局，节点间距 60px 垂直 / 40px 水平。
+
+**节点尺寸规格：**
+
+| 节点类型           | 宽度    | 高度   | 说明                        |
+| -------------- | ----- | ---- | ------------------------- |
+| RootNode       | 200px | 44px | 显示 Policy 根条件摘要，居中文字      |
+| OperatorNode   | 120px | 36px | 显示 "都需要" / "任选一" / "k-of-n" |
+| ConditionNode  | 160px | 40px | 显示叶子条件（签名/时间锁/哈希锁），内容居中  |
+
+- 所有节点圆角 10px，边框 2px solid
+- React Flow 画布背景 transparent，不显示网格点
+- 边框颜色和背景色根据上述状态规则（绿/琥珀/灰）动态变化
+- 节点内部水平 padding 12px，文字 font-size 13px，font-weight 500
+
+**状态结论横幅**
+
+路径图上方，一行大字显示当前结论：
+
+```
+✅ 可花费: Alice + Service 签名即可 (路径 A, ~110 vB)
+```
+
+或
+
+```
+⏳ 还需等待 23 天，恢复路径才可用
+```
+
+或
+
+```
+❌ 当前条件下无法花费，还缺 Bob 的签名
+```
+
+横幅背景色随状态变化（绿/橙/灰），内边距 12px，圆角 8px。
+
+**下半部分：条件面板**
+
+紧贴路径图下方：
+
+```
+┌──────────────────────────────────────────┐
+│ 条件开关:                                 │
+│ [🔑 Alice ✓] [🔑 Bob ✗] [🔐 Secret ✗]   │
+│                                          │
+│ 时间: ◀━━━━━━━●━━━━━━━━━━━━━━━━▶         │
+│       T0     30天              1年        │
+│       当前: 第 4,320 区块 ≈ 30 天          │
+└──────────────────────────────────────────┘
+```
+
+- 条件开关：根据 Policy 中出现的 key 和 hash 自动生成
+- 每个开关是一个可切换的 chip（点击切换开/关）
+- 开 = 填充色 + 勾号；关 = 边框 + 叉号
+- 时间滑块：
+  - 范围：0 到 max(所有 timelock 值 * 1.5, 52560 blocks)
+  - 刻度标记：在每个 timelock 值处显示刻度线 + 标签
+  - 滑块当前值以"区块数 + 人类时间"双显示
+  - 拖动时路径图实时更新
+- 时间换算规则：
+  - 1 block ≈ 10 分钟
+  - 144 blocks ≈ 1 天
+  - 1,008 blocks ≈ 1 周
+  - 4,320 blocks ≈ 30 天
+  - 12,960 blocks ≈ 90 天
+  - 52,560 blocks ≈ 1 年
+
+#### 4.2.3 右栏：结果与分析
+
+Tab 面板，一次只展示一个 Tab 内容。
+
+**Tab 列表：**
+
+
+| Tab        | 内容                         | 格式                      |
+| ---------- | -------------------------- | ----------------------- |
+| Policy     | 当前 Policy 源码               | 等宽字体 + 语法高亮 + 复制按钮      |
+| Miniscript | 编译后的 Miniscript            | 等宽字体 + 格式化显示 + 复制按钮     |
+| Script     | Bitcoin Script ASM         | 等宽字体 + opcode 着色 + 复制按钮 |
+| Descriptor | 输出描述符 (wsh(...) 或 tr(...)) | 等宽字体 + 复制按钮             |
+| Address    | 生成的地址                      | 等宽字体 + 网络标注 + 复制按钮      |
+| 花费路径       | 所有路径列表，每条显示条件 + 成本         | 路径卡片列表                  |
+| 警告         | 安全/有效性警告                   | 列表，每条有图标 + 说明           |
+
+
+每个 Tab 标签旁有一个小的 `?` 按钮，点击展开该概念的中文解释（微教学卡片）。
+
+默认展示 "花费路径" Tab。
+
+**花费路径 Tab 详细规格：**
+
+每条路径显示为一个卡片：
+
+```
+┌──────────────────────────────────────┐
+│ 路径 1: 正常花费                       │
+│ ──────────────────────────────────── │
+│ [🔑 User] [🔑 Service]              │
+│ ──────────────────────────────────── │
+│ Witness 大小: ~110 vB  |  状态: ✅    │
+└──────────────────────────────────────┘
+┌──────────────────────────────────────┐
+│ 路径 2: 超时恢复                       │
+│ ──────────────────────────────────── │
+│ [🔑 User] [⏳ 等待 30 天]            │
+│ ──────────────────────────────────── │
+│ Witness 大小: ~95 vB   |  状态: ⏳    │
+│ (还需等待 4,320 区块)                 │
+└──────────────────────────────────────┘
+```
+
+#### 4.2.4 底部抽屉：栈机模拟器（V2）
+
+- 默认完全收起，只显示一个 24px 高的把手条
+- 把手条文字："▲ 栈机模拟器"（灰色）
+- 只有当编译成功后才可展开
+- 展开后高度 300px（可拖拽调整）
+- MVP 阶段此区域显示 "Coming Soon" 占位
+
+---
+
+## 5. 数据模型与 TypeScript 类型
+
+### 5.1 核心类型定义
+
+```typescript
+// ===== 场景 =====
+interface Scenario {
+  id: string;
+  icon: string;                 // Lucide icon 名称
+  title: { zh: string; en: string };
+  description: { zh: string; en: string };
+  explanation: { zh: string; en: string };
+  policy: string;               // Policy 表达式
+  keyVariables: KeyVariable[];
+  context: ScriptContext;
+}
+
+interface KeyVariable {
+  name: string;                 // 显示名，如 "Alice"
+  policyName: string;           // Policy 中使用的名称，如 "Alice"
+  publicKey: string;            // 测试用压缩公钥 (66 hex) 或 x-only (64 hex)
+}
+
+type ScriptContext = 'wsh' | 'tr';
+type Network = 'testnet' | 'regtest' | 'signet';
+
+// ===== 编译结果 =====
+interface CompilationResult {
+  policy: string;
+  miniscript: string;
+  asm: string;
+  descriptor: string;
+  address: string;
+  scriptHex: string;
+}
+
+// ===== 花费路径 =====
+interface SpendingPath {
+  index: number;
+  label: string;                      // "路径 1: 正常花费"
+  conditions: PathCondition[];
+  witnessAsm: string;                 // 符号化 witness
+  witnessSize: number;                // 估算 vB
+  nSequence?: number;
+  nLockTime?: number;
+  isMalleable: boolean;
+  satisfiable: boolean;               // 在当前条件下是否可满足
+  missingConditions: PathCondition[]; // 还缺什么
+}
+
+type PathCondition =
+  | { type: 'signature'; keyName: string }
+  | { type: 'timelock_relative'; blocks: number; humanReadable: string }
+  | { type: 'timelock_absolute'; value: number; humanReadable: string }
+  | { type: 'hashlock'; hashType: 'sha256' | 'hash256' | 'ripemd160' | 'hash160'; hash: string };
+
+// ===== Miniscript 语义树（用于路径图可视化） =====
+type MiniscriptNode =
+  | { type: 'key'; name: string; wrapper?: string }
+  | { type: 'older'; blocks: number; humanReadable: string }
+  | { type: 'after'; value: number; humanReadable: string }
+  | { type: 'hash'; hashType: string; hash: string }
+  | { type: 'and'; children: MiniscriptNode[] }
+  | { type: 'or'; children: MiniscriptNode[] }
+  | { type: 'threshold'; k: number; n: number; children: MiniscriptNode[] }
+  | { type: 'multi'; k: number; keys: string[] }
+  | { type: 'just_1' }
+  | { type: 'just_0' };
+
+// ===== Playground 状态 =====
+interface PlaygroundState {
+  // 输入
+  policy: string;
+  context: ScriptContext;
+  network: Network;
+  keyVariables: KeyVariable[];
+  activeScenarioId: string | null;
+
+  // 编译结果
+  compilationResult: CompilationResult | null;
+  compilationError: FriendlyError | null;
+  semanticTree: MiniscriptNode | null;
+
+  // 路径分析
+  spendingPaths: SpendingPath[];
+
+  // 交互状态
+  availableKeys: Set<string>;       // 已"签名"的 key 名称
+  availableHashes: Set<string>;     // 已"揭示"的 hash
+  currentTimeBlocks: number;        // 时间滑块值（区块数）
+
+  // UI 状态
+  selectedPathIndex: number | null;
+  activeResultTab: ResultTab;
+  isLeftPanelOpen: boolean;
+  isRightPanelOpen: boolean;
+}
+
+type ResultTab = 'policy' | 'miniscript' | 'script' | 'descriptor' | 'address' | 'paths' | 'warnings';
+
+interface FriendlyError {
+  raw: string;            // 原始错误信息
+  friendly: {
+    zh: string;
+    en: string;
+  };
+  line?: number;
+  column?: number;
+}
+```
+
+---
+
+## 6. 引擎集成规格
+
+### 6.1 编译管线
+
+使用 `@bitcoinerlab/miniscript` 和 `@bitcoinerlab/miniscript-policies`。
+
+```
+用户输入 Policy
+    │
+    ▼
+compilePolicy(policy)           ← @bitcoinerlab/miniscript-policies
+    │ 返回: { miniscript }
+    ▼
+compileMiniscript(miniscript)   ← @bitcoinerlab/miniscript
+    │ 返回: { asm }
+    ▼
+satisfier(miniscript, opts)     ← @bitcoinerlab/miniscript
+    │ 返回: { nonMalleableSats, malleableSats }
+    ▼
+构建 descriptor + address       ← @bitcoinerlab/descriptors
+    │ 拼接 "wsh(<miniscript>)" 字符串
+    │ 调用 Descriptor.import() 解析
+    │ 调用 .getAddress(network) 生成地址
+    ▼
+输出 CompilationResult + SpendingPath[]
+```
+
+**Descriptor 与地址生成（使用 @bitcoinerlab/descriptors）：**
+
+```typescript
+import { Descriptor } from '@bitcoinerlab/descriptors';
+import * as bitcoin from 'bitcoinjs-lib';
+
+// 1. 将 miniscript 中的变量名替换为实际公钥后，拼接 descriptor 字符串
+const descriptorStr = `wsh(${miniscriptWithRealKeys})`;
+
+// 2. 解析 descriptor
+const descriptor = Descriptor.import({ descriptor: descriptorStr });
+
+// 3. 生成地址
+const network = bitcoin.networks.testnet; // 或 regtest
+const address = descriptor.getAddress(network);
+
+// 4. 获取 script hex
+const scriptHex = descriptor.getScriptPubKey().toString('hex');
+```
+
+**关键实现细节：**
+
+1. `compilePolicy` 前需要将 key 变量名替换为实际公钥
+2. MVP 仅处理 P2WSH 上下文，descriptor 格式固定为 `wsh(<miniscript>)`。Taproot 相关逻辑不在 MVP 实现
+3. 使用 `knowns`/`unknowns` 参数驱动条件开关功能
+4. 使用 `@bitcoinerlab/descriptors` 构建 descriptor 字符串，再调用其 `.getAddress(network)` 方法生成地址。该库内部依赖 `bitcoinjs-lib`，需一并安装
+5. 编译过程应在 Web Worker 中执行以避免阻塞 UI（可选优化）
+
+### 6.2 路径分析器
+
+从 `satisfier()` 输出解析出结构化的 `SpendingPath[]`：
+
+```typescript
+function analyzeSpendingPaths(
+  nonMalleableSats: Satisfaction[],
+  malleableSats: Satisfaction[],
+  keyVariables: KeyVariable[],
+  availableKeys: Set<string>,
+  availableHashes: Set<string>,
+  currentTimeBlocks: number,
+): SpendingPath[]
+```
+
+**解析逻辑：**
+
+1. 遍历每个 satisfaction 的 `asm` 字符串
+2. **构建公钥反向映射表**：satisfier 输出的 asm 中，key 变量名已被替换为实际公钥（例如 `<sig(02abc...)>`）。路径分析器必须先从 `keyVariables` 构建一个 pubkey → name 反向映射表（`Record<string, string>`），将公钥还原为用户定义的变量名（如 `Alice`）：
+```typescript
+const pubkeyToName: Record<string, string> = {};
+for (const kv of keyVariables) {
+  pubkeyToName[kv.pubkey] = kv.name;
+}
+```
+3. 用正则提取并还原：
+  - `<sig(02abc...)>` → 通过 `pubkeyToName` 还原为 `<sig(Alice)>` → 签名条件
+  - `<preimage(hash)>` → 哈希条件
+  - `<key>` 和其他占位符
+4. 从 `nSequence` 字段提取相对时间锁：
+  - `nSequence & 0x00400000` ? 时间模式 (× 512秒) : 区块模式
+  - 取低 16 位为值
+5. 从 `nLockTime` 字段提取绝对时间锁：
+  - `< 500000000` → 区块高度
+  - `≥ 500000000` → Unix 时间戳
+6. 判断可满足性：
+  - 所有签名条件的 key 都在 `availableKeys` 中
+  - 所有哈希条件的 hash 都在 `availableHashes` 中
+  - 时间锁值 ≤ `currentTimeBlocks`
+7. 计算缺失条件（`missingConditions`）
+8. **排序**：最终返回的 `SpendingPath[]` 按 `witnessSize` 升序排列（最便宜的路径排在最前面）
+
+### 6.3 Miniscript 简化解析器
+
+将 Miniscript 字符串解析为 `MiniscriptNode` 语义树，用于路径图可视化。
+
+**这不是一个完整的 Miniscript 验证器**，只是用于可视化的简化解析器。编译和验证由 `@bitcoinerlab/miniscript` 负责。
+
+**解析规则：**
+
+1. 先剥离所有 wrapper 前缀（`a:`, `s:`, `c:`, `d:`, `v:`, `j:`, `n:`, `l:`, `u:`, `t:`）
+2. 识别 fragment 名称和参数：
+  - `pk(name)` / `pk_k(name)` / `pk_h(name)` → `{ type: 'key', name }`
+  - `older(n)` → `{ type: 'older', blocks: n, humanReadable: blocksToHuman(n) }`
+  - `after(n)` → `{ type: 'after', value: n, humanReadable: afterToHuman(n) }`
+  - `sha256(h)` / `hash256(h)` / `ripemd160(h)` / `hash160(h)` → `{ type: 'hash', ... }`
+  - `and_v(X,Y)` / `and_b(X,Y)` / `and_n(X,Y)` → `{ type: 'and', children: [X, Y] }`
+  - `or_b(X,Z)` / `or_c(X,Z)` / `or_d(X,Z)` / `or_i(X,Z)` → `{ type: 'or', children: [X, Z] }`
+  - `andor(X,Y,Z)` → `{ type: 'or', children: [{ type: 'and', children: [X, Y] }, Z] }`
+  - `thresh(k,X1,...,Xn)` → `{ type: 'threshold', k, n, children: [...] }`
+  - `multi(k,key1,...,keyn)` → `{ type: 'multi', k, keys: [...] }`
+  - `multi_a(k,key1,...,keyn)` → 同上（Tapscript 版）
+  - `0` → `{ type: 'just_0' }`
+  - `1` → `{ type: 'just_1' }`
+3. 递归解析：使用括号匹配找到参数边界
+
+**解析器实现提示：**
+
+```typescript
+function parseMiniscript(expr: string): MiniscriptNode {
+  expr = expr.trim();
+
+  // 1. 剥离 wrapper 前缀
+  const wrapperRegex = /^([asdcvjntlu]):(.+)$/;
+  let match = wrapperRegex.exec(expr);
+  if (match) {
+    return parseMiniscript(match[2]);
+  }
+
+  // 2. 识别 fragment(args)
+  const fragmentMatch = /^(\w+)\((.+)\)$/.exec(expr);
+  if (!fragmentMatch) {
+    if (expr === '0') return { type: 'just_0' };
+    if (expr === '1') return { type: 'just_1' };
+    throw new Error(`无法解析: ${expr}`);
+  }
+
+  const name = fragmentMatch[1];
+  const argsStr = fragmentMatch[2];
+
+  // 3. 分割参数（注意括号嵌套）
+  const args = splitArgs(argsStr);
+
+  // 4. 根据 fragment 类型构建节点
+  switch (name) {
+    case 'pk': case 'pk_k': case 'pk_h':
+      return { type: 'key', name: args[0] };
+    case 'older':
+      return { type: 'older', blocks: parseInt(args[0]), humanReadable: blocksToHuman(parseInt(args[0])) };
+    case 'after':
+      return { type: 'after', value: parseInt(args[0]), humanReadable: afterToHuman(parseInt(args[0])) };
+    // ... sha256, hash256, ripemd160, hash160
+    case 'and_v': case 'and_b': case 'and_n':
+      return { type: 'and', children: args.map(parseMiniscript) };
+    case 'or_b': case 'or_c': case 'or_d': case 'or_i':
+      return { type: 'or', children: args.map(parseMiniscript) };
+    case 'andor':
+      return {
+        type: 'or',
+        children: [
+          { type: 'and', children: [parseMiniscript(args[0]), parseMiniscript(args[1])] },
+          parseMiniscript(args[2])
+        ]
+      };
+    case 'thresh':
+      const k = parseInt(args[0]);
+      return { type: 'threshold', k, n: args.length - 1, children: args.slice(1).map(parseMiniscript) };
+    case 'multi': case 'multi_a':
+      const mk = parseInt(args[0]);
+      return { type: 'multi', k: mk, keys: args.slice(1) };
+    default:
+      throw new Error(`未知 fragment: ${name}`);
+  }
+}
+
+function splitArgs(argsStr: string): string[] {
+  const args: string[] = [];
+  let depth = 0;
+  let current = '';
+  for (const ch of argsStr) {
+    if (ch === '(' ) depth++;
+    if (ch === ')') depth--;
+    if (ch === ',' && depth === 0) {
+      args.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  if (current.trim()) args.push(current.trim());
+  return args;
+}
+```
+
+### 6.4 时间工具函数
+
+```typescript
+function blocksToHuman(blocks: number): string {
+  if (blocks < 144) return `${blocks} 区块 (≈${Math.round(blocks * 10)} 分钟)`;
+  if (blocks < 1008) return `≈${Math.round(blocks / 144)} 天`;
+  if (blocks < 4320) return `≈${Math.round(blocks / 1008)} 周`;
+  if (blocks < 52560) return `≈${Math.round(blocks / 4320)} 月`;
+  return `≈${(blocks / 52560).toFixed(1)} 年`;
+}
+
+function afterToHuman(value: number): string {
+  if (value < 500000000) {
+    return `区块高度 #${value.toLocaleString()}`;
+  } else {
+    return new Date(value * 1000).toLocaleDateString('zh-CN');
+  }
+}
+
+// 滑块值 → 是否满足特定 older() 条件
+function isOlderSatisfied(olderValue: number, currentBlocks: number): boolean {
+  return currentBlocks >= olderValue;
+}
+
+// 滑块值 → 是否满足特定 after() 条件
+function isAfterSatisfied(afterValue: number, currentBlocks: number, referenceBlockHeight: number): boolean {
+  if (afterValue < 500000000) {
+    return (referenceBlockHeight + currentBlocks) >= afterValue;
+  }
+  const referenceTime = Math.floor(Date.now() / 1000);
+  const elapsedSeconds = currentBlocks * 600;
+  return (referenceTime + elapsedSeconds) >= afterValue;
+}
+```
+
+### 6.5 CodeMirror 语法高亮规格
+
+**MVP 实现方式**：使用 CodeMirror 的 `StreamLanguage.define()` + 正则 tokenizer 实现。不使用 `@lezer/lr` 语法定义。V2 再升级为完整 Lezer 语法（见 §11 路线图）。
+
+```typescript
+import { StreamLanguage } from '@codemirror/language';
+
+const policyLanguage = StreamLanguage.define({
+  token(stream, state) {
+    // 注释
+    if (stream.match(/\/\/.*/)) return 'comment';
+    // 概率/权重标注：99@
+    if (stream.match(/\d+@/)) return 'meta';
+    // 关键字
+    if (stream.match(/\b(pk|pkh|and|or|thresh|older|after|sha256|hash256|ripemd160|hash160)\b/))
+      return 'keyword';
+    // 十六进制 hash 值（40 或 64 字符）
+    if (stream.match(/[0-9a-fA-F]{40,64}/)) return 'string';
+    // 数字
+    if (stream.match(/\d+/)) return 'number';
+    // 标识符（变量名）
+    if (stream.match(/[A-Za-z_]\w*/)) return 'variableName';
+    // 括号、逗号
+    if (stream.match(/[(),]/)) return 'punctuation';
+    // 空白
+    if (stream.eat(/\s/)) return null;
+    // 未识别字符
+    stream.next();
+    return 'invalid';
+  },
+  startState() { return {}; },
+});
+```
+
+**Token 颜色映射（在 CodeMirror theme 中配置）：**
+
+| Token 类型       | 匹配规则                                                                                              | 颜色                         |
+| -------------- | ------------------------------------------------------------------------------------------------- | -------------------------- |
+| keyword        | `pk`, `pkh`, `and`, `or`, `thresh`, `older`, `after`, `sha256`, `hash256`, `ripemd160`, `hash160` | `--orange-400`             |
+| variableName   | `pk(...)` 括号内的标识符                                                                                 | `--semantic-key` 暖金        |
+| number         | `older(数字)`, `after(数字)`, `thresh(数字,...)`                                                        | `--orange-300`             |
+| meta           | `99@`                                                                                             | `--text-muted` 斜体          |
+| string         | 64 或 40 字符的十六进制串                                                                                  | `--semantic-hashlock` 柔紫   |
+| punctuation    | `(`, `)`, `,`                                                                                     | `--text-secondary`         |
+| comment        | `//` 到行尾                                                                                          | `--text-muted` 斜体          |
+| invalid        | 无法识别的 token                                                                                       | `--semantic-warning` 红色下划线 |
+
+
+### 6.6 友好错误信息映射
+
+
+| 错误模式                             | 中文友好信息                                                                        |
+| -------------------------------- | ----------------------------------------------------------------------------- |
+| "Unknown fragment" 或 parse error | 策略语法错误：无法识别 '{name}'。可用的函数有：pk()、older()、after()、sha256()、and()、or()、thresh() |
+| 括号不匹配                            | 括号不匹配，请检查是否遗漏了 ')'                                                            |
+| Timelock 混用                      | 时间锁冲突：同一条花费路径中不能同时使用区块高度和时间戳类型的时间锁                                            |
+| 无签名路径                            | ⚠️ 安全警告：存在不需要任何签名就能花费的路径，这意味着任何人都可能花掉这笔钱                                      |
+| Script 超过大小限制                    | 脚本大小超过 {context} 限制（{size} 字节 > {limit} 字节）                                   |
+| thresh k > n                     | thresh 的阈值 k={k} 不能大于条件数量 n={n}                                               |
+| older(0) 或 after(0)              | 时间锁的值不能为 0                                                                    |
+
+### 6.7 错误与空状态行为
+
+定义所有异常和边界场景下的 UI 行为，确保用户始终有清晰的视觉反馈。
+
+**编译失败时：**
+
+- 编辑器下方显示红色错误消息（使用 §6.6 映射后的友好中文信息）
+- **保留上一次成功编译的路径图和右栏结果**，不清空
+- 路径图上方的状态横幅切换为琥珀色，显示"⚠️ Policy 有语法错误，显示的是上一次成功编译的结果"
+- 右栏 Tab 内容保持上次成功结果，Tab 标题旁显示小的"旧"标签（`--text-muted` 色）
+- 如果从未成功编译过（比如首次输入就错误），则中栏和右栏均显示空状态（见下方）
+
+**空白 Playground（无 Policy 输入）：**
+
+- 编辑器区域显示 placeholder 文本：`"输入 Policy 语言，例如: and(pk(Alice),pk(Bob))"`（`--text-muted` 色）
+- 中栏路径图区域显示居中引导提示：
+  ```
+  ┌─────────────────────────────────────────┐
+  │                                         │
+  │   📝 在左侧输入 Policy 或选择一个场景     │
+  │      开始探索 Bitcoin 花费路径             │
+  │                                         │
+  └─────────────────────────────────────────┘
+  ```
+  背景 `--bg-surface`，文字 `--text-secondary`，圆角 12px，虚线边框 `--bg-overlay`
+- 右栏显示空状态，各 Tab 内容区域显示 "等待编译结果..."
+
+**satisfier 返回 0 条路径：**
+
+- 中栏路径图正常渲染语义树，但所有叶子节点显示为灰色（未满足）
+- 路径卡片区域显示提示："此 Policy 无可用花费路径。所有路径当前条件下不可满足。"
+- 状态横幅显示红色："❌ 当前条件下无法花费"
+
+**首次进入 Playground（无场景参数 ?scenario=…）：**
+
+- 加载空白 Playground（同上述"空白 Playground"状态）
+- 左栏场景选择区域高亮显示，带脉冲动画引导用户选择场景或手动输入
+
+
+---
+
+## 7. 场景数据
+
+### 7.1 六个 MVP 场景
+
+**场景 1: 个人单签**
+
+```typescript
+{
+  id: 'single-key',
+  icon: 'Key',
+  title: { zh: '个人单签', en: 'Single Key' },
+  description: {
+    zh: '只有你一个人可以花这笔钱。最简单的情况。',
+    en: 'Only you can spend. The simplest case.'
+  },
+  explanation: {
+    zh: '这是最基础的比特币花费条件：一把私钥对应一个公钥，用这把私钥签名就能花费。优点是简单，缺点是私钥丢了就永远无法恢复。',
+    en: 'The most basic Bitcoin spending condition...'
+  },
+  policy: 'pk(Alice)',
+  keyVariables: [
+    { name: 'Alice', policyName: 'Alice', publicKey: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798' }
+  ],
+  context: 'wsh',
+}
+```
+
+**场景 2: 2-of-3 多签**
+
+```typescript
+{
+  id: 'multisig-2of3',
+  icon: 'Users',
+  title: { zh: '2-of-3 多签', en: '2-of-3 Multisig' },
+  description: {
+    zh: '三把钥匙，任意两把就能花。适合团队或家庭共管。',
+    en: 'Three keys, any two can spend. Great for teams or families.'
+  },
+  explanation: {
+    zh: '经典的多签方案。三个参与者各持一把私钥，任意两人合作即可花费资金。常用于公司金库、家庭共管账户等场景。即使丢了一把钥匙，另外两把仍然可以恢复资金。',
+    en: '...'
+  },
+  policy: 'thresh(2,pk(Alice),pk(Bob),pk(Charlie))',
+  keyVariables: [
+    { name: 'Alice', policyName: 'Alice', publicKey: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798' },
+    { name: 'Bob', policyName: 'Bob', publicKey: '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5' },
+    { name: 'Charlie', policyName: 'Charlie', publicKey: '02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9' },
+  ],
+  context: 'wsh',
+}
+```
+
+**场景 3: 2FA + 超时恢复**
+
+```typescript
+{
+  id: '2fa-recovery',
+  icon: 'ShieldCheck',
+  title: { zh: '2FA + 超时恢复', en: '2FA with Timeout Recovery' },
+  description: {
+    zh: '平时双重验证花费；服务商失联 30 天后你可以自己恢复。',
+    en: 'Two-factor to spend normally; self-recovery after 30 days if service goes offline.'
+  },
+  explanation: {
+    zh: '日常花费需要你和 2FA 服务商同时签名（双保险）。但如果服务商倒闭或失联，等待 30 天（约 4,320 个区块）后，你可以独自签名恢复资金。Policy 中的 99@ 是编译器优化提示，不影响实际花费逻辑。',
+    en: '...'
+  },
+  policy: 'and(pk(User),or(99@pk(Service),older(4320)))',
+  keyVariables: [
+    { name: 'User', policyName: 'User', publicKey: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798' },
+    { name: 'Service', policyName: 'Service', publicKey: '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5' },
+  ],
+  context: 'wsh',
+}
+```
+
+**场景 4: 遗产继承**
+
+```typescript
+{
+  id: 'inheritance',
+  icon: 'Heart',
+  title: { zh: '遗产继承', en: 'Inheritance Plan' },
+  description: {
+    zh: '平时你自己花；一年不活跃后，继承人也能花。',
+    en: 'You spend normally; after 1 year of inactivity, your heir can access funds.'
+  },
+  explanation: {
+    zh: '这是一个简单的继承方案：你随时可以用自己的私钥花费资金。但如果你有 1 年（约 52,560 个区块）没有移动这笔 UTXO，继承人就获得花费权。注意：你需要每年至少"刷新"一次（把钱转给自己的新地址），以重置计时器。',
+    en: '...'
+  },
+  policy: 'or(99@pk(Owner),and(pk(Heir),older(52560)))',
+  keyVariables: [
+    { name: 'Owner', policyName: 'Owner', publicKey: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798' },
+    { name: 'Heir', policyName: 'Heir', publicKey: '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5' },
+  ],
+  context: 'wsh',
+}
+```
+
+**场景 5: 退化多签金库**
+
+```typescript
+{
+  id: 'degrading-multisig',
+  icon: 'Vault',
+  title: { zh: '退化多签金库', en: 'Degrading Multisig Vault' },
+  description: {
+    zh: '平时 3-of-3 全员签名；90 天后降级为 2-of-3。',
+    en: '3-of-3 normally; degrades to 2-of-3 after 90 days.'
+  },
+  explanation: {
+    zh: '这是一个巧妙的策略：正常情况下需要三个管理员全部签名（最安全）。但如果其中一人失联超过 90 天（约 12,960 个区块），剩余两人即可花费。thresh(3,...) 配合 older() 实现了"时间锁当作第四把钥匙"的效果。',
+    en: '...'
+  },
+  policy: 'thresh(3,pk(Alice),pk(Bob),pk(Charlie),older(12960))',
+  keyVariables: [
+    { name: 'Alice', policyName: 'Alice', publicKey: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798' },
+    { name: 'Bob', policyName: 'Bob', publicKey: '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5' },
+    { name: 'Charlie', policyName: 'Charlie', publicKey: '02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9' },
+  ],
+  context: 'wsh',
+}
+```
+
+**场景 6: 保险柜 (Hot + Cold)**
+
+```typescript
+{
+  id: 'vault-hot-cold',
+  icon: 'Lock',
+  title: { zh: '保险柜', en: 'Hot + Cold Vault' },
+  description: {
+    zh: '日常热钱包 + 冷钱包双签；紧急情况下恢复密钥 120 天后介入。',
+    en: 'Hot + Cold dual-sign daily; recovery key kicks in after 120 days.'
+  },
+  explanation: {
+    zh: '双层安全设计：日常使用需要热钱包和冷钱包同时签名。如果冷钱包丢失或损坏，恢复密钥在 120 天（约 17,280 个区块）后可以独立花费。99@ 表示正常双签路径更常用。',
+    en: '...'
+  },
+  policy: 'or(99@and(pk(Hot),pk(Cold)),and(pk(Recovery),older(17280)))',
+  keyVariables: [
+    { name: 'Hot', policyName: 'Hot', publicKey: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798' },
+    { name: 'Cold', policyName: 'Cold', publicKey: '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5' },
+    { name: 'Recovery', policyName: 'Recovery', publicKey: '02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9' },
+  ],
+  context: 'wsh',
+}
+```
+
+### 7.2 默认测试密钥
+
+MVP 使用固定的测试压缩公钥（取自 Bitcoin 的 Generator Point 及其衍生）：
+
+```typescript
+const DEFAULT_TEST_KEYS: Record<string, string> = {
+  Alice:    '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+  Bob:      '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5',
+  Charlie:  '02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9',
+  User:     '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+  Service:  '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5',
+  Owner:    '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+  Heir:     '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5',
+  Hot:      '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+  Cold:     '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5',
+  Recovery: '02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9',
+};
+```
+
+---
+
+## 8. 术语表与 i18n
+
+### 8.1 核心术语表
+
+```typescript
+const GLOSSARY: Record<string, { zh: string; en: string; explain_zh: string; explain_en: string }> = {
+  'pk': {
+    zh: '公钥签名', en: 'Public Key',
+    explain_zh: '要求指定公钥对应的私钥进行签名。这是最基本的花费条件。',
+    explain_en: 'Requires a signature from the specified public key.'
+  },
+  'older': {
+    zh: '相对时间锁', en: 'Relative Timelock',
+    explain_zh: '从 UTXO 被创建开始算，必须等待指定数量的区块后才能花费。常用于恢复路径、惩罚窗口等。不是固定日期——每次你重新花费到新地址，计时器就会重置。',
+    explain_en: 'Must wait a specified number of blocks after the UTXO is created before spending.'
+  },
+  'after': {
+    zh: '绝对时间锁', en: 'Absolute Timelock',
+    explain_zh: '必须等到指定的区块高度或日期之后才能花费。与 older 不同，这是一个固定的截止点，不会因为转账而重置。',
+    explain_en: 'Cannot spend until a specific block height or date is reached.'
+  },
+  'and': {
+    zh: '且（AND）', en: 'AND',
+    explain_zh: '所有子条件都必须同时满足才能花费。',
+    explain_en: 'All sub-conditions must be satisfied simultaneously.'
+  },
+  'or': {
+    zh: '或（OR）', en: 'OR',
+    explain_zh: '满足任意一个子条件即可花费。可以用 N@ 标注分支权重提示（仅用于编译优化，不影响花费逻辑）。',
+    explain_en: 'Any one sub-condition is sufficient to spend.'
+  },
+  'thresh': {
+    zh: '阈值条件', en: 'Threshold',
+    explain_zh: 'N 个条件中需要满足 K 个。多签是最常见的例子，但条件不限于签名——时间锁也可以作为其中一个条件。',
+    explain_en: 'K out of N conditions must be met.'
+  },
+  'sha256': {
+    zh: 'SHA256 哈希锁', en: 'SHA256 Hash Lock',
+    explain_zh: '需要揭示一个 32 字节的原像（preimage），其 SHA256 哈希值等于指定值。常用于原子交换和闪电网络 HTLC。',
+    explain_en: 'Requires revealing a 32-byte preimage whose SHA256 hash matches.'
+  },
+  'descriptor': {
+    zh: '输出描述符', en: 'Output Descriptor',
+    explain_zh: '描述一类比特币输出的模板。包含脚本类型（如 wsh、tr）和具体的 Miniscript。可以从描述符直接推导出地址。',
+    explain_en: 'A template describing a class of Bitcoin outputs.'
+  },
+  'satisfaction': {
+    zh: '满足条件', en: 'Satisfaction',
+    explain_zh: '能够解锁脚本、花费资金的一组见证数据（签名、原像、时间锁等）。一个脚本可能有多种满足方式，对应不同的花费路径。',
+    explain_en: 'A set of witness data that unlocks the script.'
+  },
+  'witness': {
+    zh: '见证数据', en: 'Witness',
+    explain_zh: '花费交易中附带的数据，用于证明你有权花费这笔钱。包括签名、公钥、哈希原像等。见证数据的大小直接影响交易手续费。',
+    explain_en: 'Data attached to a spending transaction proving authorization.'
+  },
+  'non-malleable': {
+    zh: '不可延展', en: 'Non-malleable',
+    explain_zh: '见证数据无法被第三方修改为另一种有效形式。使用不可延展的满足方式可以防止攻击者篡改你的交易大小和费率。',
+    explain_en: 'The witness cannot be modified into another valid form by a third party.'
+  },
+  'miniscript': {
+    zh: 'Miniscript', en: 'Miniscript',
+    explain_zh: '一种结构化的比特币脚本子集表示法。它让复杂的花费条件变得可分析、可组合、可预测。Policy 编译后得到 Miniscript，Miniscript 再编码为真正的 Bitcoin Script。',
+    explain_en: 'A structured representation of a subset of Bitcoin Script.'
+  },
+  'policy': {
+    zh: '策略语言', en: 'Policy Language',
+    explain_zh: '一种高层级、人类可读的语言，用于描述花费条件。比 Miniscript 更简洁易懂，编译器会自动将其优化为最经济的 Miniscript。',
+    explain_en: 'A high-level, human-readable language for describing spending conditions.'
+  },
+};
+```
+
+### 8.2 UI 文本 i18n
+
+使用简单的 React Context + JSON 文件方案（不用 next-intl，降低复杂度）：
+
+```typescript
+// src/i18n/zh.json (部分示例)
+{
+  "nav.scenarios": "场景",
+  "nav.playground": "Playground",
+  "nav.compare": "对比",
+  "header.language": "中/EN",
+  "header.theme.light": "亮色",
+  "header.theme.dark": "暗色",
+  "scenarios.title": "₿ Miniscript Lab",
+  "scenarios.subtitle": "把 Bitcoin 的花费条件讲清楚",
+  "scenarios.openBlank": "打开空白 Playground →",
+  "playground.editor.title": "Policy 编辑器",
+  "playground.editor.placeholder": "在这里输入策略，例如：pk(Alice)",
+  "playground.editor.compile": "编译",
+  "playground.editor.format": "格式化",
+  "playground.editor.clear": "清空",
+  "playground.editor.copy": "复制",
+  "playground.editor.share": "分享",
+  "playground.keys.title": "🔑 角色变量",
+  "playground.keys.add": "添加",
+  "playground.keys.random": "🎲 随机",
+  "playground.keys.restore": "恢复默认",
+  "playground.context.title": "脚本上下文",
+  "playground.context.wsh": "SegWit v0 (P2WSH)",
+  "playground.context.tr": "Taproot",
+  "playground.pathmap.title": "花费路径地图",
+  "playground.conditions.title": "条件模拟",
+  "playground.timeslider.label": "时间流逝",
+  "playground.timeslider.blocks": "区块",
+  "playground.timeslider.current": "当前: 第 {blocks} 区块 ≈ {human}",
+  "playground.status.canSpend": "✅ 可花费: {path}",
+  "playground.status.waiting": "⏳ 还需等待 {time}，{path}才可用",
+  "playground.status.cannotSpend": "❌ 当前条件下无法花费，还缺 {missing}",
+  "playground.results.policy": "Policy",
+  "playground.results.miniscript": "Miniscript",
+  "playground.results.script": "Script",
+  "playground.results.descriptor": "Descriptor",
+  "playground.results.address": "Address",
+  "playground.results.paths": "花费路径",
+  "playground.results.warnings": "警告",
+  "playground.results.explain": "这是什么？",
+  "playground.stack.title": "▲ 栈机模拟器",
+  "playground.stack.comingSoon": "Coming Soon"
+}
+```
+
+---
+
+## 9. 技术栈与项目结构
+
+### 9.1 技术栈
+
+
+| 类别         | 选型                                | 版本                   | 说明                                                          |
+| ---------- | --------------------------------- | -------------------- | ----------------------------------------------------------- |
+| 框架         | Next.js (App Router)              | latest               | SSR + SEO + 分享预览                                            |
+| 语言         | TypeScript                        | strict mode          | 全项目强类型                                                      |
+| 样式         | Tailwind CSS                      | v4                   | 工具类优先                                                       |
+| UI 组件      | shadcn/ui                         | latest               | 按需引入，不是完整库                                                  |
+| 编辑器        | CodeMirror 6                      | latest               | @codemirror/state + @codemirror/view + @codemirror/language |
+| 路径图        | @xyflow/react (React Flow v12)    | latest               | 节点/边交互                                                      |
+| 图布局        | dagre                             | latest               | 自动 TB 布局                                                    |
+| 动画         | framer-motion                     | latest               | 状态过渡动画                                                      |
+| 状态管理       | zustand                           | latest               | 轻量 store                                                    |
+| 图标         | lucide-react                      | latest               | 统一图标库                                                       |
+| Miniscript | @bitcoinerlab/miniscript          | latest               | 编译 + satisfier                                              |
+| Policy 编译  | @bitcoinerlab/miniscript-policies | latest               | Policy → Miniscript                                         |
+| Descriptor | @bitcoinerlab/descriptors         | latest               | descriptor 解析 + 地址生成                                        |
+| 比特币基础库    | bitcoinjs-lib                     | latest               | @bitcoinerlab/descriptors 的底层依赖，提供网络定义和脚本编码              |
+| 字体         | Plus Jakarta Sans + IBM Plex Mono | via next/font/google |                                                             |
+
+
+**不使用的：**
+
+- next-intl（太重，自建简单 i18n）
+- Redux（太重，用 zustand）
+- D3.js（用 React Flow 代替）
+- Styled Components / CSS Modules（用 Tailwind）
+
+### 9.2 项目结构
+
+```
+miniscript-lab/
+├── public/
+│   └── og-image.png                        # Open Graph 预览图
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx                       # 根布局（字体、主题、i18n Provider）
+│   │   ├── page.tsx                         # 首页：场景画廊
+│   │   ├── playground/
+│   │   │   └── page.tsx                     # Playground 页
+│   │   └── globals.css                      # Tailwind 入口 + CSS 变量
+│   │
+│   ├── components/
+│   │   ├── ui/                              # shadcn/ui 组件（按需生成）
+│   │   │   ├── button.tsx
+│   │   │   ├── tabs.tsx
+│   │   │   ├── slider.tsx
+│   │   │   ├── toggle.tsx
+│   │   │   ├── tooltip.tsx
+│   │   │   ├── select.tsx
+│   │   │   ├── sheet.tsx                    # 移动端侧边栏
+│   │   │   └── ...
+│   │   │
+│   │   ├── layout/
+│   │   │   ├── Header.tsx                   # 顶部导航
+│   │   │   ├── ThreeColumnLayout.tsx        # 三栏布局容器
+│   │   │   └── BottomDrawer.tsx             # 底部抽屉（V2 栈机）
+│   │   │
+│   │   ├── scenarios/
+│   │   │   ├── ScenarioGallery.tsx          # 场景卡片网格
+│   │   │   └── ScenarioCard.tsx             # 单个场景卡片
+│   │   │
+│   │   ├── editor/
+│   │   │   ├── PolicyEditor.tsx             # CodeMirror 编辑器封装
+│   │   │   ├── policy-language.ts           # CM6 语言定义（高亮 + 补全）
+│   │   │   ├── KeyVariableManager.tsx       # 角色变量管理面板
+│   │   │   └── ContextSelector.tsx          # P2WSH / Taproot 选择
+│   │   │
+│   │   ├── pathmap/
+│   │   │   ├── PathMap.tsx                  # React Flow 路径图容器
+│   │   │   ├── nodes/
+│   │   │   │   ├── ConditionNode.tsx        # 条件节点（签名/时间/哈希）
+│   │   │   │   ├── OperatorNode.tsx         # AND/OR/Threshold 节点
+│   │   │   │   └── RootNode.tsx             # 根节点
+│   │   │   ├── edges/
+│   │   │   │   └── PathEdge.tsx             # 自定义边样式
+│   │   │   ├── TimeSlider.tsx               # 时间旅行滑块
+│   │   │   ├── ConditionToggles.tsx         # 条件开关面板
+│   │   │   ├── StatusBanner.tsx             # 当前状态结论横幅
+│   │   │   └── tree-to-flow.ts             # MiniscriptNode → React Flow 转换
+│   │   │
+│   │   ├── results/
+│   │   │   ├── ResultPanel.tsx              # 右栏 Tab 面板容器
+│   │   │   ├── tabs/
+│   │   │   │   ├── PolicyTab.tsx
+│   │   │   │   ├── MiniscriptTab.tsx
+│   │   │   │   ├── ScriptTab.tsx
+│   │   │   │   ├── DescriptorTab.tsx
+│   │   │   │   ├── AddressTab.tsx
+│   │   │   │   ├── PathsTab.tsx             # 花费路径列表
+│   │   │   │   └── WarningsTab.tsx
+│   │   │   └── ExplainPopover.tsx           # "这是什么？" 弹窗
+│   │   │
+│   │   └── shared/
+│   │       ├── GlossaryTooltip.tsx          # 术语悬停提示
+│   │       ├── CopyButton.tsx               # 复制到剪贴板
+│   │       ├── CodeBlock.tsx                # 等宽代码展示块
+│   │       └── ConditionChip.tsx            # 条件 chip 组件
+│   │
+│   ├── lib/
+│   │   ├── engine/
+│   │   │   ├── compiler.ts                  # 编译管线封装
+│   │   │   ├── path-analyzer.ts             # satisfier 输出 → SpendingPath[]
+│   │   │   ├── miniscript-parser.ts         # Miniscript string → MiniscriptNode tree
+│   │   │   ├── time-utils.ts                # 时间锁编码/解码/人类可读转换
+│   │   │   ├── descriptor-utils.ts          # descriptor + address 构建
+│   │   │   └── types.ts                     # 所有 TypeScript 类型（§5 的内容）
+│   │   │
+│   │   ├── scenarios/
+│   │   │   └── data.ts                      # 6 个场景的完整数据
+│   │   │
+│   │   ├── glossary/
+│   │   │   └── data.ts                      # 术语表数据
+│   │   │
+│   │   ├── i18n/
+│   │   │   ├── context.tsx                  # LocaleContext + Provider
+│   │   │   ├── zh.ts                        # 中文翻译
+│   │   │   ├── en.ts                        # 英文翻译
+│   │   │   └── useTranslation.ts            # useT() hook
+│   │   │
+│   │   └── utils/
+│   │       ├── share.ts                     # URL 编码/解码分享链接
+│   │       └── storage.ts                   # localStorage 读写封装
+│   │
+│   ├── stores/
+│   │   └── playground-store.ts              # Zustand store（§5.1 PlaygroundState）
+│   │
+│   └── hooks/
+│       ├── useCompiler.ts                   # 编译 hook（防抖 + 错误处理）
+│       ├── usePathAnalysis.ts               # 路径分析 hook
+│       └── useShareUrl.ts                   # 分享链接 hook
+│
+├── tailwind.config.ts                       # Tailwind 配置（含 §2.2 色彩变量）
+├── tsconfig.json
+├── next.config.ts
+├── package.json
+└── README.md
+```
+
+---
+
+## 10. 实施顺序与验收标准
+
+### Phase 1: 基础设施（Day 1 上午）
+
+**任务：**
+
+1. `npx create-next-app@latest miniscript-lab --typescript --tailwind --eslint --app --src-dir`
+2. 安装所有依赖（见 §9.1）
+3. 配置 Tailwind（§2.2 色彩变量写入 globals.css + tailwind.config.ts）
+4. 加载字体（Plus Jakarta Sans + IBM Plex Mono）
+5. 初始化 shadcn/ui（`npx shadcn@latest init`，选 New York 风格，配色用自定义）
+6. 创建 Header 组件（Logo + 导航 + 语言切换 + 主题切换）
+7. 创建根布局（`layout.tsx`）
+8. 设置 i18n Context + Provider
+
+**验收标准：**
+
+- `npm run dev` 启动成功，无报错
+- 页面显示 Header，深色主题，比特币橙点缀色
+- 字体正确加载（Plus Jakarta Sans 正文，IBM Plex Mono 代码）
+- 导航可点击（场景 / Playground 路由切换正常）
+- 语言切换按钮可切换中/英
+- 亮/暗模式切换正常
+
+### Phase 2: 引擎核心（Day 1 下午）
+
+**任务：**
+
+1. 创建 `src/lib/engine/types.ts`（§5 全部类型定义）
+2. 创建 `src/lib/engine/compiler.ts`：
+  - 封装 `compilePolicy()` + `compileMiniscript()` + `satisfier()`
+  - 实现 key 变量替换逻辑
+  - 实现友好错误信息映射（§6.6）
+3. 创建 `src/lib/engine/path-analyzer.ts`（§6.2）
+4. 创建 `src/lib/engine/miniscript-parser.ts`（§6.3）
+5. 创建 `src/lib/engine/time-utils.ts`（§6.4）
+6. 创建 `src/lib/scenarios/data.ts`（§7 全部场景数据）
+7. 创建 `src/lib/glossary/data.ts`（§8.1 术语表数据）
+
+**验收标准：**
+
+- `compiler.compile('pk(Alice)', [{name:'Alice', publicKey:'02...'}], 'wsh')` 返回正确的 CompilationResult
+- `compiler.compile('and(pk(User),or(99@pk(Service),older(4320)))', ...)` 返回至少 2 条花费路径
+- `parseMiniscript('and_v(v:pk(A),or_d(pk(B),older(4320)))')` 返回正确的语义树
+- `blocksToHuman(4320)` 返回 "≈30 天" 或等价表述
+- 不合法的 Policy 输入返回友好中文错误信息
+- 所有 6 个场景的 Policy 都能成功编译
+
+### Phase 3: 场景画廊页（Day 2 上午）
+
+**任务：**
+
+1. 创建 ScenarioCard 组件
+2. 创建 ScenarioGallery 组件
+3. 实现首页（`src/app/page.tsx`）
+
+**验收标准：**
+
+- 首页显示 6 张场景卡片，3 列网格布局
+- 每张卡片有：顶部色条、图标、中文标题、一句话描述、条件类型 tag
+- hover 效果：上移 + 阴影
+- 点击卡片导航到 `/playground?scenario=<id>`
+- "打开空白 Playground" 按钮导航到 `/playground`
+- 响应式：平板 2 列，手机 1 列
+
+### Phase 4: Playground 基础框架（Day 2 下午）
+
+**任务：**
+
+1. 创建 ThreeColumnLayout 组件（左/中/右三栏 + 折叠功能）
+2. 创建 Zustand store（`playground-store.ts`）
+3. 实现 Playground 页框架（`src/app/playground/page.tsx`）
+4. 实现从 URL 参数加载场景逻辑
+
+**验收标准：**
+
+- `/playground` 显示三栏布局，比例约 25%/50%/25%
+- 左右栏可折叠，折叠后中栏扩展
+- `/playground?scenario=2fa-recovery` 自动加载对应场景
+- 最小宽度 1024px 时三栏正常显示
+
+### Phase 5: Policy 编辑器（Day 3 上午）
+
+**任务：**
+
+1. 创建 policy-language.ts（CodeMirror 6 语法高亮）
+2. 创建 PolicyEditor 组件
+3. 创建 KeyVariableManager 组件
+4. 创建 ContextSelector 组件
+5. 实现编辑 → 编译 → 更新 store 的数据流
+
+**验收标准：**
+
+- 编辑器显示 Policy 源码，有语法高亮（关键字橙色、变量金色、数字浅橙）
+- 输入 500ms 后自动编译，结果写入 store
+- 编译错误在编辑器下方显示中文友好消息
+- Key 变量管理：可添加/删除/编辑，支持随机生成测试密钥
+- 上下文选择：P2WSH 为默认值，Taproot 选项显示 "Coming Soon" 且不可选择
+- [格式化] [清空] [复制] 按钮功能正常
+
+### Phase 6: 花费路径图（Day 3 下午 - Day 4）
+
+**这是最重要也最复杂的步骤。**
+
+**任务：**
+
+1. 创建 tree-to-flow.ts（MiniscriptNode → React Flow nodes/edges 转换）
+2. 创建 ConditionNode、OperatorNode、RootNode 自定义节点组件
+3. 创建 PathEdge 自定义边组件
+4. 创建 PathMap 容器组件（React Flow + Dagre 布局）
+5. 创建 ConditionToggles 组件
+6. 创建 TimeSlider 组件
+7. 创建 StatusBanner 组件
+8. 连接 store：toggle/slider 变化 → 重新计算路径可满足性 → 更新图节点状态
+
+**验收标准：**
+
+- 编译成功后中栏显示路径图，节点使用 Dagre 自动布局
+- 节点样式：签名=暖金，时间锁=橙色，哈希=紫色
+- AND 节点显示 "都需要"，OR 节点显示 "任选一"，thresh 显示 "k-of-n"
+- 条件开关根据 Policy 中的 key/hash 自动生成
+- 切换签名开关 → 对应 key 节点状态变化（绿/灰）→ 路径可满足性更新
+- 时间滑块拖动 → 时间锁节点状态变化 → 路径可满足性更新
+- 状态横幅显示当前结论（✅/⏳/❌）
+- 时间滑块在每个 timelock 值处有刻度标记
+- 时间显示双格式：区块数 + 人类时间
+- 6 个场景全部能正确渲染路径图
+
+### Phase 7: 结果面板（Day 4 下午）
+
+**任务：**
+
+1. 创建 ResultPanel + 各 Tab 组件
+2. 创建 PathsTab（花费路径卡片列表）
+3. 创建 ExplainPopover（微教学弹窗）
+4. 创建 CodeBlock 共享组件（等宽代码 + 复制按钮）
+
+**验收标准：**
+
+- 右栏 Tab 面板：7 个 Tab 可切换
+- 默认显示 "花费路径" Tab
+- 每条路径显示为卡片：路径名、条件 chips、成本估算、满足状态
+- Policy / Miniscript / Script Tab 显示等宽代码 + 复制按钮
+- Descriptor Tab 显示完整描述符
+- Address Tab 显示 testnet 地址 + 网络标注
+- 每个 Tab 标签旁 `?` 按钮点击显示中文解释
+- Warnings Tab 显示安全/有效性警告
+
+### Phase 8: 分享与持久化（Day 5 上午）
+
+**任务：**
+
+1. 实现 URL 分享编码/解码（`src/lib/utils/share.ts`）
+2. 实现 localStorage 持久化（`src/lib/utils/storage.ts`）
+3. 编辑器工具栏 [分享🔗] 按钮功能
+
+**分享 URL 格式：**
+
+```
+/playground?s=<base64(JSON.stringify({ policy, keyVariables, context, network }))>
+```
+
+**验收标准：**
+
+- 点击 [分享] 按钮 → 生成 URL 到剪贴板
+- 打开分享 URL → Playground 恢复完整状态（Policy + keys + context）
+- 关闭再打开浏览器 → 最后编辑的 Policy 自动恢复
+- localStorage 只保存公钥数据，不保存任何私钥
+
+### Phase 9: i18n 与术语（Day 5 上午）
+
+**任务：**
+
+1. 实现 i18n Context + useTranslation hook
+2. 将所有硬编码中文替换为 i18n key
+3. 实现 GlossaryTooltip 组件
+4. 在编辑器和路径图中集成术语提示
+
+**验收标准：**
+
+- 切换到 EN → 所有 UI 文字变为英文
+- 切换回中文 → 所有 UI 文字变为中文
+- 悬停在 Miniscript Tab 旁 `?` → 显示 Miniscript 的中/英文解释
+- 悬停在路径图中的 `older(4320)` 节点 → tooltip 显示 "相对时间锁: UTXO 创建后等约 30 天"
+
+### Phase 10: 最终打磨（Day 5 下午）
+
+**任务：**
+
+1. 路径图动画：节点状态变化时用 framer-motion 做颜色过渡
+2. 移动端基础适配：Header 响应式、场景页适配、Playground 提示"请使用桌面端"
+3. 底部抽屉占位（"Coming Soon" 文字）
+4. 对比模式占位页（`/compare`，显示 "Coming Soon"）
+5. OG 图片 + meta tags（分享预览）
+6. README.md
+
+**验收标准：**
+
+- 路径图节点状态变化有平滑过渡动画（300ms）
+- 手机端访问场景页正常显示
+- 手机端访问 Playground 显示提示
+- `/compare` 显示 Coming Soon 页面
+- 分享到社交媒体有正确的预览图和描述
+
+---
+
+## 11. V2 路线图（MVP 之后）
+
+按优先级排列，仅供参考，不在 MVP 实施范围内：
+
+1. **栈机模拟器** -- 底部抽屉展开，逐步执行选中路径的 Bitcoin Script
+2. **对比模式** -- 并排双 Playground + 共享时间轴 + diff 视图
+3. **Taproot 完整支持** -- P2TR descriptor / x-only 公钥格式 / `multi_a` / 脚本树可视化（script path tree）
+4. **交互式课程** -- 渐进式教程 + 小测验 + 进度追踪
+5. **移动端阅读页** -- 场景浏览 + 教程 + 分享 + 结果查看
+6. **Lift / 反向分析** -- Script → Miniscript → Policy
+7. **图形节点编辑器** -- 拖拽式策略构建
+8. **导出代码** -- 生成 bitcoinjs-lib / BDK 代码片段
+9. **CodeMirror 完整 Lezer 语法** -- 替换 StreamLanguage 正则 tokenizer 为基于 @lezer/lr 的完整语法定义
+10. **rust-miniscript WASM 引擎** -- 替换 JS 引擎为最权威实现
+
+---
+
+## 12. 避坑清单
+
+1. **不要一上来让用户写 Miniscript** -- 默认入口是场景卡片或 Policy 编辑器
+2. **不要引入任何 LLM API 依赖** -- 所有功能（编译、分析、可视化、解释文字）均为确定性实现，不调用外部 AI 服务
+3. **不要默认展示太多底层细节** -- Miniscript/Script/ASM 全部在 Tab 里
+4. **不要把栈机做成首页英雄位** -- 先看懂路径，再看 opcode 执行
+5. **不要从零写 Bitcoin Script 执行器** -- 先由引擎算出 witness，再做教学可视化
+6. **不要支持私钥 / 助记词** -- 只碰公钥、测试 key、testnet
+7. **不要把"图"误当成"理解"** -- 理解来自状态变化和分支解释
+8. **不要默认图形节点编辑器** -- 新手容易迷失
+9. **不要在任何功能中引入 AI/LLM** -- 编译/类型检查/sanity/satisfaction/解释文字全部确定性实现，无需网络请求
+10. **不要生成 mainnet 地址** -- 教育工具只用 testnet/regtest/signet
+
