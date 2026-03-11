@@ -7,12 +7,16 @@ import { useI18n } from '@/lib/i18n/context';
 import { DEFAULT_TEST_KEYS } from '@/lib/scenarios/data';
 import { cn } from '@/lib/utils/cn';
 import type { KeyVariable } from '@/lib/engine/types';
+import * as ecc from '@bitcoinerlab/secp256k1';
 
 function generateRandomPubkey(): string {
-  const bytes = new Uint8Array(33);
-  crypto.getRandomValues(bytes);
-  bytes[0] = bytes[0] % 2 === 0 ? 0x02 : 0x03;
-  return Array.from(bytes)
+  let pubkey: Uint8Array | null = null;
+  while (!pubkey) {
+    const privateKey = new Uint8Array(32);
+    crypto.getRandomValues(privateKey);
+    pubkey = ecc.pointFromScalar(privateKey, true);
+  }
+  return Array.from(pubkey)
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
 }
