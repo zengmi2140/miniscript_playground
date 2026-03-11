@@ -17,6 +17,7 @@ export const zh: Record<string, string> = {
   'playground.editor.clear': '清空',
   'playground.editor.copy': '复制',
   'playground.editor.share': '分享',
+  'playground.editor.shareCopied': '已复制',
   'playground.keys.title': '角色变量',
   'playground.keys.add': '添加',
   'playground.keys.random': '随机',
