@@ -6,6 +6,9 @@ import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 import { SCENARIOS } from '@/lib/scenarios/data';
 import { cn } from '@/lib/utils/cn';
+import { PolicyEditor } from './PolicyEditor';
+import { KeyVariableManager } from './KeyVariableManager';
+import { ContextSelector } from './ContextSelector';
 import type { Scenario } from '@/lib/engine/types';
 
 function ScenarioMiniCard({ scenario, isActive, onSelect }: {
@@ -69,11 +72,12 @@ export function LeftPanel() {
   const activeScenarioId = usePlaygroundStore((s) => s.activeScenarioId);
   const loadScenario = usePlaygroundStore((s) => s.loadScenario);
   const policy = usePlaygroundStore((s) => s.policy);
+  const compilationError = usePlaygroundStore((s) => s.compilationError);
 
   const isEmpty = !policy && !activeScenarioId;
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col overflow-y-auto">
       <CollapsibleSection
         title={t('playground.left.scenarios')}
         defaultOpen={true}
@@ -98,41 +102,21 @@ export function LeftPanel() {
         title={t('playground.editor.title')}
         defaultOpen={true}
       >
-        <div className="rounded-button border border-dashed border-border-default bg-surface-base p-4 text-center">
-          <p className="text-[12px] text-text-muted">
-            {t('playground.editor.placeholder')}
-          </p>
-        </div>
+        <PolicyEditor compilationError={compilationError} />
       </CollapsibleSection>
 
       <CollapsibleSection
         title={t('playground.keys.title')}
-        defaultOpen={false}
+        defaultOpen={true}
       >
-        <div className="rounded-button border border-dashed border-border-default bg-surface-base p-4 text-center">
-          <p className="text-[12px] text-text-muted">
-            {t('playground.left.keysPlaceholder')}
-          </p>
-        </div>
+        <KeyVariableManager />
       </CollapsibleSection>
 
       <CollapsibleSection
         title={t('playground.context.title')}
         defaultOpen={false}
       >
-        <div className="flex flex-col gap-2">
-          <label className="flex cursor-pointer items-center gap-2 rounded-button px-3 py-2 text-[13px] text-text-primary transition-colors hover:bg-surface-elevated">
-            <input type="radio" name="context" value="wsh" defaultChecked className="accent-btc-500" />
-            {t('playground.context.wsh')}
-          </label>
-          <label className="flex cursor-not-allowed items-center gap-2 rounded-button px-3 py-2 text-[13px] text-text-muted">
-            <input type="radio" name="context" value="tr" disabled className="accent-btc-500" />
-            {t('playground.context.tr')}
-            <span className="ml-auto text-[10px] italic text-text-muted">
-              {t('playground.context.comingSoon')}
-            </span>
-          </label>
-        </div>
+        <ContextSelector />
       </CollapsibleSection>
     </div>
   );
