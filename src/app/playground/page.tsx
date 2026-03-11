@@ -7,11 +7,14 @@ import { LeftPanel } from '@/components/playground/LeftPanel';
 import { CenterPanel } from '@/components/playground/CenterPanel';
 import { RightPanel } from '@/components/playground/RightPanel';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
+import { useCompiler } from '@/lib/hooks/useCompiler';
 
 function PlaygroundContent() {
   const searchParams = useSearchParams();
   const loadScenario = usePlaygroundStore((s) => s.loadScenario);
   const activeScenarioId = usePlaygroundStore((s) => s.activeScenarioId);
+
+  useCompiler();
 
   useEffect(() => {
     const scenarioId = searchParams.get('scenario');
