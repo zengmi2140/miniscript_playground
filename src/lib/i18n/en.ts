@@ -2,6 +2,8 @@ export const en: Record<string, string> = {
   'nav.scenarios': 'Scenarios',
   'nav.playground': 'Playground',
   'nav.compare': 'Compare',
+  'nav.comingSoon': 'Soon',
+  'nav.toggleMenu': 'Toggle menu',
   'header.language.zh': '中文',
   'header.language.en': 'EN',
   'header.theme.light': 'Light',

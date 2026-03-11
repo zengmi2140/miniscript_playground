@@ -28,7 +28,7 @@ const STATUS_COLORS: Record<string, { borderColor: string; backgroundColor: stri
   },
 };
 
-const NODE_TRANSITION = { duration: 0.3, ease: 'easeInOut' };
+const NODE_TRANSITION = { duration: 0.3, ease: 'easeInOut' as const };
 
 const CONDITION_ICONS: Record<string, typeof Key> = {
   key: Key,

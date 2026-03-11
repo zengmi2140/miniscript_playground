@@ -2,6 +2,8 @@ export const zh: Record<string, string> = {
   'nav.scenarios': '场景',
   'nav.playground': 'Playground',
   'nav.compare': '对比',
+  'nav.comingSoon': '即将推出',
+  'nav.toggleMenu': '菜单',
   'header.language.zh': '中文',
   'header.language.en': 'EN',
   'header.theme.light': '亮色',

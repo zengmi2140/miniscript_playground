@@ -59,7 +59,7 @@ export function Header() {
                   {t(item.key)}
                   {isComingSoon && (
                     <span className="ml-1.5 text-[10px] italic text-text-muted">
-                      Soon
+                      {t('nav.comingSoon')}
                     </span>
                   )}
                   {isActive && (
@@ -94,7 +94,7 @@ export function Header() {
           <button
             onClick={() => setMobileOpen((v) => !v)}
             className="flex h-8 w-8 items-center justify-center rounded-button text-text-secondary transition-colors hover:bg-surface-elevated hover:text-text-primary md:hidden"
-            aria-label="Toggle menu"
+            aria-label={t('nav.toggleMenu')}
           >
             {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
@@ -125,7 +125,7 @@ export function Header() {
                 >
                   {t(item.key)}
                   {isComingSoon && (
-                    <span className="text-[10px] italic text-text-muted">Soon</span>
+                    <span className="text-[10px] italic text-text-muted">{t('nav.comingSoon')}</span>
                   )}
                 </Link>
               );
