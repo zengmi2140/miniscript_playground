@@ -24,7 +24,7 @@ export const zh: Record<string, string> = {
   'playground.keys.add': '添加',
   'playground.keys.random': '随机',
   'playground.keys.restore': '恢复默认',
-  'playground.context.title': '脚本上下文',
+  'playground.context.title': '地址类型',
   'playground.context.wsh': 'SegWit v0 (P2WSH)',
   'playground.context.tr': 'Taproot',
   'playground.context.comingSoon': 'Coming Soon',

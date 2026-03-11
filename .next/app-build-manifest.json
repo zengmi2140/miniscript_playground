@@ -1,21 +1,16 @@
 {
   "pages": {
-    "/page": [
+    "/playground/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/page.js"
+      "static/css/app/playground/page.css",
+      "static/chunks/app/playground/page.js"
     ],
     "/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
-    ],
-    "/playground/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/playground/page.css",
-      "static/chunks/app/playground/page.js"
     ]
   }
 }
