@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, Suspense } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Monitor, ArrowLeft } from 'lucide-react';
@@ -14,6 +14,21 @@ import { useAutoSave } from '@/lib/hooks/useAutoSave';
 import { decodeSharePayload } from '@/lib/utils/share';
 import { loadSession } from '@/lib/utils/storage';
 import { useI18n } from '@/lib/i18n/context';
+
+function useViewportMode() {
+  const [mode, setMode] = useState<'loading' | 'desktop' | 'mobile'>('loading');
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    setMode(mq.matches ? 'desktop' : 'mobile');
+    const handler = (e: MediaQueryListEvent) =>
+      setMode(e.matches ? 'desktop' : 'mobile');
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  return mode;
+}
 
 function MobileFallback() {
   const { t } = useI18n();
@@ -42,8 +57,7 @@ function MobileFallback() {
   );
 }
 
-function PlaygroundContent() {
-  const { t } = useI18n();
+function DesktopPlayground() {
   const searchParams = useSearchParams();
   const loadScenario = usePlaygroundStore((s) => s.loadScenario);
   const restoreSession = usePlaygroundStore((s) => s.restoreSession);
@@ -88,19 +102,20 @@ function PlaygroundContent() {
   }, [searchParams, loadScenario, activeScenarioId]);
 
   return (
-    <>
-      <div className="hidden flex-1 flex-col md:flex">
-        <ThreeColumnLayout
-          left={<LeftPanel />}
-          center={<CenterPanel />}
-          right={<RightPanel />}
-        />
-      </div>
-      <div className="flex flex-1 flex-col md:hidden">
-        <MobileFallback />
-      </div>
-    </>
+    <ThreeColumnLayout
+      left={<LeftPanel />}
+      center={<CenterPanel />}
+      right={<RightPanel />}
+    />
   );
+}
+
+function PlaygroundContent() {
+  const mode = useViewportMode();
+
+  if (mode === 'loading') return null;
+  if (mode === 'mobile') return <MobileFallback />;
+  return <DesktopPlayground />;
 }
 
 export default function PlaygroundPage() {
