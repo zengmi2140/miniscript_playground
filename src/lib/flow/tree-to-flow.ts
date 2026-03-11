@@ -1,6 +1,7 @@
 import dagre from 'dagre';
 import type { Node, Edge } from '@xyflow/react';
 import type { MiniscriptNode } from '@/lib/engine/types';
+import { blocksToHumanLocale, afterToHumanLocale } from '@/lib/engine/time-utils';
 
 export type FlowNodeType = 'root' | 'operator' | 'condition';
 
@@ -8,6 +9,9 @@ export interface FlowNodeData {
   nodeType: FlowNodeType;
   label: string;
   conditionType?: 'key' | 'timelock' | 'hashlock' | 'multi';
+  operatorType?: 'and' | 'or';
+  glossaryKey?: string;
+  nodeValue?: string;
   status: 'satisfied' | 'pending' | 'missing';
   parentRelation?: 'and' | 'or' | 'threshold';
   [key: string]: unknown;
@@ -77,14 +81,14 @@ function getCompositeStatus(childStatuses: ('satisfied' | 'pending' | 'missing')
   return 'missing';
 }
 
-function conditionLabel(node: MiniscriptNode): string {
+function conditionLabel(node: MiniscriptNode, locale: 'zh' | 'en'): string {
   switch (node.type) {
     case 'key':
       return node.name;
     case 'older':
-      return node.humanReadable;
+      return blocksToHumanLocale(node.blocks, locale);
     case 'after':
-      return node.humanReadable;
+      return afterToHumanLocale(node.value, locale);
     case 'hash':
       return `${node.hashType}(${node.hash.slice(0, 8)}...)`;
     case 'multi':
@@ -114,6 +118,21 @@ function conditionType(node: MiniscriptNode): FlowNodeData['conditionType'] {
   }
 }
 
+function nodeGlossaryKey(node: MiniscriptNode): string | undefined {
+  switch (node.type) {
+    case 'key':
+      return 'pk';
+    case 'older':
+      return 'older';
+    case 'after':
+      return 'after';
+    case 'hash':
+      return node.hashType;
+    default:
+      return undefined;
+  }
+}
+
 interface BuildResult {
   nodeId: string;
   status: 'satisfied' | 'pending' | 'missing';
@@ -126,6 +145,7 @@ function buildGraph(
   availableKeys: Set<string>,
   availableHashes: Set<string>,
   currentTimeBlocks: number,
+  locale: 'zh' | 'en',
   parentId?: string,
   relation?: 'and' | 'or' | 'threshold',
 ): BuildResult {
@@ -146,7 +166,7 @@ function buildGraph(
       position: { x: 0, y: 0 },
       data: {
         nodeType: 'condition',
-        label: conditionLabel(msNode),
+        label: conditionLabel(msNode, locale),
         conditionType: 'multi',
         status,
         parentRelation: relation,
@@ -167,14 +187,17 @@ function buildGraph(
   if (isLeaf) {
     const id = nextId();
     const status = getConditionStatus(msNode, availableKeys, availableHashes, currentTimeBlocks);
+    const label = conditionLabel(msNode, locale);
     nodes.push({
       id,
       type: 'condition',
       position: { x: 0, y: 0 },
       data: {
         nodeType: 'condition',
-        label: conditionLabel(msNode),
+        label,
         conditionType: conditionType(msNode),
+        glossaryKey: nodeGlossaryKey(msNode),
+        nodeValue: label,
         status,
         parentRelation: relation,
       },
@@ -194,7 +217,6 @@ function buildGraph(
   if (msNode.type === 'and' || msNode.type === 'or') {
     const opType = msNode.type;
     const id = nextId();
-    const labelText = opType === 'and' ? '都需要' : '任选一';
 
     nodes.push({
       id,
@@ -202,7 +224,8 @@ function buildGraph(
       position: { x: 0, y: 0 },
       data: {
         nodeType: 'operator',
-        label: labelText,
+        label: opType,
+        operatorType: opType,
         status: 'missing',
         parentRelation: relation,
       },
@@ -220,7 +243,7 @@ function buildGraph(
 
     const childStatuses: ('satisfied' | 'pending' | 'missing')[] = [];
     for (const child of msNode.children) {
-      const result = buildGraph(child, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, id, opType);
+      const result = buildGraph(child, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, locale, id, opType);
       childStatuses.push(result.status);
     }
 
@@ -262,7 +285,7 @@ function buildGraph(
 
     const childStatuses: ('satisfied' | 'pending' | 'missing')[] = [];
     for (const child of msNode.children) {
-      const result = buildGraph(child, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, id, 'threshold');
+      const result = buildGraph(child, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, locale, id, 'threshold');
       childStatuses.push(result.status);
     }
 
@@ -319,6 +342,7 @@ export function treeToFlow(
   availableKeys: Set<string>,
   availableHashes: Set<string>,
   currentTimeBlocks: number,
+  locale: 'zh' | 'en' = 'zh',
 ): { nodes: Node<FlowNodeData>[]; edges: Edge<FlowEdgeData>[] } {
   nodeIdCounter = 0;
 
@@ -332,7 +356,7 @@ export function treeToFlow(
     position: { x: 0, y: 0 },
     data: {
       nodeType: 'root',
-      label: '花费条件',
+      label: 'root',
       status: 'missing',
     },
   });
@@ -347,13 +371,13 @@ export function treeToFlow(
     tree.type === 'just_0';
 
   if (isLeafTree) {
-    const result = buildGraph(tree, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, rootId, 'and');
+    const result = buildGraph(tree, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, locale, rootId, 'and');
     const rootNode = nodes.find((n) => n.id === rootId);
     if (rootNode) rootNode.data.status = result.status;
   } else if (tree.type === 'and' || tree.type === 'or') {
     const childStatuses: ('satisfied' | 'pending' | 'missing')[] = [];
     for (const child of tree.children) {
-      const result = buildGraph(child, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, rootId, tree.type);
+      const result = buildGraph(child, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, locale, rootId, tree.type);
       childStatuses.push(result.status);
     }
     const compositeStatus = getCompositeStatus(childStatuses, tree.type);
@@ -362,7 +386,7 @@ export function treeToFlow(
   } else if (tree.type === 'threshold') {
     const childStatuses: ('satisfied' | 'pending' | 'missing')[] = [];
     for (const child of tree.children) {
-      const result = buildGraph(child, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, rootId, 'threshold');
+      const result = buildGraph(child, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, locale, rootId, 'threshold');
       childStatuses.push(result.status);
     }
     const compositeStatus = getCompositeStatus(childStatuses, 'or', tree.k);

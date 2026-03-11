@@ -13,7 +13,7 @@ interface Warning {
 
 function generateWarnings(
   paths: SpendingPath[],
-  locale: string,
+  t: (key: string, params?: Record<string, string | number>) => string,
 ): Warning[] {
   const warnings: Warning[] = [];
 
@@ -23,10 +23,7 @@ function generateWarnings(
   if (hasNoSigPath) {
     warnings.push({
       level: 'error',
-      message:
-        locale === 'zh'
-          ? '存在不需要任何签名就能花费的路径，这意味着任何人都可能花掉这笔钱'
-          : 'A spending path exists that requires no signatures - anyone could spend these funds',
+      message: t('warnings.noSigPath'),
     });
   }
 
@@ -34,10 +31,7 @@ function generateWarnings(
   if (malleablePaths.length > 0) {
     warnings.push({
       level: 'warning',
-      message:
-        locale === 'zh'
-          ? `${malleablePaths.length} 条路径的见证数据可被第三方篡改（malleable），可能影响手续费预估`
-          : `${malleablePaths.length} path(s) have malleable witness data, which may affect fee estimation`,
+      message: t('warnings.malleable', { count: malleablePaths.length }),
     });
   }
 
@@ -45,10 +39,7 @@ function generateWarnings(
   if (maxWitness > 500) {
     warnings.push({
       level: 'info',
-      message:
-        locale === 'zh'
-          ? `最大见证数据约 ${maxWitness} vB，较大的 witness 意味着更高的手续费`
-          : `Maximum witness size is ~${maxWitness} vB; larger witnesses mean higher fees`,
+      message: t('warnings.largeWitness', { size: maxWitness }),
     });
   }
 
@@ -79,7 +70,7 @@ const LEVEL_CONFIG = {
 export function WarningsTab() {
   const spendingPaths = usePlaygroundStore((s) => s.spendingPaths);
   const compilationResult = usePlaygroundStore((s) => s.compilationResult);
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
 
   if (!compilationResult) {
     return (
@@ -89,7 +80,7 @@ export function WarningsTab() {
     );
   }
 
-  const warnings = generateWarnings(spendingPaths, locale);
+  const warnings = generateWarnings(spendingPaths, t);
 
   if (warnings.length === 0) {
     return (
