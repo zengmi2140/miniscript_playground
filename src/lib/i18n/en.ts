@@ -17,6 +17,7 @@ export const en: Record<string, string> = {
   'playground.editor.clear': 'Clear',
   'playground.editor.copy': 'Copy',
   'playground.editor.share': 'Share',
+  'playground.editor.shareCopied': 'Copied!',
   'playground.keys.title': 'Key Variables',
   'playground.keys.add': 'Add',
   'playground.keys.random': 'Random',
