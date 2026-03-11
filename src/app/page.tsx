@@ -9,14 +9,14 @@ export default function ScenariosPage() {
   const { t } = useI18n();
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-16">
-      <div className="mb-12 text-center">
-        <div className="mb-5 flex justify-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-btc-500/10">
-            <Bitcoin className="h-8 w-8 text-btc-500" />
+    <div className="mx-auto w-full max-w-5xl px-4 py-10 md:py-16">
+      <div className="mb-10 text-center md:mb-12">
+        <div className="mb-4 flex justify-center md:mb-5">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-btc-500/10 md:h-14 md:w-14">
+            <Bitcoin className="h-7 w-7 text-btc-500 md:h-8 md:w-8" />
           </div>
         </div>
-        <h1 className="mb-3 text-page-title text-text-primary">
+        <h1 className="mb-3 text-[24px] font-bold leading-tight text-text-primary md:text-page-title">
           {t('scenarios.title')}
         </h1>
         <p className="text-body text-text-secondary">
@@ -26,13 +26,13 @@ export default function ScenariosPage() {
 
       <ScenarioGallery />
 
-      <div className="mt-12 flex flex-col items-center gap-4">
+      <div className="mt-10 flex flex-col items-center gap-4 md:mt-12">
         <div className="flex items-center gap-3">
-          <div className="h-px w-16 bg-border-default" />
+          <div className="h-px w-12 bg-border-default md:w-16" />
           <span className="text-small text-text-muted">
             {t('scenarios.orWrite')}
           </span>
-          <div className="h-px w-16 bg-border-default" />
+          <div className="h-px w-12 bg-border-default md:w-16" />
         </div>
 
         <Link
@@ -44,7 +44,7 @@ export default function ScenariosPage() {
         </Link>
       </div>
 
-      <footer className="mt-20 border-t border-border-subtle pt-8 text-center">
+      <footer className="mt-16 border-t border-border-subtle pt-8 text-center md:mt-20">
         <p className="text-small text-text-muted">
           {t('footer.description')}
         </p>
