@@ -53,7 +53,7 @@ Located in `src/lib/engine/`:
    - Calls `@bitcoinerlab/descriptors` + `bitcoinjs-lib` to generate descriptors and addresses
    - Returns a `CompilationResult` + array of `SpendingPath` objects
 
-2. **`miniscript-parser.ts`** — Parses Miniscript string → `MiniscriptNode` tree (custom recursive descent parser that strips wrappers like `v:`, `a:`, etc.)
+2. **`miniscript-parser.ts`** — Parses Miniscript string → `MiniscriptNode` tree (custom recursive descent parser that strips wrappers like `v:`, `sln:`, etc.). Handles both `pk_h` and `pkh` fragment names, and supports multi-character wrapper chains (e.g., `sln:older(...)`).
 
 3. **`path-analyzer.ts`** — Converts raw `satisfier()` output (ASM strings) into structured `SpendingPath` objects with typed `PathCondition` arrays (signature, timelock_relative, timelock_absolute, hashlock)
 

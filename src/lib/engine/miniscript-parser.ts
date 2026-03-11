@@ -4,10 +4,10 @@ import { blocksToHuman, afterToHuman } from './time-utils';
 export function parseMiniscript(expr: string): MiniscriptNode {
   expr = expr.trim();
 
-  const wrapperRegex = /^([asdcvjntlu]):(.+)$/;
+  const wrapperRegex = /^[asdcvjntlu]+:(.+)$/;
   const match = wrapperRegex.exec(expr);
   if (match) {
-    return parseMiniscript(match[2]);
+    return parseMiniscript(match[1]);
   }
 
   if (expr === '0') return { type: 'just_0' };
@@ -26,6 +26,7 @@ export function parseMiniscript(expr: string): MiniscriptNode {
     case 'pk':
     case 'pk_k':
     case 'pk_h':
+    case 'pkh':
       return { type: 'key', name: args[0] };
 
     case 'older':
