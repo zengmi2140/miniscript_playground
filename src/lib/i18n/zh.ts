@@ -57,6 +57,11 @@ export const zh: Record<string, string> = {
   'playground.center.hasError': '编译失败，请检查左侧 Policy 语法',
   'playground.right.waiting': '等待编译结果...',
   'playground.right.tabPlaceholder': '编译结果将在此显示',
+  'playground.results.stale': '旧',
+  'playground.paths.empty': '此 Policy 无可用花费路径。所有路径当前条件下不可满足。',
+  'playground.paths.malleable': '可延展',
+  'playground.warnings.none': '无安全警告',
+  'playground.address.warning': '此地址仅用于测试网络，请勿在主网使用。',
   'footer.description': '一个场景优先、以花费路径为中心的 Miniscript 教学实验室',
   'footer.rights': 'Miniscript Lab',
 };

@@ -57,6 +57,11 @@ export const en: Record<string, string> = {
   'playground.center.hasError': 'Compilation failed. Please check the Policy syntax on the left.',
   'playground.right.waiting': 'Waiting for compilation...',
   'playground.right.tabPlaceholder': 'Compilation results will appear here',
+  'playground.results.stale': 'stale',
+  'playground.paths.empty': 'No spending paths available. All paths are unsatisfiable under current conditions.',
+  'playground.paths.malleable': 'Malleable',
+  'playground.warnings.none': 'No warnings',
+  'playground.address.warning': 'This address is for testnet only. Do not use on mainnet.',
   'footer.description': 'A scenario-first, spending-path-centered Miniscript educational lab',
   'footer.rights': 'Miniscript Lab',
 };
