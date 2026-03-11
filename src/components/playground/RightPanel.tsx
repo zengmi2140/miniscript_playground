@@ -51,7 +51,7 @@ export function RightPanel() {
   const ActiveComponent = TAB_COMPONENTS[activeTab];
 
   return (
-    <div className="flex h-full flex-col">
+    <div data-panel="right" className="flex h-full flex-col">
       <div className="flex flex-wrap items-end gap-0.5 border-b border-border-subtle px-3 pt-3">
         {TABS.map((tab) => (
           <div key={tab.key} className="flex items-center gap-0.5">
