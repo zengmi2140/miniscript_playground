@@ -2,6 +2,8 @@
 
 import { Key, Clock, Hash } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
+import { useI18n } from '@/lib/i18n/context';
+import { blocksToHumanLocale, afterToHumanLocale } from '@/lib/engine/time-utils';
 import type { PathCondition } from '@/lib/engine/types';
 
 interface ConditionChipProps {
@@ -36,23 +38,26 @@ const chipConfig = {
   },
 };
 
-function getChipLabel(condition: PathCondition): string {
-  switch (condition.type) {
-    case 'signature':
-      return condition.keyName;
-    case 'timelock_relative':
-      return condition.humanReadable;
-    case 'timelock_absolute':
-      return condition.humanReadable;
-    case 'hashlock':
-      return `${condition.hashType}`;
-  }
-}
-
 export function ConditionChip({ condition, className }: ConditionChipProps) {
+  const { locale } = useI18n();
   const config = chipConfig[condition.type];
   const Icon = config.icon;
-  const label = getChipLabel(condition);
+
+  let label: string;
+  switch (condition.type) {
+    case 'signature':
+      label = condition.keyName;
+      break;
+    case 'timelock_relative':
+      label = blocksToHumanLocale(condition.blocks, locale);
+      break;
+    case 'timelock_absolute':
+      label = afterToHumanLocale(condition.value, locale);
+      break;
+    case 'hashlock':
+      label = condition.hashType;
+      break;
+  }
 
   return (
     <span

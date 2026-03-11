@@ -5,7 +5,7 @@ import { CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils/cn';
-import { blocksToHuman } from '@/lib/engine/time-utils';
+import { blocksToHumanLocale } from '@/lib/engine/time-utils';
 
 type BannerStatus = 'canSpend' | 'waiting' | 'cannotSpend';
 
@@ -54,7 +54,7 @@ export function StatusBanner() {
         return {
           status: 'waiting',
           message: t('playground.status.waiting', {
-            time: blocksToHuman(remaining),
+            time: blocksToHumanLocale(remaining, locale),
             path: pendingPath.label,
           }),
         };
@@ -72,7 +72,7 @@ export function StatusBanner() {
     return {
       status: 'cannotSpend',
       message: t('playground.status.cannotSpend', {
-        missing: missingList || (locale === 'zh' ? '部分条件' : 'some conditions'),
+        missing: missingList || t('playground.status.someConditions'),
       }),
     };
   }, [spendingPaths, availableKeys, currentTimeBlocks, t, locale]);

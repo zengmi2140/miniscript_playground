@@ -3,7 +3,7 @@
 import { useMemo, useCallback } from 'react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
-import { blocksToHuman } from '@/lib/engine/time-utils';
+import { blocksToHumanLocale } from '@/lib/engine/time-utils';
 import type { MiniscriptNode } from '@/lib/engine/types';
 
 function collectTimelocks(node: MiniscriptNode, values: Set<number>) {
@@ -25,7 +25,7 @@ function collectTimelocks(node: MiniscriptNode, values: Set<number>) {
 }
 
 export function TimeSlider() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const semanticTree = usePlaygroundStore((s) => s.semanticTree);
   const currentTimeBlocks = usePlaygroundStore((s) => s.currentTimeBlocks);
   const setCurrentTimeBlocks = usePlaygroundStore((s) => s.setCurrentTimeBlocks);
@@ -60,7 +60,7 @@ export function TimeSlider() {
         <p className="text-[11px] text-text-secondary">
           {t('playground.timeslider.current', {
             blocks: currentTimeBlocks.toLocaleString(),
-            human: blocksToHuman(currentTimeBlocks),
+            human: blocksToHumanLocale(currentTimeBlocks, locale),
           })}
         </p>
       </div>
@@ -89,7 +89,7 @@ export function TimeSlider() {
               >
                 <div className="h-1.5 w-px bg-btc-500/60" />
                 <span className="mt-0.5 whitespace-nowrap text-[9px] text-text-muted">
-                  {blocksToHuman(val)}
+                  {blocksToHumanLocale(val, locale)}
                 </span>
               </div>
             );
