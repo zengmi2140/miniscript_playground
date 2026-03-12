@@ -46,6 +46,12 @@ export const RootNode = memo(function RootNode({ data }: { data: FlowNodeData })
   const { t } = useI18n();
   const colors = STATUS_COLORS[data.status] || STATUS_COLORS.missing;
 
+  const displayLabel = data.operatorType === 'and'
+    ? t('flow.andLabel')
+    : data.operatorType === 'or'
+    ? t('flow.orLabel')
+    : data.label || t('flow.rootLabel');
+
   return (
     <motion.div
       className="flex items-center justify-center rounded-node border-2 px-3"
@@ -57,7 +63,7 @@ export const RootNode = memo(function RootNode({ data }: { data: FlowNodeData })
       transition={NODE_TRANSITION}
       style={{ width: 200, height: 44 }}
     >
-      <span className="text-[13px] font-medium">{t('flow.rootLabel')}</span>
+      <span className="text-[13px] font-medium">{displayLabel}</span>
       <Handle type="source" position={Position.Bottom} className="!h-1 !w-1 !border-0 !bg-transparent" />
     </motion.div>
   );

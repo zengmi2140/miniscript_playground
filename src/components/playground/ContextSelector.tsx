@@ -12,7 +12,6 @@ const CONTEXTS: { value: ScriptContext; i18nKey: string; disabled: boolean }[] =
 
 const NETWORKS: { value: Network; label: string }[] = [
   { value: 'testnet', label: 'Testnet' },
-  { value: 'regtest', label: 'Regtest' },
   { value: 'signet', label: 'Signet' },
 ];
 

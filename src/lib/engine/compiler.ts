@@ -17,7 +17,6 @@ const { Output } = DescriptorsFactory(ecc);
 
 const NETWORK_MAP: Record<Network, bitcoin.Network> = {
   testnet: bitcoin.networks.testnet,
-  regtest: bitcoin.networks.regtest,
   signet: bitcoin.networks.testnet,
 };
 
