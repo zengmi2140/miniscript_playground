@@ -349,18 +349,6 @@ export function treeToFlow(
   const nodes: Node<FlowNodeData>[] = [];
   const edges: Edge<FlowEdgeData>[] = [];
 
-  const rootId = nextId();
-  nodes.push({
-    id: rootId,
-    type: 'root',
-    position: { x: 0, y: 0 },
-    data: {
-      nodeType: 'root',
-      label: 'root',
-      status: 'missing',
-    },
-  });
-
   const isLeafTree =
     tree.type === 'key' ||
     tree.type === 'older' ||
@@ -371,10 +359,21 @@ export function treeToFlow(
     tree.type === 'just_0';
 
   if (isLeafTree) {
-    const result = buildGraph(tree, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, locale, rootId, 'and');
-    const rootNode = nodes.find((n) => n.id === rootId);
-    if (rootNode) rootNode.data.status = result.status;
+    buildGraph(tree, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, locale);
   } else if (tree.type === 'and' || tree.type === 'or') {
+    const rootId = nextId();
+    nodes.push({
+      id: rootId,
+      type: 'root',
+      position: { x: 0, y: 0 },
+      data: {
+        nodeType: 'root',
+        label: tree.type,
+        operatorType: tree.type,
+        status: 'missing',
+      },
+    });
+
     const childStatuses: ('satisfied' | 'pending' | 'missing')[] = [];
     for (const child of tree.children) {
       const result = buildGraph(child, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, locale, rootId, tree.type);
@@ -384,6 +383,18 @@ export function treeToFlow(
     const rootNode = nodes.find((n) => n.id === rootId);
     if (rootNode) rootNode.data.status = compositeStatus;
   } else if (tree.type === 'threshold') {
+    const rootId = nextId();
+    nodes.push({
+      id: rootId,
+      type: 'root',
+      position: { x: 0, y: 0 },
+      data: {
+        nodeType: 'root',
+        label: `${tree.k}-of-${tree.n}`,
+        status: 'missing',
+      },
+    });
+
     const childStatuses: ('satisfied' | 'pending' | 'missing')[] = [];
     for (const child of tree.children) {
       const result = buildGraph(child, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, locale, rootId, 'threshold');

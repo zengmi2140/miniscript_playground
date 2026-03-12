@@ -15,7 +15,7 @@ Miniscript Lab 是一个 **场景优先、以花费路径为中心** 的 Bitcoin
 
 - 纯前端应用，没有后端 API、没有数据库、没有区块链连接。
 - 不处理私钥、助记词、签名、交易构造或广播。
-- 地址只用于 `testnet` / `regtest` / `signet` 教学展示，绝不能扩展为主网默认行为。
+- 地址只用于 `testnet` / `signet` 教学展示，绝不能扩展为主网默认行为。
 - 当前 MVP 只真正支持 `P2WSH`；`P2TR` 只是类型占位，UI 里也被禁用。
 - 所有计算都在浏览器本地完成，不依赖 LLM 或外部服务。
 
@@ -172,30 +172,29 @@ src/
 
 ## 8. 关键 UI 结构
 
-### 左栏
+### 左栏（240px）
 
 - `src/components/playground/LeftPanel.tsx`
-  - 预设场景列表
-  - Policy 编辑器
+  - 预设场景列表（含"自己动手"Coming Soon 占位卡片）
   - Key 变量管理
   - Context / Network 选择
-
-- `src/components/playground/PolicyEditor.tsx`
-  - CodeMirror 编辑器
-  - 支持格式化、清空、复制、分享
-  - 高亮定义在 `src/lib/editor/policy-language.ts`
 
 - `src/components/playground/KeyVariableManager.tsx`
   - 维护 policy 名称和公钥映射
   - 可随机生成测试公钥
 
-### 中栏
+### 中栏（flex-1）
 
 - `src/components/playground/CenterPanel.tsx`
-  - 状态 banner
-  - 花费路径图
-  - 条件切换
-  - 时间滑块
+  - 顶部：Policy 编辑器（可折叠）
+  - 中部：花费路径图
+  - 路径图下方：状态结论横幅
+  - 底部：条件切换 + 时间滑块
+
+- `src/components/playground/PolicyEditor.tsx`
+  - CodeMirror 编辑器
+  - 支持格式化、清空、复制、分享
+  - 高亮定义在 `src/lib/editor/policy-language.ts`
 
 - `src/components/playground/ConditionToggles.tsx`
   - 从 `semanticTree` 自动收集 key/hash 条件。
@@ -204,15 +203,17 @@ src/
   - 从 `semanticTree` 收集 timelock 节点并提供拖动模拟。
 
 - `src/components/playground/StatusBanner.tsx`
+  - 位于路径图下方、条件模拟面板上方。
   - 根据 `spendingPaths` 给出“可花费 / 还需等待 / 仍不可花费”的总结。
 
-### 右栏
+### 右栏（320px，上下分区）
 
 - `src/components/playground/RightPanel.tsx`
-  - 统一管理结果 tabs。
+  - 上部：花费路径（始终展示，非 Tab）
+  - 中间：可拖拽分割条
+  - 下部：其他技术 tabs
 
-- 当前 tabs：
-  - `paths`
+- 下部 tabs：
   - `policy`
   - `miniscript`
   - `script`
@@ -263,6 +264,16 @@ src/
 7. 移动端没有完整 Playground。
    - `src/app/playground/page.tsx` 在移动端会显示 Desktop Required fallback。
 
+8. `regtest` 网络已从 UI 和类型中移除。
+   - `Network` 类型只有 `'testnet' | 'signet'`。
+
+9. 路径图根节点已与第一层操作符合并。
+   - 根节点直接显示顶层条件逻辑类型（都需要/任选一/k-of-n），而非通用的"花费条件"。
+   - 单一叶子条件的策略不再创建根节点，直接显示条件节点。
+
+10. `playgroundMode` 状态字段已在 store 中预留（`'scenario' | 'build'`），但 `'build'` 模式尚未实现。
+   - 左栏中"自己动手"卡片目前只是 Coming Soon 占位。
+
 ## 11. 常见改动从哪里入手
 
 ### 新增或修改预设场景
@@ -299,9 +310,15 @@ src/
 - `src/components/flow/FlowNodes.tsx`
 - `src/components/flow/PathEdge.tsx`
 
+### 修改 Policy 编辑器
+
+- `src/components/playground/PolicyEditor.tsx`（编辑器组件，现位于中栏顶部）
+- `src/components/playground/CenterPanel.tsx`（编辑器的容器/折叠逻辑）
+- `src/lib/editor/policy-language.ts`（CodeMirror 高亮规则）
+
 ### 修改右侧输出面板
 
-- `src/components/playground/RightPanel.tsx`
+- `src/components/playground/RightPanel.tsx`（上部花费路径 + 下部 Tab 分区 + 拖拽分割条）
 - `src/components/results/*`
 - 若要补充概念说明，也看 `src/components/shared/ExplainPopover.tsx`
 

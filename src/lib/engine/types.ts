@@ -16,7 +16,7 @@ export interface KeyVariable {
 }
 
 export type ScriptContext = 'wsh' | 'tr';
-export type Network = 'testnet' | 'regtest' | 'signet';
+export type Network = 'testnet' | 'signet';
 
 export interface CompilationResult {
   policy: string;
@@ -59,6 +59,7 @@ export type MiniscriptNode =
   | { type: 'just_0' };
 
 export interface PlaygroundState {
+  playgroundMode: PlaygroundMode;
   policy: string;
   context: ScriptContext;
   network: Network;
@@ -82,6 +83,8 @@ export interface PlaygroundState {
 }
 
 export type ResultTab = 'policy' | 'miniscript' | 'script' | 'descriptor' | 'address' | 'paths' | 'warnings';
+
+export type PlaygroundMode = 'scenario' | 'build';
 
 export interface FriendlyError {
   raw: string;
