@@ -49,7 +49,7 @@ npx vitest run
 说明：
 
 - `package.json` 里没有 `test` script，测试要直接用 `npx vitest run`。
-- dev server 默认跑在 `http://localhost:5000`。
+- dev server 默认跑在 `http://localhost:3000`；如果 3000 被占用会自动尝试其他可用端口（以终端输出为准）。
 
 ## 5. 路由与页面职责
 
