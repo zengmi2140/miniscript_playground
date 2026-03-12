@@ -49,7 +49,7 @@ npm install
 npm run dev
 ```
 
-访问 http://localhost:5000
+启动后访问终端输出的地址（通常是 http://localhost:3000）。
 
 ## 项目结构
 
