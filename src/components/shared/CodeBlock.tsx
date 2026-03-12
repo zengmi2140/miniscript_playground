@@ -8,9 +8,10 @@ interface CodeBlockProps {
   code: string;
   highlight?: (code: string) => React.ReactNode;
   className?: string;
+  wrap?: boolean;
 }
 
-export function CodeBlock({ code, highlight, className }: CodeBlockProps) {
+export function CodeBlock({ code, highlight, className, wrap = true }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
@@ -20,6 +21,10 @@ export function CodeBlock({ code, highlight, className }: CodeBlockProps) {
       setTimeout(() => setCopied(false), 2000);
     } catch {}
   }, [code]);
+
+  const preClasses = wrap
+    ? 'p-4 font-mono text-code leading-relaxed text-text-primary whitespace-pre-wrap break-words'
+    : 'overflow-x-auto p-4 font-mono text-code leading-relaxed text-text-primary';
 
   return (
     <div className={cn('group relative rounded-card border border-border-subtle bg-surface-base', className)}>
@@ -34,7 +39,7 @@ export function CodeBlock({ code, highlight, className }: CodeBlockProps) {
           <Copy className="h-3.5 w-3.5" />
         )}
       </button>
-      <pre className="overflow-x-auto p-4 font-mono text-code leading-relaxed text-text-primary">
+      <pre className={preClasses}>
         {highlight ? highlight(code) : <code>{code}</code>}
       </pre>
     </div>
