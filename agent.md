@@ -211,7 +211,7 @@ src/
 - `src/components/playground/RightPanel.tsx`
   - 上部：花费路径（始终展示，非 Tab）
   - 中间：可拖拽分割条
-  - 下部：其他技术 tabs
+  - 下部：其他技术 tabs（统一通过 `CodeBlock` 渲染，长文本在固定宽度内自动换行、主要通过垂直滚动查看更多）
 
 - 下部 tabs：
   - `policy`
