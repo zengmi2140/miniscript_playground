@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils/cn';
 
 const NETWORK_LABELS: Record<string, { label: string; color: string }> = {
   testnet: { label: 'Testnet', color: 'bg-btc-500/15 text-btc-400' },
-  regtest: { label: 'Regtest', color: 'bg-semantic-hashlock/15 text-semantic-hashlock' },
   signet: { label: 'Signet', color: 'bg-semantic-satisfied/15 text-semantic-satisfied' },
 };
 

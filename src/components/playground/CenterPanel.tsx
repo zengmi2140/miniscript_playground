@@ -1,12 +1,42 @@
 'use client';
 
-import { FileCode2, AlertTriangle } from 'lucide-react';
+import { useState } from 'react';
+import { FileCode2, AlertTriangle, ChevronDown, ChevronRight } from 'lucide-react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
+import { cn } from '@/lib/utils/cn';
 import { PathMap } from '@/components/flow/PathMap';
+import { PolicyEditor } from './PolicyEditor';
 import { ConditionToggles } from './ConditionToggles';
 import { TimeSlider } from './TimeSlider';
 import { StatusBanner } from './StatusBanner';
+
+function EditorSection() {
+  const { t } = useI18n();
+  const compilationError = usePlaygroundStore((s) => s.compilationError);
+  const [collapsed, setCollapsed] = useState(false);
+
+  return (
+    <div className="flex-shrink-0 border-b border-border-subtle bg-surface-card">
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="flex w-full items-center gap-2 px-4 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:text-text-primary"
+      >
+        {collapsed ? (
+          <ChevronRight className="h-3 w-3 flex-shrink-0" />
+        ) : (
+          <ChevronDown className="h-3 w-3 flex-shrink-0" />
+        )}
+        {t('playground.editor.title')}
+      </button>
+      {!collapsed && (
+        <div className="px-4 pb-3">
+          <PolicyEditor compilationError={compilationError} />
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function CenterPanel() {
   const { t } = useI18n();
@@ -16,18 +46,26 @@ export function CenterPanel() {
   const semanticTree = usePlaygroundStore((s) => s.semanticTree);
 
   if (!policy && !compilationResult) {
-    return <EmptyState />;
+    return (
+      <div className="flex flex-1 flex-col">
+        <EditorSection />
+        <EmptyState />
+      </div>
+    );
   }
 
   if (!compilationResult && !semanticTree) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center p-6">
-        <div className="rounded-card border border-dashed border-border-default bg-surface-card p-8 text-center">
-          <p className="text-body text-text-secondary">
-            {compilationError
-              ? t('playground.center.hasError')
-              : t('playground.center.compilePlaceholder')}
-          </p>
+      <div className="flex flex-1 flex-col">
+        <EditorSection />
+        <div className="flex flex-1 flex-col items-center justify-center p-6">
+          <div className="rounded-card border border-dashed border-border-default bg-surface-card p-8 text-center">
+            <p className="text-body text-text-secondary">
+              {compilationError
+                ? t('playground.center.hasError')
+                : t('playground.center.compilePlaceholder')}
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -35,8 +73,10 @@ export function CenterPanel() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
+      <EditorSection />
+
       {compilationError && compilationResult && (
-        <div className="mx-4 mt-3 flex items-center gap-2 rounded-button bg-btc-600/10 px-3 py-2">
+        <div className="mx-4 mt-2 flex items-center gap-2 rounded-button bg-btc-600/10 px-3 py-1.5">
           <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 text-btc-500" />
           <p className="text-[12px] text-btc-400">
             {t('playground.center.staleWarning')}
@@ -44,17 +84,20 @@ export function CenterPanel() {
         </div>
       )}
 
-      <div className="px-4 pt-3">
-        <StatusBanner />
-      </div>
-
       <div className="relative min-h-0 flex-1">
         <PathMap />
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-border-subtle bg-surface-card px-4 py-3">
-        <ConditionToggles />
-        <TimeSlider />
+      <div className="border-t border-border-subtle bg-surface-card">
+        <div className="px-4 pt-2 pb-1">
+          <StatusBanner />
+        </div>
+        <div className={cn(
+          'flex flex-col gap-3 px-4 pb-3 pt-1',
+        )}>
+          <ConditionToggles />
+          <TimeSlider />
+        </div>
       </div>
     </div>
   );

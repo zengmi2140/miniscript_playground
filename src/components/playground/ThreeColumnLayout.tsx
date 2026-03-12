@@ -21,7 +21,7 @@ export function ThreeColumnLayout({ left, center, right }: ThreeColumnLayoutProp
       <div
         className={cn(
           'relative flex-shrink-0 border-r border-border-subtle bg-surface-card transition-[width] duration-300 ease-in-out',
-          isLeftOpen ? 'w-[280px]' : 'w-0',
+          isLeftOpen ? 'w-[240px]' : 'w-0',
         )}
       >
         <div
@@ -38,7 +38,7 @@ export function ThreeColumnLayout({ left, center, right }: ThreeColumnLayoutProp
         onClick={() => setLeftOpen(!isLeftOpen)}
         className={cn(
           'absolute top-3 z-20 flex h-7 w-7 items-center justify-center rounded-button border border-border-default bg-surface-card text-text-secondary shadow-sm transition-all hover:bg-surface-elevated hover:text-text-primary',
-          isLeftOpen ? 'left-[268px]' : 'left-2',
+          isLeftOpen ? 'left-[228px]' : 'left-2',
         )}
         aria-label={isLeftOpen ? 'Collapse left panel' : 'Expand left panel'}
       >

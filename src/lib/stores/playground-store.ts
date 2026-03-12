@@ -5,6 +5,7 @@ import type {
   KeyVariable,
   MiniscriptNode,
   Network,
+  PlaygroundMode,
   PlaygroundState,
   ResultTab,
   ScriptContext,
@@ -14,6 +15,7 @@ import type { Scenario } from '@/lib/engine/types';
 import { SCENARIOS } from '@/lib/scenarios/data';
 
 interface PlaygroundActions {
+  setPlaygroundMode: (mode: PlaygroundMode) => void;
   setPolicy: (policy: string) => void;
   setContext: (context: ScriptContext) => void;
   setNetwork: (network: Network) => void;
@@ -46,6 +48,7 @@ interface PlaygroundActions {
 export type PlaygroundStore = PlaygroundState & PlaygroundActions;
 
 const initialState: PlaygroundState = {
+  playgroundMode: 'scenario',
   policy: '',
   context: 'wsh',
   network: 'testnet',
@@ -71,6 +74,7 @@ const initialState: PlaygroundState = {
 export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
   ...initialState,
 
+  setPlaygroundMode: (playgroundMode) => set({ playgroundMode }),
   setPolicy: (policy) => set({ policy }),
   setContext: (context) => set({ context }),
   setNetwork: (network) => set({ network }),
