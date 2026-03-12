@@ -57,7 +57,7 @@ export function RightPanel() {
   const ActiveComponent = TAB_COMPONENTS[secondaryTab];
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const [topRatio, setTopRatio] = useState(0.45);
+  const [topRatio, setTopRatio] = useState(0.6);
   const dragging = useRef(false);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
