@@ -209,19 +209,14 @@ src/
 ### 右栏（320px，上下分区）
 
 - `src/components/playground/RightPanel.tsx`
-  - 上部：花费路径（始终展示，非 Tab）
-  - 中间：可拖拽分割条
-  - 下部：其他技术 tabs（统一通过 `CodeBlock` 渲染，长文本在固定宽度内自动换行、主要通过垂直滚动查看更多）
+  - 上部：花费路径（始终展示，非 Tab），标题区域有 `ExplainPopover` 解释按钮。
+  - 中间：可拖拽分割条（调节上下区域高度）。
+  - 下部：技术细节面板，布局为「左侧垂直 Tab 导航（约 100px 宽）+ 右侧内容区」：
+    - 左列导航只显示文字标签（policy / miniscript / script / descriptor / address / warnings），当前选中项用左侧竖线 + 浅色背景 + 加粗文字高亮。
+    - 右列内容区根据当前 Tab 渲染对应组件（统一在 `src/components/results/*Tab.tsx` 中）。
+    - 带 glossary 的 Tab（policy / miniscript / descriptor）在标签上悬停 2 秒后，会在右侧内容区域内弹出术语解释卡片，内容来自 `src/lib/glossary/data.ts`。
 
-- 下部 tabs：
-  - `policy`
-  - `miniscript`
-  - `script`
-  - `descriptor`
-  - `address`
-  - `warnings`
-
-- 对应组件都在 `src/components/results/`。
+- 对应 Tab 组件都在 `src/components/results/`。
 
 ## 9. i18n、主题、样式
 
