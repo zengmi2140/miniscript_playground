@@ -22,3 +22,9 @@ dist-ssr
 *.sw?
 .env
 .next
+
+# Docs that should stay local
+IMPLEMENTATION.md
+
+# TypeScript build info
+*.tsbuildinfo
