@@ -44,6 +44,7 @@ export const en: Record<string, string> = {
   'playground.results.address': 'Address',
   'playground.results.paths': 'Spending Paths',
   'playground.results.warnings': 'Warnings',
+  'playground.results.panelNav': 'Result panels',
   'playground.results.explain': 'What is this?',
   'playground.stack.title': 'Script VM',
   'playground.stack.comingSoon': 'Coming Soon',

@@ -44,6 +44,7 @@ export const zh: Record<string, string> = {
   'playground.results.address': 'Address',
   'playground.results.paths': '花费路径',
   'playground.results.warnings': '警告',
+  'playground.results.panelNav': '结果面板',
   'playground.results.explain': '这是什么？',
   'playground.stack.title': '栈机模拟器',
   'playground.stack.comingSoon': 'Coming Soon',
