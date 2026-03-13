@@ -149,6 +149,7 @@ src/
   - 把语义树转成 React Flow nodes/edges。
   - 用 Dagre 自动布局。
   - 节点状态只分为 `satisfied` / `pending` / `missing`。
+  - 对 `multi(k, key1,...,keyn)` 片段做可视化层的展开：在语义树中仍是 `type: 'multi'`，但在图上渲染为一个 “k-of-n” 根/操作节点，下挂每个参与者 key 的叶子节点（例如 2-of-3 多签显示为一个 “2-of-3” 节点，下方连 Alice / Bob / Charlie）。
 
 - `src/components/flow/*`
   - `PathMap.tsx` 挂载 React Flow。
