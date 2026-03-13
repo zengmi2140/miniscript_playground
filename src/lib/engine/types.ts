@@ -20,7 +20,9 @@ export type Network = 'testnet' | 'signet';
 
 export interface CompilationResult {
   policy: string;
+  policyWithKeys: string;
   miniscript: string;
+  miniscriptWithKeys: string;
   asm: string;
   descriptor: string;
   address: string;

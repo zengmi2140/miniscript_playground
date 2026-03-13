@@ -136,12 +136,13 @@ src/
     5. 派生地址和 scriptPubKey
     6. 调用 `satisfier()` 枚举花费路径
     7. 交给 `analyzeSpendingPaths(...)` 做结构化分析
+  - 输出 `CompilationResult` 含 `policy`、`policyWithKeys`、`miniscript`、`miniscriptWithKeys` 等。`policy`/`miniscript` 保留角色名供路径图解析；`policyWithKeys`/`miniscriptWithKeys` 含真实公钥供右栏 Tab 展示。
   - 错误会被映射成中英文友好的 `FriendlyError`。
 
 ### 语义树与路径图
 
 - `src/lib/engine/miniscript-parser.ts`
-  - 将编译出来的 Miniscript 字符串解析成自定义 `MiniscriptNode` 语义树。
+  - 将编译出来的 Miniscript 字符串（`result.miniscript`，含角色名）解析成自定义 `MiniscriptNode` 语义树。
   - 会剥离 wrapper 前缀，例如 `v:`、`c:`、`sln:`。
 
 - `src/lib/flow/tree-to-flow.ts`
@@ -214,6 +215,7 @@ src/
   - 下部：技术细节面板，布局为「左侧垂直 Tab 导航（约 100px 宽）+ 右侧内容区」：
     - 左列导航只显示文字标签（policy / miniscript / script / descriptor / address / warnings），当前选中项用左侧竖线 + 浅色背景 + 加粗文字高亮。
     - 右列内容区根据当前 Tab 渲染对应组件（统一在 `src/components/results/*Tab.tsx` 中）。
+    - **右栏所有 Tab 统一为「可复制的真实输出」**：Policy Tab 展示 `policyWithKeys`，Miniscript Tab 展示 `miniscriptWithKeys`，均含真实公钥（非 Alice 等角色名），便于用户复制到钱包或链上工具。中栏 Policy 编辑器和路径图已用角色名直观展示，右栏专注技术输出。
     - 带 glossary 的 Tab（policy / miniscript / descriptor）在标签上悬停 2 秒后，会在右侧内容区域内弹出术语解释卡片，内容来自 `src/lib/glossary/data.ts`。
 
 - 对应 Tab 组件都在 `src/components/results/`。

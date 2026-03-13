@@ -208,7 +208,9 @@ export async function compile(
     return {
       result: {
         policy,
+        policyWithKeys: replaceKeyNames(policy, keyVariables),
         miniscript: miniscriptWithNames,
+        miniscriptWithKeys,
         asm: compileResult.asm,
         descriptor: descriptorStr,
         address,

@@ -16,5 +16,5 @@ export function PolicyTab() {
     );
   }
 
-  return <CodeBlock code={compilationResult.policy} />;
+  return <CodeBlock code={compilationResult.policyWithKeys} />;
 }

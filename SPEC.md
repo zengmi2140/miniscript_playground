@@ -475,8 +475,8 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 
 | Tab        | 内容                         | 格式                                      |
 | ---------- | -------------------------- | --------------------------------------- |
-| Policy     | 当前 Policy 源码               | 等宽字体 + 语法高亮 + 自动换行 + 复制按钮          |
-| Miniscript | 编译后的 Miniscript            | 等宽字体 + 格式化显示 + 自动换行 + 复制按钮         |
+| Policy     | 当前 Policy（变量名已替换为真实公钥，可复制） | 等宽字体 + 语法高亮 + 自动换行 + 复制按钮          |
+| Miniscript | 编译后的 Miniscript（含真实公钥，可复制）     | 等宽字体 + 格式化显示 + 自动换行 + 复制按钮         |
 | Script     | Bitcoin Script ASM         | 等宽字体 + opcode 着色 + 自动换行 + 复制按钮     |
 | Descriptor | 输出描述符 (wsh(...) 或 tr(...)) | 等宽字体 + 自动换行 + 复制按钮                   |
 | Address    | 生成的地址                      | 等宽字体 + 自动换行 + 网络标注 + 复制按钮          |
@@ -549,8 +549,10 @@ type PlaygroundMode = 'scenario' | 'build';
 
 // ===== 编译结果 =====
 interface CompilationResult {
-  policy: string;
-  miniscript: string;
+  policy: string;             // 用户原始输入（含角色名如 Alice）
+  policyWithKeys: string;     // 右栏 Policy Tab 展示：变量名已替换为真实公钥
+  miniscript: string;         // 含角色名，供 parseMiniscript → 路径图/ConditionToggles
+  miniscriptWithKeys: string; // 右栏 Miniscript Tab 展示：含真实公钥
   asm: string;
   descriptor: string;
   address: string;
@@ -714,7 +716,7 @@ function analyzeSpendingPaths(
 ```typescript
 const pubkeyToName: Record<string, string> = {};
 for (const kv of keyVariables) {
-  pubkeyToName[kv.pubkey] = kv.name;
+  pubkeyToName[kv.publicKey] = kv.name;
 }
 ```
 3. 用正则提取并还原：
@@ -736,7 +738,7 @@ for (const kv of keyVariables) {
 
 ### 6.3 Miniscript 简化解析器
 
-将 Miniscript 字符串解析为 `MiniscriptNode` 语义树，用于路径图可视化。
+将 Miniscript 字符串解析为 `MiniscriptNode` 语义树，用于路径图可视化。解析时使用 `CompilationResult.miniscript`（含角色名），以便路径图节点显示 "Alice" 等可读名称；右栏 Miniscript Tab 则展示 `miniscriptWithKeys`（含真实公钥）供用户复制。
 
 **这不是一个完整的 Miniscript 验证器**，只是用于可视化的简化解析器。编译和验证由 `@bitcoinerlab/miniscript` 负责。
 

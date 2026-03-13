@@ -13,7 +13,13 @@ describe('compiler', () => {
     expect(error).toBeNull();
     expect(result).not.toBeNull();
     expect(result!.policy).toBe('pk(Alice)');
-    expect(result!.miniscript).toBeTruthy();
+    expect(result!.policyWithKeys).toBe(
+      'pk(0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798)',
+    );
+    expect(result!.miniscript).toContain('Alice');
+    expect(result!.miniscriptWithKeys).toContain(
+      '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+    );
     expect(result!.asm).toBeTruthy();
     expect(result!.descriptor).toContain('wsh(');
     expect(result!.address).toBeTruthy();
