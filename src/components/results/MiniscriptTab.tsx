@@ -16,5 +16,5 @@ export function MiniscriptTab() {
     );
   }
 
-  return <CodeBlock code={compilationResult.miniscript} />;
+  return <CodeBlock code={compilationResult.miniscriptWithKeys} />;
 }
