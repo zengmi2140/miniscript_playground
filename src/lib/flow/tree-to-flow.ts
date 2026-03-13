@@ -158,30 +158,71 @@ function buildGraph(
     msNode.type === 'just_0';
 
   if (msNode.type === 'multi') {
-    const id = nextId();
-    const status = getConditionStatus(msNode, availableKeys, availableHashes, currentTimeBlocks);
+    const operatorId = nextId();
+
     nodes.push({
-      id,
-      type: 'condition',
+      id: operatorId,
+      type: 'operator',
       position: { x: 0, y: 0 },
       data: {
-        nodeType: 'condition',
-        label: conditionLabel(msNode, locale),
-        conditionType: 'multi',
-        status,
+        nodeType: 'operator',
+        label: `${msNode.k}-of-${msNode.keys.length}`,
+        status: 'missing',
         parentRelation: relation,
       },
     });
+
     if (parentId) {
       edges.push({
-        id: `e_${parentId}_${id}`,
+        id: `e_${parentId}_${operatorId}`,
         source: parentId,
-        target: id,
+        target: operatorId,
         type: 'pathEdge',
-        data: { relation: relation || 'and', satisfied: status === 'satisfied' },
+        data: { relation: relation || 'threshold', satisfied: false },
       });
     }
-    return { nodeId: id, status };
+
+    const childStatuses: ('satisfied' | 'pending' | 'missing')[] = [];
+
+    for (const keyName of msNode.keys) {
+      const childId = nextId();
+      const status = availableKeys.has(keyName) ? 'satisfied' : 'missing';
+      childStatuses.push(status);
+
+      nodes.push({
+        id: childId,
+        type: 'condition',
+        position: { x: 0, y: 0 },
+        data: {
+          nodeType: 'condition',
+          label: keyName,
+          conditionType: 'key',
+          glossaryKey: 'pk',
+          nodeValue: keyName,
+          status,
+          parentRelation: 'threshold',
+        },
+      });
+
+      edges.push({
+        id: `e_${operatorId}_${childId}`,
+        source: operatorId,
+        target: childId,
+        type: 'pathEdge',
+        data: { relation: 'threshold', satisfied: status === 'satisfied' },
+      });
+    }
+
+    const compositeStatus = getCompositeStatus(childStatuses, 'or', msNode.k);
+    const opNodeRef = nodes.find((n) => n.id === operatorId);
+    if (opNodeRef) opNodeRef.data.status = compositeStatus;
+
+    if (parentId) {
+      const edgeRef = edges.find((e) => e.id === `e_${parentId}_${operatorId}`);
+      if (edgeRef?.data) edgeRef.data.satisfied = compositeStatus === 'satisfied';
+    }
+
+    return { nodeId: operatorId, status: compositeStatus };
   }
 
   if (isLeaf) {
@@ -354,7 +395,6 @@ export function treeToFlow(
     tree.type === 'older' ||
     tree.type === 'after' ||
     tree.type === 'hash' ||
-    tree.type === 'multi' ||
     tree.type === 'just_1' ||
     tree.type === 'just_0';
 
@@ -397,9 +437,65 @@ export function treeToFlow(
 
     const childStatuses: ('satisfied' | 'pending' | 'missing')[] = [];
     for (const child of tree.children) {
-      const result = buildGraph(child, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, locale, rootId, 'threshold');
+      const result = buildGraph(
+        child,
+        nodes,
+        edges,
+        availableKeys,
+        availableHashes,
+        currentTimeBlocks,
+        locale,
+        rootId,
+        'threshold',
+      );
       childStatuses.push(result.status);
     }
+    const compositeStatus = getCompositeStatus(childStatuses, 'or', tree.k);
+    const rootNode = nodes.find((n) => n.id === rootId);
+    if (rootNode) rootNode.data.status = compositeStatus;
+  } else if (tree.type === 'multi') {
+    const rootId = nextId();
+    nodes.push({
+      id: rootId,
+      type: 'root',
+      position: { x: 0, y: 0 },
+      data: {
+        nodeType: 'root',
+        label: `${tree.k}-of-${tree.keys.length}`,
+        status: 'missing',
+      },
+    });
+
+    const childStatuses: ('satisfied' | 'pending' | 'missing')[] = [];
+    for (const keyName of tree.keys) {
+      const childId = nextId();
+      const status = availableKeys.has(keyName) ? 'satisfied' : 'missing';
+      childStatuses.push(status);
+
+      nodes.push({
+        id: childId,
+        type: 'condition',
+        position: { x: 0, y: 0 },
+        data: {
+          nodeType: 'condition',
+          label: keyName,
+          conditionType: 'key',
+          glossaryKey: 'pk',
+          nodeValue: keyName,
+          status,
+          parentRelation: 'threshold',
+        },
+      });
+
+      edges.push({
+        id: `e_${rootId}_${childId}`,
+        source: rootId,
+        target: childId,
+        type: 'pathEdge',
+        data: { relation: 'threshold', satisfied: status === 'satisfied' },
+      });
+    }
+
     const compositeStatus = getCompositeStatus(childStatuses, 'or', tree.k);
     const rootNode = nodes.find((n) => n.id === rootId);
     if (rootNode) rootNode.data.status = compositeStatus;
