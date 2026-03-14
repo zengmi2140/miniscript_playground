@@ -1,0 +1,330 @@
+/**
+ * Builder Tree to Flow Conversion
+ *
+ * Converts a StrategyNode tree into React Flow nodes and edges
+ * for display in the builder canvas.
+ */
+
+import dagre from 'dagre';
+import type { Node, Edge } from '@xyflow/react';
+import type { StrategyNode } from './types';
+import { blocksToHumanTime } from './types';
+
+export type BuilderNodeType = 'builderRoot' | 'builderOperator' | 'builderCondition';
+
+export type BuilderNodeStatus = 'satisfied' | 'pending' | 'missing';
+
+export interface BuilderFlowNodeData {
+  nodeType: BuilderNodeType;
+  strategyNodeId: string;
+  label: string;
+  kind: StrategyNode['kind'];
+  op?: 'all' | 'any' | 'threshold';
+  threshold?: number;
+  childCount?: number;
+  roleId?: string;
+  timelockValue?: number;
+  timelockMode?: 'relative' | 'absolute';
+  status: BuilderNodeStatus;
+  isReadOnly: boolean;
+  isHighlighted: boolean;
+  isUndefinedRole?: boolean;
+  [key: string]: unknown;
+}
+
+export interface BuilderFlowEdgeData {
+  relation: 'all' | 'any' | 'threshold';
+  satisfied: boolean;
+  [key: string]: unknown;
+}
+
+const NODE_SIZES: Record<BuilderNodeType, { width: number; height: number }> = {
+  builderRoot: { width: 180, height: 44 },
+  builderOperator: { width: 140, height: 40 },
+  builderCondition: { width: 160, height: 44 },
+};
+
+let flowNodeIdCounter = 0;
+
+function nextFlowId(): string {
+  return `bf_${flowNodeIdCounter++}`;
+}
+
+/**
+ * Reset the flow node ID counter (useful for tests)
+ */
+export function resetFlowNodeIdCounter(): void {
+  flowNodeIdCounter = 0;
+}
+
+/**
+ * Compute status for a strategy node based on available conditions
+ */
+function computeNodeStatus(
+  node: StrategyNode,
+  availableKeys: Set<string>,
+  currentTimeBlocks: number,
+  statusMap: Map<string, BuilderNodeStatus>
+): BuilderNodeStatus {
+  switch (node.kind) {
+    case 'signature':
+      return availableKeys.has(node.roleId) ? 'satisfied' : 'missing';
+
+    case 'timelock':
+      if (node.mode === 'relative') {
+        return currentTimeBlocks >= node.value ? 'satisfied' : 'pending';
+      }
+      // Absolute timelock - always pending in MVP
+      return 'pending';
+
+    case 'hashlock':
+      // Hashlocks are always missing in MVP (no hash toggle support)
+      return 'missing';
+
+    case 'group': {
+      const childStatuses = node.children.map(
+        (child) => statusMap.get(child.id) ?? 'missing'
+      );
+
+      switch (node.op) {
+        case 'all':
+          if (childStatuses.every((s) => s === 'satisfied')) return 'satisfied';
+          if (childStatuses.some((s) => s === 'pending')) return 'pending';
+          return 'missing';
+
+        case 'any':
+          if (childStatuses.some((s) => s === 'satisfied')) return 'satisfied';
+          if (childStatuses.some((s) => s === 'pending')) return 'pending';
+          return 'missing';
+
+        case 'threshold': {
+          const k = node.threshold ?? 1;
+          const satisfiedCount = childStatuses.filter((s) => s === 'satisfied').length;
+          const pendingCount = childStatuses.filter((s) => s === 'pending').length;
+          if (satisfiedCount >= k) return 'satisfied';
+          if (satisfiedCount + pendingCount >= k) return 'pending';
+          return 'missing';
+        }
+
+        default:
+          return 'missing';
+      }
+    }
+
+    default:
+      return 'missing';
+  }
+}
+
+/**
+ * Recursively compute status for all nodes in the tree (bottom-up)
+ */
+function computeAllStatuses(
+  node: StrategyNode,
+  availableKeys: Set<string>,
+  currentTimeBlocks: number,
+  statusMap: Map<string, BuilderNodeStatus>
+): void {
+  // Process children first (bottom-up)
+  if (node.kind === 'group') {
+    for (const child of node.children) {
+      computeAllStatuses(child, availableKeys, currentTimeBlocks, statusMap);
+    }
+  }
+
+  // Then compute this node's status
+  const status = computeNodeStatus(node, availableKeys, currentTimeBlocks, statusMap);
+  statusMap.set(node.id, status);
+}
+
+/**
+ * Get label for a strategy node
+ */
+function getNodeLabel(node: StrategyNode, locale: 'zh' | 'en' = 'zh'): string {
+  switch (node.kind) {
+    case 'signature':
+      return node.roleId;
+
+    case 'timelock':
+      if (node.mode === 'relative') {
+        const human = blocksToHumanTime(node.value);
+        return `${node.value} ${locale === 'zh' ? '区块' : 'blocks'} (${human})`;
+      }
+      return `${locale === 'zh' ? '区块高度' : 'Block'} ${node.value}`;
+
+    case 'hashlock':
+      return `${node.hashType}(${node.digest.slice(0, 8)}...)`;
+
+    case 'group':
+      switch (node.op) {
+        case 'all':
+          return locale === 'zh' ? '都需要' : 'All Required';
+        case 'any':
+          return locale === 'zh' ? '任选一' : 'Any One';
+        case 'threshold':
+          return `${node.threshold ?? 1}-of-${node.children.length}`;
+        default:
+          return '';
+      }
+
+    default:
+      return '';
+  }
+}
+
+interface BuildContext {
+  nodes: Node<BuilderFlowNodeData>[];
+  edges: Edge<BuilderFlowEdgeData>[];
+  statusMap: Map<string, BuilderNodeStatus>;
+  highlightedIds: Set<string>;
+  definedRoles: Set<string>;
+  isReadOnly: boolean;
+  locale: 'zh' | 'en';
+}
+
+function buildFlowGraph(
+  strategyNode: StrategyNode,
+  ctx: BuildContext,
+  parentFlowId?: string,
+  relation?: 'all' | 'any' | 'threshold'
+): string {
+  const flowId = nextFlowId();
+  const status = ctx.statusMap.get(strategyNode.id) ?? 'missing';
+  const isHighlighted = ctx.highlightedIds.has(strategyNode.id);
+  const label = getNodeLabel(strategyNode, ctx.locale);
+
+  const isLeaf = strategyNode.kind !== 'group';
+  const nodeType: BuilderNodeType = !parentFlowId
+    ? 'builderRoot'
+    : isLeaf
+    ? 'builderCondition'
+    : 'builderOperator';
+
+  const isUndefinedRole =
+    strategyNode.kind === 'signature' && !ctx.definedRoles.has(strategyNode.roleId);
+
+  const nodeData: BuilderFlowNodeData = {
+    nodeType,
+    strategyNodeId: strategyNode.id,
+    label,
+    kind: strategyNode.kind,
+    status,
+    isReadOnly: ctx.isReadOnly,
+    isHighlighted,
+    isUndefinedRole,
+  };
+
+  // Add kind-specific data
+  if (strategyNode.kind === 'group') {
+    nodeData.op = strategyNode.op;
+    nodeData.threshold = strategyNode.threshold;
+    nodeData.childCount = strategyNode.children.length;
+  } else if (strategyNode.kind === 'signature') {
+    nodeData.roleId = strategyNode.roleId;
+  } else if (strategyNode.kind === 'timelock') {
+    nodeData.timelockValue = strategyNode.value;
+    nodeData.timelockMode = strategyNode.mode;
+  }
+
+  ctx.nodes.push({
+    id: flowId,
+    type: nodeType,
+    position: { x: 0, y: 0 },
+    data: nodeData,
+  });
+
+  if (parentFlowId && relation) {
+    ctx.edges.push({
+      id: `e_${parentFlowId}_${flowId}`,
+      source: parentFlowId,
+      target: flowId,
+      type: 'builderEdge',
+      data: { relation, satisfied: status === 'satisfied' },
+    });
+  }
+
+  // Recursively process children
+  if (strategyNode.kind === 'group') {
+    for (const child of strategyNode.children) {
+      buildFlowGraph(child, ctx, flowId, strategyNode.op);
+    }
+  }
+
+  return flowId;
+}
+
+function layoutWithDagre(
+  nodes: Node<BuilderFlowNodeData>[],
+  edges: Edge<BuilderFlowEdgeData>[]
+): void {
+  const g = new dagre.graphlib.Graph();
+  g.setDefaultEdgeLabel(() => ({}));
+  g.setGraph({ rankdir: 'TB', nodesep: 50, ranksep: 70 });
+
+  for (const node of nodes) {
+    const size = NODE_SIZES[node.type as BuilderNodeType] || NODE_SIZES.builderCondition;
+    g.setNode(node.id, { width: size.width, height: size.height });
+  }
+
+  for (const edge of edges) {
+    g.setEdge(edge.source, edge.target);
+  }
+
+  dagre.layout(g);
+
+  for (const node of nodes) {
+    const pos = g.node(node.id);
+    const size = NODE_SIZES[node.type as BuilderNodeType] || NODE_SIZES.builderCondition;
+    node.position = {
+      x: pos.x - size.width / 2,
+      y: pos.y - size.height / 2,
+    };
+  }
+}
+
+export interface BuilderTreeToFlowOptions {
+  availableKeys: Set<string>;
+  currentTimeBlocks: number;
+  highlightedIds?: Set<string>;
+  definedRoles?: Set<string>;
+  isReadOnly?: boolean;
+  locale?: 'zh' | 'en';
+}
+
+/**
+ * Convert a StrategyNode tree to React Flow nodes and edges
+ */
+export function builderTreeToFlow(
+  tree: StrategyNode,
+  options: BuilderTreeToFlowOptions
+): { nodes: Node<BuilderFlowNodeData>[]; edges: Edge<BuilderFlowEdgeData>[] } {
+  flowNodeIdCounter = 0;
+
+  const {
+    availableKeys,
+    currentTimeBlocks,
+    highlightedIds = new Set(),
+    definedRoles = new Set(),
+    isReadOnly = false,
+    locale = 'zh',
+  } = options;
+
+  // Compute statuses bottom-up
+  const statusMap = new Map<string, BuilderNodeStatus>();
+  computeAllStatuses(tree, availableKeys, currentTimeBlocks, statusMap);
+
+  const ctx: BuildContext = {
+    nodes: [],
+    edges: [],
+    statusMap,
+    highlightedIds,
+    definedRoles,
+    isReadOnly,
+    locale,
+  };
+
+  buildFlowGraph(tree, ctx);
+  layoutWithDagre(ctx.nodes, ctx.edges);
+
+  return { nodes: ctx.nodes, edges: ctx.edges };
+}

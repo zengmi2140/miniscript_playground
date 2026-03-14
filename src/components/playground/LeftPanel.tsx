@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDown, ChevronRight, Hammer } from 'lucide-react';
+import { ChevronDown, ChevronRight, Hammer, Check } from 'lucide-react';
 import { useState } from 'react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
@@ -37,26 +37,53 @@ function ScenarioMiniCard({ scenario, isActive, onSelect }: {
   );
 }
 
-function DiyComingSoonCard() {
+function BuildModeCard() {
   const { t } = useI18n();
+  const playgroundMode = usePlaygroundStore((s) => s.playgroundMode);
+  const enterBuildMode = usePlaygroundStore((s) => s.enterBuildMode);
+  const isActive = playgroundMode === 'build';
+
+  const handleClick = () => {
+    // If already in build mode, do nothing to avoid accidental reset
+    if (isActive) return;
+    enterBuildMode();
+  };
 
   return (
-    <div
-      className="w-full cursor-not-allowed rounded-button border border-dashed border-border-default px-3 py-2.5 text-left opacity-60"
+    <button
+      onClick={handleClick}
+      className={cn(
+        'w-full rounded-button border px-3 py-2.5 text-left transition-all',
+        isActive
+          ? 'border-border-active bg-btc-500/10 text-text-primary'
+          : 'border-dashed border-border-default bg-transparent text-text-secondary hover:border-border-hover hover:bg-surface-elevated',
+      )}
     >
       <div className="flex items-center gap-1.5">
-        <Hammer className="h-3.5 w-3.5 flex-shrink-0 text-text-muted" />
-        <p className="text-[13px] font-medium leading-tight text-text-muted">
+        <Hammer className={cn(
+          'h-3.5 w-3.5 flex-shrink-0',
+          isActive ? 'text-btc-500' : 'text-text-muted'
+        )} />
+        <p className={cn(
+          'text-[13px] font-medium leading-tight',
+          isActive ? 'text-text-primary' : 'text-text-muted'
+        )}>
           {t('playground.left.diy')}
         </p>
-        <span className="ml-auto rounded-chip bg-surface-elevated px-1.5 py-0.5 text-[9px] font-medium text-text-muted">
-          {t('playground.left.diyComingSoon')}
-        </span>
+        {isActive && (
+          <span className="ml-auto flex items-center gap-1 rounded-chip bg-btc-500/20 px-1.5 py-0.5 text-[9px] font-medium text-btc-500">
+            <Check className="h-2.5 w-2.5" />
+            {t('playground.left.diyActive')}
+          </span>
+        )}
       </div>
-      <p className="mt-0.5 text-[11px] leading-snug text-text-muted">
+      <p className={cn(
+        'mt-0.5 text-[11px] leading-snug',
+        isActive ? 'text-text-secondary' : 'text-text-muted'
+      )}>
         {t('playground.left.diyDesc')}
       </p>
-    </div>
+    </button>
   );
 }
 
@@ -108,7 +135,7 @@ export function LeftPanel() {
           'flex flex-col gap-1.5',
           isEmpty && 'rounded-button ring-2 ring-btc-500/40 ring-offset-2 ring-offset-surface-card',
         )}>
-          <DiyComingSoonCard />
+          <BuildModeCard />
           {SCENARIOS.map((scenario) => (
             <ScenarioMiniCard
               key={scenario.id}
