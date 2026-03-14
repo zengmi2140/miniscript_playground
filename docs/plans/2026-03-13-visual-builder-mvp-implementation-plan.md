@@ -1,0 +1,1037 @@
+# 可视化构建 MVP Implementation Plan
+
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+
+**Goal:** Build the `自己动手` -> `build` mode MVP as a constrained visual strategy editor that syncs with the Policy editor, overlays live satisfaction status on the same canvas, and preserves future compatibility for `after()` and hashlocks.
+
+**Architecture:** Add a new builder domain layer (`StrategyNode`, templates, serializer, semantic-tree importer, node ops) and make `build` mode use that tree as the source of truth while continuing to compile through the existing `policy -> compile -> miniscript -> paths` pipeline. The center column switches from read-only `PathMap` to a new editable builder canvas in `build` mode, while the right panel stays focused on path cards and technical output. Entering `build` mode from the `自己动手` card always creates a fresh blank builder workspace with starter cards; only restored `build` sessions or `build` share links rehydrate an existing policy/tree. Text edits remain allowed once inside `build` mode; supported structures round-trip back into the builder, unsupported-but-valid structures degrade to a text-led read-only builder state, and syntax errors keep the last synced builder tree.
+
+**Tech Stack:** Next.js 14 App Router, React 18, TypeScript strict, Zustand, CodeMirror 6, React Flow (`@xyflow/react`), Dagre, framer-motion, Vitest, plus new UI test dependencies (`jsdom`, `@testing-library/react`, `@testing-library/user-event`, `@testing-library/jest-dom`).
+
+## Prerequisites
+
+- Read [2026-03-13-visual-builder-mvp-design.md](/Users/mi/Documents/GitHub/miniscript_playground/docs/plans/2026-03-13-visual-builder-mvp-design.md) before implementing.
+- Execute in a dedicated worktree via `superpowers:using-git-worktrees`.
+- Follow `superpowers:test-driven-development` for each task.
+- Before claiming completion, run `superpowers:verification-before-completion`.
+- Before landing the work, use `superpowers:requesting-code-review`.
+
+## Non-Negotiable MVP Constraints
+
+- No free-form edge drawing.
+- No arbitrary node dragging to express meaning.
+- No second full path map in `build` mode.
+- No `after()` editor UI in MVP.
+- No hashlock editor UI in MVP.
+- No mobile builder UX beyond the existing desktop-only fallback.
+- Clicking `自己动手` from another mode must not import or preserve the current scene policy.
+- No regression to current `scenario` mode.
+
+## Phase 0: Test Harness And Safety Rails
+
+### Phase 0 Acceptance
+
+- Vitest can run React component tests in jsdom.
+- A basic builder component test renders successfully.
+- The repo still supports `npx vitest run`, `npm run lint`, and `npm run build`.
+
+### Task 1: Add UI test infrastructure for builder components
+
+**Files:**
+- Modify: `package.json`
+- Modify: `vitest.config.ts`
+- Create: `src/test/setup.ts`
+- Create: `src/components/builder/BuilderStarterCards.tsx`
+- Create: `src/components/builder/__tests__/BuilderStarterCards.test.tsx`
+
+**Step 1: Write the failing test**
+
+Create `src/components/builder/__tests__/BuilderStarterCards.test.tsx` with a test that expects a not-yet-created `BuilderStarterCards` component to render three starter options:
+
+```tsx
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { BuilderStarterCards } from '@/components/builder/BuilderStarterCards';
+
+describe('BuilderStarterCards', () => {
+  it('renders the three MVP starter skeletons', () => {
+    render(<BuilderStarterCards onSelect={() => {}} />);
+    expect(screen.getByText(/单人控制/i)).toBeInTheDocument();
+    expect(screen.getByText(/多人共管/i)).toBeInTheDocument();
+    expect(screen.getByText(/带恢复路径/i)).toBeInTheDocument();
+  });
+});
+```
+
+**Step 2: Run test to verify it fails**
+
+Run:
+
+```bash
+npx vitest run src/components/builder/__tests__/BuilderStarterCards.test.tsx
+```
+
+Expected:
+
+- FAIL because `@testing-library/react` is missing and/or `BuilderStarterCards` does not exist.
+
+**Step 3: Write minimal implementation**
+
+- Add dev dependencies:
+
+```bash
+npm install -D jsdom @testing-library/react @testing-library/user-event @testing-library/jest-dom
+```
+
+- Update `vitest.config.ts` to include:
+
+```ts
+test: {
+  testTimeout: 30000,
+  environment: 'jsdom',
+  setupFiles: ['./src/test/setup.ts'],
+}
+```
+
+- Create `src/test/setup.ts`:
+
+```ts
+import '@testing-library/jest-dom/vitest';
+```
+
+- Create a temporary minimal `src/components/builder/BuilderStarterCards.tsx` that renders the three starter labels and accepts `onSelect`.
+
+**Step 4: Run test to verify it passes**
+
+Run:
+
+```bash
+npx vitest run src/components/builder/__tests__/BuilderStarterCards.test.tsx
+```
+
+Expected:
+
+- PASS
+
+**Step 5: Commit**
+
+```bash
+git add package.json vitest.config.ts src/test/setup.ts src/components/builder/BuilderStarterCards.tsx src/components/builder/__tests__/BuilderStarterCards.test.tsx
+git commit -m "test: add builder UI test harness"
+```
+
+## Phase 1: Builder Domain Model And Import/Export Layer
+
+### Phase 1 Acceptance
+
+- The repo has a stable `StrategyNode` model that already reserves `absolute timelock` and `hashlock`.
+- The MVP starter skeletons serialize into valid Policy strings.
+- Supported `semanticTree` shapes import into builder trees.
+- Unsupported structures return explicit reasons instead of silently failing.
+
+### Task 2: Add the builder type system, starter templates, and policy serializer
+
+**Files:**
+- Create: `src/lib/builder/types.ts`
+- Create: `src/lib/builder/templates.ts`
+- Create: `src/lib/builder/serialize.ts`
+- Create: `src/lib/builder/__tests__/templates.test.ts`
+- Create: `src/lib/builder/__tests__/serialize.test.ts`
+
+**Step 1: Write the failing tests**
+
+Add tests that lock down:
+
+- three starter skeleton IDs
+- generated role defaults
+- serializer output for:
+  - single signature
+  - `2-of-3` threshold
+  - recovery structure `and(pk(User),or(pk(Service),older(4320)))`
+
+Example:
+
+```ts
+expect(serializeStrategyTree(singleSigTemplate().tree)).toBe('pk(Alice)');
+expect(serializeStrategyTree(recoveryTemplate().tree)).toBe('and(pk(User),or(pk(Service),older(4320)))');
+```
+
+**Step 2: Run test to verify it fails**
+
+Run:
+
+```bash
+npx vitest run src/lib/builder/__tests__/templates.test.ts src/lib/builder/__tests__/serialize.test.ts
+```
+
+Expected:
+
+- FAIL because builder domain files do not exist.
+
+**Step 3: Write minimal implementation**
+
+Create `src/lib/builder/types.ts` with at least:
+
+```ts
+export type BuilderSyncState = 'synced' | 'text-led' | 'compile-error';
+export type BuildStarterId = 'single-control' | 'shared-control' | 'recovery';
+
+export type StrategyNode =
+  | { id: string; kind: 'group'; op: 'all' | 'any' | 'threshold'; threshold?: number; children: StrategyNode[] }
+  | { id: string; kind: 'signature'; roleId: string }
+  | { id: string; kind: 'timelock'; mode: 'relative' | 'absolute'; value: number; unit: 'blocks' | 'date' | 'timestamp' }
+  | { id: string; kind: 'hashlock'; hashType: 'sha256' | 'hash256' | 'ripemd160' | 'hash160'; digest: string };
+```
+
+Create `templates.ts` with helpers that return:
+
+- `tree`
+- `policy`
+- `keyVariables`
+
+Use canonical defaults:
+
+- `single-control` -> `Alice`
+- `shared-control` -> `Alice`, `Bob`, `Charlie`, threshold `2-of-3`
+- `recovery` -> `User`, `Service`, `older(4320)`
+
+Create `serialize.ts` with:
+
+```ts
+export function serializeStrategyTree(node: StrategyNode): string
+```
+
+Rules:
+
+- `group(all)` -> `and(...)` or nested canonical `and(...)`
+- `group(any)` -> canonical `or(...)`
+- `group(threshold)` -> `thresh(k,...)`
+- `signature` -> `pk(RoleName)`
+- `timelock(relative)` -> `older(n)`
+- `timelock(absolute)` and `hashlock` may serialize, but are not used in MVP UI
+
+Do not optimize for every possible policy spelling; output a canonical builder-owned Policy format.
+
+**Step 4: Run test to verify it passes**
+
+Run:
+
+```bash
+npx vitest run src/lib/builder/__tests__/templates.test.ts src/lib/builder/__tests__/serialize.test.ts
+```
+
+Expected:
+
+- PASS
+
+**Step 5: Commit**
+
+```bash
+git add src/lib/builder/types.ts src/lib/builder/templates.ts src/lib/builder/serialize.ts src/lib/builder/__tests__/templates.test.ts src/lib/builder/__tests__/serialize.test.ts
+git commit -m "feat: add builder domain model and serializer"
+```
+
+### Task 3: Add semantic-tree -> builder import with explicit support detection
+
+**Files:**
+- Create: `src/lib/builder/from-semantic-tree.ts`
+- Create: `src/lib/builder/__tests__/from-semantic-tree.test.ts`
+- Modify: `src/lib/builder/types.ts`
+
+**Step 1: Write the failing test**
+
+Add tests for:
+
+- `pk(Alice)` semantic tree -> `signature`
+- `and(pk(A),older(4320))` -> `group(all)`
+- `thresh(2,pk(A),pk(B),pk(C))` -> `group(threshold)`
+- `after(800000)` -> unsupported result with reason like `absolute-timelock`
+- `hash160(...)` -> unsupported result with reason like `hashlock`
+
+Use the existing `parseMiniscript` in the test to generate semantic trees from canonical miniscript strings when convenient.
+
+**Step 2: Run test to verify it fails**
+
+Run:
+
+```bash
+npx vitest run src/lib/builder/__tests__/from-semantic-tree.test.ts
+```
+
+Expected:
+
+- FAIL because importer does not exist.
+
+**Step 3: Write minimal implementation**
+
+Create:
+
+```ts
+export type BuilderImportResult =
+  | { status: 'supported'; tree: StrategyNode }
+  | { status: 'unsupported'; reason: 'absolute-timelock' | 'hashlock' | 'unknown-fragment' | 'constant-branch'; message: string };
+
+export function importFromSemanticTree(node: MiniscriptNode): BuilderImportResult
+```
+
+Rules:
+
+- `key` -> `signature`
+- `older` -> `timelock(relative)`
+- `after` -> unsupported
+- `hash` -> unsupported
+- `and` / `or` -> `group(all)` / `group(any)`
+- `threshold` / `multi` -> `group(threshold)` with signature children
+- `just_0` / `just_1` -> unsupported
+
+This importer is the only reverse-sync path for MVP. Do not write a second raw Policy parser unless blocked.
+
+**Step 4: Run test to verify it passes**
+
+Run:
+
+```bash
+npx vitest run src/lib/builder/__tests__/from-semantic-tree.test.ts
+```
+
+Expected:
+
+- PASS
+
+**Step 5: Commit**
+
+```bash
+git add src/lib/builder/from-semantic-tree.ts src/lib/builder/__tests__/from-semantic-tree.test.ts src/lib/builder/types.ts
+git commit -m "feat: add builder semantic tree importer"
+```
+
+## Phase 2: Store, Persistence, Entry, And Mode Plumbing
+
+### Phase 2 Acceptance
+
+- `playgroundMode` actually controls UI behavior.
+- Clicking `自己动手` enters `build` mode.
+- Clicking a scenario always returns to `scenario` mode.
+- Build mode survives local restore and share links.
+- Clicking `自己动手` from any non-build context resets into a blank builder workspace with starter cards.
+- Restoring a saved `build` session or opening a `build` share link rehydrates that build session instead of forcing a reset.
+
+### Task 4: Extend the store with builder state, source tracking, and mode-correct transitions
+
+**Files:**
+- Modify: `src/lib/engine/types.ts`
+- Modify: `src/lib/stores/playground-store.ts`
+- Create: `src/lib/stores/__tests__/playground-store-builder.test.ts`
+- Modify: `src/lib/builder/types.ts`
+
+**Step 1: Write the failing test**
+
+Add store tests that expect:
+
+- `loadScenario()` sets `playgroundMode` to `'scenario'`
+- `enterBuildMode()` sets `playgroundMode` to `'build'`
+- `enterBuildMode()` clears `policy`, `strategyTree`, `keyVariables`, path results, and active scenario
+- `applyBuildStarter()` seeds `policy`, `keyVariables`, and `strategyTree`
+
+**Step 2: Run test to verify it fails**
+
+Run:
+
+```bash
+npx vitest run src/lib/stores/__tests__/playground-store-builder.test.ts
+```
+
+Expected:
+
+- FAIL because builder store state/actions do not exist.
+
+**Step 3: Write minimal implementation**
+
+Add to store state:
+
+- `strategyTree: StrategyNode | null`
+- `builderSyncState: BuilderSyncState`
+- `selectedBuilderNodeId: string | null`
+- `selectedPathIndex: number | null` (reuse existing field)
+- `lastBuilderPolicySnapshot: string | null`
+
+Add actions:
+
+```ts
+setStrategyTree(tree: StrategyNode | null): void;
+setBuilderSyncState(state: BuilderSyncState): void;
+setSelectedBuilderNodeId(id: string | null): void;
+enterBuildMode(): void;
+applyBuildStarter(starterId: BuildStarterId): void;
+clearSelectedPath(): void;
+```
+
+Behavior:
+
+- `loadScenario` must force `playgroundMode: 'scenario'`
+- `enterBuildMode` must force `activeScenarioId: null`
+- `enterBuildMode` must also reset:
+  - `policy: ''`
+  - `strategyTree: null`
+  - `keyVariables: []`
+  - `compilationResult: null`
+  - `compilationError: null`
+  - `semanticTree: null`
+  - `spendingPaths: []`
+  - `availableKeys: new Set()`
+  - `availableHashes: new Set()`
+  - `currentTimeBlocks: 0`
+  - `selectedPathIndex: null`
+  - `selectedBuilderNodeId: null`
+  - `builderSyncState: 'synced'`
+- `enterBuildMode` may preserve `network`, `context`, panel open state, and other non-strategy UI preferences
+- `applyBuildStarter` must also set `builderSyncState: 'synced'`
+
+**Step 4: Run test to verify it passes**
+
+Run:
+
+```bash
+npx vitest run src/lib/stores/__tests__/playground-store-builder.test.ts
+```
+
+Expected:
+
+- PASS
+
+**Step 5: Commit**
+
+```bash
+git add src/lib/engine/types.ts src/lib/stores/playground-store.ts src/lib/stores/__tests__/playground-store-builder.test.ts src/lib/builder/types.ts
+git commit -m "feat: add builder store state and mode transitions"
+```
+
+### Task 5: Persist and restore build mode in storage and share payloads
+
+**Files:**
+- Modify: `src/lib/utils/storage.ts`
+- Modify: `src/lib/utils/share.ts`
+- Modify: `src/lib/hooks/useAutoSave.ts`
+- Modify: `src/app/playground/page.tsx`
+- Create: `src/lib/utils/__tests__/storage-share-builder.test.ts`
+
+**Step 1: Write the failing test**
+
+Add tests that expect:
+
+- storage payload includes `playgroundMode`
+- share payload includes `playgroundMode`
+- decoding/restoring a build-mode share returns build mode
+
+**Step 2: Run test to verify it fails**
+
+Run:
+
+```bash
+npx vitest run src/lib/utils/__tests__/storage-share-builder.test.ts
+```
+
+Expected:
+
+- FAIL because mode is not persisted.
+
+**Step 3: Write minimal implementation**
+
+Update persisted/share payloads to include:
+
+```ts
+playgroundMode: PlaygroundMode
+```
+
+Do not persist `strategyTree` in MVP; rebuild it from `policy` after restore.
+
+Update `useAutoSave` and page restore logic so that:
+
+- build sessions re-open in `build` mode
+- scenario sessions still restore cleanly
+
+**Step 4: Run test to verify it passes**
+
+Run:
+
+```bash
+npx vitest run src/lib/utils/__tests__/storage-share-builder.test.ts
+```
+
+Expected:
+
+- PASS
+
+**Step 5: Commit**
+
+```bash
+git add src/lib/utils/storage.ts src/lib/utils/share.ts src/lib/hooks/useAutoSave.ts src/app/playground/page.tsx src/lib/utils/__tests__/storage-share-builder.test.ts
+git commit -m "feat: persist builder mode in storage and share"
+```
+
+### Task 6: Replace the DIY placeholder with a real build entry and mode-aware left panel behavior
+
+**Files:**
+- Modify: `src/components/playground/LeftPanel.tsx`
+- Modify: `src/lib/i18n/zh.ts`
+- Modify: `src/lib/i18n/en.ts`
+- Create: `src/components/playground/__tests__/LeftPanelBuildEntry.test.tsx`
+
+**Step 1: Write the failing test**
+
+Add a component test that expects:
+
+- the DIY card is clickable
+- clicking it triggers `enterBuildMode`
+- the card receives active styling when `playgroundMode === 'build'`
+
+**Step 2: Run test to verify it fails**
+
+Run:
+
+```bash
+npx vitest run src/components/playground/__tests__/LeftPanelBuildEntry.test.tsx
+```
+
+Expected:
+
+- FAIL because the DIY card is still disabled.
+
+**Step 3: Write minimal implementation**
+
+Change `DiyComingSoonCard` into a real `BuildModeCard`.
+
+Behavior:
+
+- clicking the DIY card from `scenario` mode or any other non-build context must always call the fresh-reset `enterBuildMode`
+- after reset, the center panel must show starter cards because `strategyTree === null` and `policy === ''`
+- do not attempt to import the current scenario policy during this transition
+- if the DIY card is already active in `build` mode, clicking it should be a no-op to avoid destructive accidental resets
+
+Update translations to remove Coming Soon wording and add any build-entry helper copy required.
+
+**Step 4: Run test to verify it passes**
+
+Run:
+
+```bash
+npx vitest run src/components/playground/__tests__/LeftPanelBuildEntry.test.tsx
+```
+
+Expected:
+
+- PASS
+
+**Step 5: Commit**
+
+```bash
+git add src/components/playground/LeftPanel.tsx src/lib/i18n/zh.ts src/lib/i18n/en.ts src/components/playground/__tests__/LeftPanelBuildEntry.test.tsx
+git commit -m "feat: activate diy build mode entry"
+```
+
+## Phase 3: Builder Canvas Shell And Editing Operations
+
+### Phase 3 Acceptance
+
+- `build` mode shows a builder canvas instead of `PathMap`.
+- Empty build sessions show starter skeletons.
+- The canvas renders a constrained strategy tree using React Flow/Dagre.
+- Node popovers can edit signatures, thresholds, and `older()` values.
+- Structural operations work without free-form edge editing.
+
+### Task 7: Add the builder canvas shell, starter cards, and mode-aware center panel
+
+**Files:**
+- Create: `src/components/builder/BuilderCanvas.tsx`
+- Create: `src/components/builder/BuilderNodes.tsx`
+- Create: `src/components/builder/BuilderEmptyState.tsx`
+- Create: `src/lib/builder/tree-to-flow.ts`
+- Create: `src/lib/builder/__tests__/tree-to-flow.test.ts`
+- Modify: `src/components/builder/BuilderStarterCards.tsx`
+- Modify: `src/components/playground/CenterPanel.tsx`
+
+**Step 1: Write the failing test**
+
+Add tests that expect:
+
+- no starter cards when `strategyTree` exists
+- starter cards when `playgroundMode === 'build'` and `strategyTree === null`
+- builder tree-to-flow produces nodes for:
+  - root group
+  - signature child
+  - threshold group
+  - relative timelock leaf
+
+**Step 2: Run test to verify it fails**
+
+Run:
+
+```bash
+npx vitest run src/lib/builder/__tests__/tree-to-flow.test.ts src/components/builder/__tests__/BuilderStarterCards.test.tsx
+```
+
+Expected:
+
+- FAIL because builder flow renderer does not exist.
+
+**Step 3: Write minimal implementation**
+
+Implementation rules:
+
+- `BuilderCanvas` uses React Flow + Dagre, but disables dragging/connectability as a meaning-bearing action.
+- The canvas uses builder-owned node types, not the existing read-only `PathMap` types.
+- `CenterPanel` switches:
+  - `scenario` mode -> keep existing `PathMap`
+  - `build` mode -> show `BuilderCanvas`
+- `BuilderEmptyState` contains the starter card selection UI.
+
+**Step 4: Run test to verify it passes**
+
+Run:
+
+```bash
+npx vitest run src/lib/builder/__tests__/tree-to-flow.test.ts src/components/builder/__tests__/BuilderStarterCards.test.tsx
+```
+
+Expected:
+
+- PASS
+
+**Step 5: Commit**
+
+```bash
+git add src/components/builder/BuilderCanvas.tsx src/components/builder/BuilderNodes.tsx src/components/builder/BuilderEmptyState.tsx src/lib/builder/tree-to-flow.ts src/lib/builder/__tests__/tree-to-flow.test.ts src/components/builder/BuilderStarterCards.tsx src/components/playground/CenterPanel.tsx
+git commit -m "feat: add builder canvas shell"
+```
+
+### Task 8: Add builder node operations and node-side popovers
+
+**Files:**
+- Create: `src/lib/builder/node-ops.ts`
+- Create: `src/components/builder/BuilderPopover.tsx`
+- Create: `src/components/builder/__tests__/BuilderPopover.test.tsx`
+- Create: `src/lib/builder/__tests__/node-ops.test.ts`
+- Modify: `src/components/builder/BuilderNodes.tsx`
+- Modify: `src/lib/stores/playground-store.ts`
+
+**Step 1: Write the failing test**
+
+Add tests for node ops:
+
+- add a signature child under `group(all)`
+- wrap a signature node with `group(any)`
+- convert a group to threshold and set `k`
+- remove a child node
+- update a relative timelock value
+
+Add component tests for the popover:
+
+- clicking a signature node opens role selector
+- clicking a timelock node opens numeric input
+- clicking a threshold node allows editing `k`
+
+**Step 2: Run test to verify it fails**
+
+Run:
+
+```bash
+npx vitest run src/lib/builder/__tests__/node-ops.test.ts src/components/builder/__tests__/BuilderPopover.test.tsx
+```
+
+Expected:
+
+- FAIL because node operations and popover do not exist.
+
+**Step 3: Write minimal implementation**
+
+Create pure functions in `node-ops.ts`, for example:
+
+```ts
+export function addChildNode(tree: StrategyNode, parentId: string, child: StrategyNode): StrategyNode
+export function updateNode(tree: StrategyNode, nodeId: string, updater: (node: StrategyNode) => StrategyNode): StrategyNode
+export function removeNode(tree: StrategyNode, nodeId: string): StrategyNode
+export function wrapNodeInGroup(tree: StrategyNode, nodeId: string, op: 'all' | 'any'): StrategyNode
+```
+
+Use the popover to call store actions that apply these pure operations.
+
+Keep editing focused:
+
+- role picker
+- quick add role
+- threshold `k/n`
+- relative blocks
+- delete node / add child / wrap branch
+
+No free-form edge tools.
+
+**Step 4: Run test to verify it passes**
+
+Run:
+
+```bash
+npx vitest run src/lib/builder/__tests__/node-ops.test.ts src/components/builder/__tests__/BuilderPopover.test.tsx
+```
+
+Expected:
+
+- PASS
+
+**Step 5: Commit**
+
+```bash
+git add src/lib/builder/node-ops.ts src/components/builder/BuilderPopover.tsx src/components/builder/__tests__/BuilderPopover.test.tsx src/lib/builder/__tests__/node-ops.test.ts src/components/builder/BuilderNodes.tsx src/lib/stores/playground-store.ts
+git commit -m "feat: add builder node editing popovers"
+```
+
+## Phase 4: Builder <-> Policy Sync, Degradation, And Live Status
+
+### Phase 4 Acceptance
+
+- Builder edits update the Policy editor immediately.
+- Supported text edits round-trip back into the builder.
+- Valid but unsupported structures enter text-led mode.
+- Compile errors keep the last successful builder tree visible.
+- Live conditions update node status on the builder canvas.
+
+### Task 9: Add the builder sync hook and text-led / compile-error state machine
+
+**Files:**
+- Create: `src/lib/hooks/useBuilderSync.ts`
+- Create: `src/components/builder/BuilderSyncBanner.tsx`
+- Create: `src/lib/hooks/__tests__/useBuilderSync.test.tsx`
+- Modify: `src/components/playground/PolicyEditor.tsx`
+- Modify: `src/components/playground/CenterPanel.tsx`
+- Modify: `src/app/playground/page.tsx`
+
+**Step 1: Write the failing test**
+
+Add hook/component tests that expect:
+
+- builder-owned policy updates do not immediately wipe and recreate the tree
+- supported semantic trees import to builder state
+- `after()` or hashlock semantic trees set `builderSyncState: 'text-led'`
+- compile errors set `builderSyncState: 'compile-error'` and keep the last imported tree
+
+**Step 2: Run test to verify it fails**
+
+Run:
+
+```bash
+npx vitest run src/lib/hooks/__tests__/useBuilderSync.test.tsx
+```
+
+Expected:
+
+- FAIL because the sync hook does not exist.
+
+**Step 3: Write minimal implementation**
+
+Implement `useBuilderSync` with these rules:
+
+- If `playgroundMode !== 'build'`, do nothing.
+- If `policy.trim() === ''`, keep `strategyTree === null`, keep starter-card state, and do not attempt reverse import.
+- If `policy === lastBuilderPolicySnapshot`, ignore reverse import.
+- If compilation succeeds and `semanticTree` imports as supported:
+  - set `strategyTree`
+  - set `builderSyncState: 'synced'`
+- If compilation succeeds but importer returns unsupported:
+  - keep current `policy`
+  - set `builderSyncState: 'text-led'`
+- If compilation errors:
+  - keep last `strategyTree`
+  - set `builderSyncState: 'compile-error'`
+
+Mount the hook in `playground/page.tsx` alongside `useCompiler()` and `useAutoSave()`.
+
+Render a small in-canvas banner in `build` mode when state is `text-led` or `compile-error`.
+
+**Step 4: Run test to verify it passes**
+
+Run:
+
+```bash
+npx vitest run src/lib/hooks/__tests__/useBuilderSync.test.tsx
+```
+
+Expected:
+
+- PASS
+
+**Step 5: Commit**
+
+```bash
+git add src/lib/hooks/useBuilderSync.ts src/components/builder/BuilderSyncBanner.tsx src/lib/hooks/__tests__/useBuilderSync.test.tsx src/components/playground/PolicyEditor.tsx src/components/playground/CenterPanel.tsx src/app/playground/page.tsx
+git commit -m "feat: add builder policy sync state machine"
+```
+
+### Task 10: Overlay builder status from live conditions and keep the bottom simulator reusable
+
+**Files:**
+- Create: `src/lib/builder/status.ts`
+- Create: `src/lib/builder/__tests__/status.test.ts`
+- Modify: `src/components/builder/BuilderNodes.tsx`
+- Modify: `src/components/builder/BuilderCanvas.tsx`
+- Modify: `src/components/playground/ConditionToggles.tsx`
+- Modify: `src/components/playground/TimeSlider.tsx`
+
+**Step 1: Write the failing test**
+
+Add tests that expect:
+
+- signature nodes become `satisfied` when their role is toggled on
+- relative timelock nodes become `pending` until the slider reaches the required blocks
+- `group(all)` is `satisfied` only when all children are satisfied
+- `group(any)` is `pending` if one branch is still time-locked and no branch is satisfied
+- `group(threshold)` calculates `satisfied / pending / missing` correctly
+
+**Step 2: Run test to verify it fails**
+
+Run:
+
+```bash
+npx vitest run src/lib/builder/__tests__/status.test.ts
+```
+
+Expected:
+
+- FAIL because builder status derivation does not exist.
+
+**Step 3: Write minimal implementation**
+
+Create:
+
+```ts
+export type BuilderNodeStatus = 'satisfied' | 'pending' | 'missing';
+export function computeBuilderStatus(tree: StrategyNode, availableKeys: Set<string>, currentTimeBlocks: number): BuilderStatusMap
+```
+
+Notes:
+
+- Ignore hash toggles in MVP because hashlock nodes are not user-creatable yet.
+- Keep the existing bottom condition toggles and time slider visible in `build` mode.
+- Feed builder node status into `BuilderNodes`.
+
+**Step 4: Run test to verify it passes**
+
+Run:
+
+```bash
+npx vitest run src/lib/builder/__tests__/status.test.ts
+```
+
+Expected:
+
+- PASS
+
+**Step 5: Commit**
+
+```bash
+git add src/lib/builder/status.ts src/lib/builder/__tests__/status.test.ts src/components/builder/BuilderNodes.tsx src/components/builder/BuilderCanvas.tsx src/components/playground/ConditionToggles.tsx src/components/playground/TimeSlider.tsx
+git commit -m "feat: overlay live status on builder canvas"
+```
+
+## Phase 5: Path Highlighting, UX Polish, And Full Verification
+
+### Phase 5 Acceptance
+
+- Clicking a path card highlights the corresponding branch on the builder canvas.
+- Build mode remains readable while highlighted.
+- New strings are localized in zh/en.
+- Full repo verification passes.
+- Manual QA confirms both `scenario` and `build` modes work.
+
+### Task 11: Make path cards selectable and highlight matching builder branches
+
+**Files:**
+- Create: `src/lib/builder/path-highlighting.ts`
+- Create: `src/lib/builder/__tests__/path-highlighting.test.ts`
+- Create: `src/components/results/__tests__/PathsTabSelection.test.tsx`
+- Modify: `src/components/results/PathsTab.tsx`
+- Modify: `src/components/builder/BuilderCanvas.tsx`
+- Modify: `src/components/builder/BuilderNodes.tsx`
+- Modify: `src/lib/stores/playground-store.ts`
+
+**Step 1: Write the failing test**
+
+Add tests that expect:
+
+- clicking a path card sets `selectedPathIndex`
+- highlight utility returns node IDs for a matching `2FA + older(4320)` recovery branch
+- clicking the same path twice clears selection
+
+**Step 2: Run test to verify it fails**
+
+Run:
+
+```bash
+npx vitest run src/lib/builder/__tests__/path-highlighting.test.ts src/components/results/__tests__/PathsTabSelection.test.tsx
+```
+
+Expected:
+
+- FAIL because path highlighting does not exist and path cards are not clickable.
+
+**Step 3: Write minimal implementation**
+
+Add a pure helper:
+
+```ts
+export function collectHighlightedNodeIds(tree: StrategyNode, path: SpendingPath): Set<string>
+```
+
+Implementation rule:
+
+- Match leaf conditions by role and timelock value.
+- Propagate highlight to ancestors along the selected branch.
+- For `group(any)`, only highlight branches that satisfy the selected path.
+- For threshold groups, highlight only the matched participant leaves plus the threshold parent.
+
+Update `PathsTab` so path cards behave like selectable controls and use the existing `selectedPathIndex` store slot.
+
+**Step 4: Run test to verify it passes**
+
+Run:
+
+```bash
+npx vitest run src/lib/builder/__tests__/path-highlighting.test.ts src/components/results/__tests__/PathsTabSelection.test.tsx
+```
+
+Expected:
+
+- PASS
+
+**Step 5: Commit**
+
+```bash
+git add src/lib/builder/path-highlighting.ts src/lib/builder/__tests__/path-highlighting.test.ts src/components/results/PathsTab.tsx src/components/builder/BuilderCanvas.tsx src/components/builder/BuilderNodes.tsx src/lib/stores/playground-store.ts src/components/results/__tests__/PathsTabSelection.test.tsx
+git commit -m "feat: highlight builder branches from selected paths"
+```
+
+### Task 12: Finalize copy, accessibility, regression tests, and manual QA checklist
+
+**Files:**
+- Modify: `src/lib/i18n/zh.ts`
+- Modify: `src/lib/i18n/en.ts`
+- Modify: `src/components/builder/__tests__/BuilderStarterCards.test.tsx`
+- Modify: `src/components/builder/__tests__/BuilderPopover.test.tsx`
+- Modify: `docs/plans/2026-03-13-visual-builder-mvp-design.md`
+- Create: `docs/plans/2026-03-13-visual-builder-mvp-qa-checklist.md`
+
+**Step 1: Write the failing tests / checks**
+
+Add or extend component tests for:
+
+- builder banners use localized strings
+- starter cards are keyboard reachable
+- node popover trigger buttons expose accessible labels
+
+**Step 2: Run test to verify it fails**
+
+Run:
+
+```bash
+npx vitest run src/components/builder/__tests__/BuilderStarterCards.test.tsx src/components/builder/__tests__/BuilderPopover.test.tsx
+```
+
+Expected:
+
+- FAIL if accessible labels / localized copy are incomplete.
+
+**Step 3: Write minimal implementation**
+
+- Add all missing `zh/en` strings for:
+  - build entry
+  - starter cards
+  - text-led banner
+  - compile-error banner
+  - node popover labels
+  - path selection helper text
+- Add keyboard / aria labels where missing.
+- Create `docs/plans/2026-03-13-visual-builder-mvp-qa-checklist.md` with desktop QA coverage for:
+  - DIY entry
+  - starter templates
+  - builder editing
+  - Policy reverse sync
+  - text-led mode with unsupported `after()`
+  - compile-error retention
+  - path card highlighting
+  - existing scenario regression
+
+**Step 4: Run final verification**
+
+Run:
+
+```bash
+npx vitest run
+npm run lint
+npm run build
+```
+
+Expected:
+
+- All unit/component tests PASS
+- Lint passes
+- Production build passes
+
+Then execute manual QA using `docs/plans/2026-03-13-visual-builder-mvp-qa-checklist.md`.
+
+**Step 5: Commit**
+
+```bash
+git add src/lib/i18n/zh.ts src/lib/i18n/en.ts docs/plans/2026-03-13-visual-builder-mvp-design.md docs/plans/2026-03-13-visual-builder-mvp-qa-checklist.md
+git commit -m "chore: finalize visual builder mvp polish and verification"
+```
+
+## End-To-End Acceptance Standards
+
+The feature is not done until all of the following are true:
+
+1. `自己动手` is a working build-mode entry, not a placeholder.
+2. Clicking `自己动手` from another mode clears scene-derived state and lands in a blank builder workspace.
+3. `build` mode shows starter skeletons when no builder tree exists.
+4. Builder edits update the Policy editor immediately.
+5. Supported text edits round-trip back into the builder.
+6. Unsupported-but-valid structures show text-led mode instead of corrupting the builder.
+7. Syntax errors keep the last synced builder tree visible.
+8. Builder nodes display live satisfied/pending/missing status.
+9. Right-panel path selection highlights the matching builder branch.
+10. Existing scenario mode remains intact.
+11. The implementation leaves clean expansion seams for `after()` and hashlocks.
+
+## Manual QA Matrix
+
+Use the QA checklist doc plus these scenarios:
+
+- From empty Playground -> click `自己动手` -> see starter cards.
+- From any preloaded scenario -> click `自己动手` -> previous scenario policy is cleared and starter cards are shown.
+- Choose `单人控制` -> Policy becomes `pk(Alice)` -> toggle Alice -> node turns satisfied.
+- Choose `多人共管` -> adjust to `2-of-3` -> update roles -> Policy updates canonically.
+- Choose `带恢复路径` -> move slider before/after `4320` -> timelock node changes pending/satisfied.
+- While in build mode, manually type a supported Policy -> builder rehydrates.
+- While in build mode, manually type `after(800000)` -> text-led banner appears and builder becomes read-only.
+- While in build mode, type invalid garbage -> compile-error banner appears and last builder tree remains visible.
+- Click a right-panel path card -> only matching branch highlights.
+- Click a scenario card after build mode -> UI returns to `scenario` mode.
+- Restore a saved `build` session or open a `build` share link -> existing builder content rehydrates instead of resetting to starters.
+
+## Risks To Watch During Execution
+
+- Do not accidentally keep `PathMap` mounted in build mode; one canvas only.
+- Do not import the current scenario policy when the user explicitly enters `自己动手`.
+- Do not make builder sync depend on a separate raw Policy parser if the semantic-tree bridge works.
+- Do not reset the tree on every compile if the `policy` came from builder serialization.
+- Do not let text-led mode silently downgrade into a broken editable builder.
+- Do not mutate the tree in place inside Zustand; all builder node ops must be pure.
+
+## Suggested Execution Order
+
+Execute tasks strictly in order. Do not start canvas UI before the domain model and tests exist.
+
+## Verification Commands Summary
+
+```bash
+npx vitest run
+npm run lint
+npm run build
+```
