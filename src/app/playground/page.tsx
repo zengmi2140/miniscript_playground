@@ -88,7 +88,13 @@ function DesktopPlayground() {
 
     const saved = loadSession();
     if (saved && saved.policy) {
-      restoreSession(saved);
+      restoreSession({
+        policy: saved.policy,
+        keyVariables: saved.keyVariables,
+        context: saved.context,
+        network: saved.network,
+        playgroundMode: saved.playgroundMode,
+      });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
