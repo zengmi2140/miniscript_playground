@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { ReactFlow, ReactFlowProvider } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 import { treeToFlow } from '@/lib/flow/tree-to-flow';
 import { nodeTypes } from './FlowNodes';
 import { edgeTypes } from './PathEdge';
