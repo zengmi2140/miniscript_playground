@@ -153,6 +153,7 @@ Example:
 
 ```ts
 expect(serializeStrategyTree(singleSigTemplate().tree)).toBe('pk(Alice)');
+expect(serializeStrategyTree(sharedControlTemplate().tree)).toBe('multi(2,Alice,Bob,Charlie)'); // pure multisig uses multi()
 expect(serializeStrategyTree(recoveryTemplate().tree)).toBe('and(pk(User),or(pk(Service),older(4320)))');
 ```
 
@@ -181,6 +182,18 @@ export type StrategyNode =
   | { id: string; kind: 'signature'; roleId: string }
   | { id: string; kind: 'timelock'; mode: 'relative' | 'absolute'; value: number; unit: 'blocks' | 'date' | 'timestamp' }
   | { id: string; kind: 'hashlock'; hashType: 'sha256' | 'hash256' | 'ripemd160' | 'hash160'; digest: string };
+
+// Common time period presets for the timelock dropdown (assuming ~10 min/block)
+export const TIMELOCK_PRESETS = {
+  '7 days': 1008,    // 7 * 24 * 6 = 1008 blocks
+  '30 days': 4320,   // 30 * 24 * 6 = 4320 blocks
+  '90 days': 12960,  // 90 * 24 * 6 = 12960 blocks
+  '180 days': 25920, // 180 * 24 * 6 = 25920 blocks
+  '1 year': 52560,   // 365 * 24 * 6 = 52560 blocks
+} as const;
+
+// Helper to convert blocks to human-readable time
+export function blocksToHumanTime(blocks: number): string;
 ```
 
 Create `templates.ts` with helpers that return:
@@ -205,10 +218,13 @@ Rules:
 
 - `group(all)` -> `and(...)` or nested canonical `and(...)`
 - `group(any)` -> canonical `or(...)`
-- `group(threshold)` -> `thresh(k,...)`
+- `group(threshold)` with all `signature` children -> `multi(k,RoleName1,RoleName2,...)` (pure multisig shorthand)
+- `group(threshold)` with mixed children -> `thresh(k,...)` (generic threshold)
 - `signature` -> `pk(RoleName)`
 - `timelock(relative)` -> `older(n)`
 - `timelock(absolute)` and `hashlock` may serialize, but are not used in MVP UI
+
+Note: The `multi(k,...)` vs `thresh(k,...)` distinction only affects serialization output. In the builder canvas (path graph visualization), both are expanded into k-of-n threshold nodes with participant leaves for visual clarity.
 
 Do not optimize for every possible policy spelling; output a canonical builder-owned Policy format.
 
@@ -626,9 +642,10 @@ Add tests for node ops:
 
 Add component tests for the popover:
 
-- clicking a signature node opens role selector
-- clicking a timelock node opens numeric input
+- clicking a signature node opens role selector with "quick add role" option
+- clicking a timelock node opens dual input: numeric blocks field + time period dropdown (7 days, 30 days, 90 days, 180 days, 1 year) with real-time conversion display
 - clicking a threshold node allows editing `k`
+- selecting a time period from dropdown updates the blocks field accordingly (e.g., "30 days" -> 4320 blocks)
 
 **Step 2: Run test to verify it fails**
 
@@ -660,8 +677,14 @@ Keep editing focused:
 - role picker
 - quick add role
 - threshold `k/n`
-- relative blocks
+- relative blocks (with dual input: numeric blocks field + common time period dropdown selector showing days/weeks/months, with real-time conversion display)
 - delete node / add child / wrap branch
+
+**Role/Key Variable Management Rules:**
+
+- When a new role is created via the node popover "quick add role" action, it is automatically added to the global `keyVariables` array with a generated test public key.
+- If a user deletes a role from the left panel `keyVariables` while that role is in use within the `strategyTree`, the role name is preserved in the tree but marked as "undefined" status. The tree structure is not destroyed.
+- The left panel remains the primary entry point for full role management (rename, delete, view keys). The node popover only supports lightweight creation and role selection.
 
 No free-form edge tools.
 
@@ -737,6 +760,7 @@ Implement `useBuilderSync` with these rules:
   - set `builderSyncState: 'synced'`
 - If compilation succeeds but importer returns unsupported:
   - keep current `policy`
+  - keep last `strategyTree` (do not clear it)
   - set `builderSyncState: 'text-led'`
 - If compilation errors:
   - keep last `strategyTree`
@@ -744,7 +768,11 @@ Implement `useBuilderSync` with these rules:
 
 Mount the hook in `playground/page.tsx` alongside `useCompiler()` and `useAutoSave()`.
 
-Render a small in-canvas banner in `build` mode when state is `text-led` or `compile-error`.
+**Canvas behavior in degraded states:**
+
+- In `text-led` mode: Display the last successfully synced tree in a grayed-out/read-only state. Show a prominent banner above the canvas explaining that the current policy contains unsupported constructs (e.g., `after()` or hashlocks) and the canvas shows the last synced snapshot. This helps users see where their policy "forked" from the visual builder's capabilities.
+- In `compile-error` mode: Display the last successfully synced tree in a grayed-out/read-only state. Show a banner indicating syntax errors and that the canvas shows the previous valid state.
+- In both degraded states, editing operations on the canvas are disabled but the tree remains visible for reference.
 
 **Step 4: Run test to verify it passes**
 
@@ -1006,10 +1034,14 @@ Use the QA checklist doc plus these scenarios:
 - From empty Playground -> click `自己动手` -> see starter cards.
 - From any preloaded scenario -> click `自己动手` -> previous scenario policy is cleared and starter cards are shown.
 - Choose `单人控制` -> Policy becomes `pk(Alice)` -> toggle Alice -> node turns satisfied.
-- Choose `多人共管` -> adjust to `2-of-3` -> update roles -> Policy updates canonically.
+- Choose `多人共管` -> default is `2-of-3` -> Policy becomes `multi(2,Alice,Bob,Charlie)` -> update roles -> Policy updates canonically.
 - Choose `带恢复路径` -> move slider before/after `4320` -> timelock node changes pending/satisfied.
+- Edit timelock via popover -> use dropdown to select "30 days" -> blocks field auto-updates to 4320 -> conversion display shows "~30 days".
+- Edit timelock via popover -> manually type 1008 blocks -> conversion display shows "~7 days".
+- In node popover, click "quick add role" -> enter "Dave" -> new role appears in left panel keyVariables and is selectable in builder.
+- In left panel, delete a role (e.g., "Alice") that is used in the builder tree -> tree structure preserved, Alice node shows "undefined role" warning style.
 - While in build mode, manually type a supported Policy -> builder rehydrates.
-- While in build mode, manually type `after(800000)` -> text-led banner appears and builder becomes read-only.
+- While in build mode, manually type `after(800000)` -> text-led banner appears, builder shows grayed-out last synced tree (read-only), editing disabled.
 - While in build mode, type invalid garbage -> compile-error banner appears and last builder tree remains visible.
 - Click a right-panel path card -> only matching branch highlights.
 - Click a scenario card after build mode -> UI returns to `scenario` mode.
@@ -1023,6 +1055,8 @@ Use the QA checklist doc plus these scenarios:
 - Do not reset the tree on every compile if the `policy` came from builder serialization.
 - Do not let text-led mode silently downgrade into a broken editable builder.
 - Do not mutate the tree in place inside Zustand; all builder node ops must be pure.
+- Do not delete the tree structure when a role is deleted from left panel keyVariables; preserve the node with "undefined role" visual state.
+- Do not forget to sync newly created roles (via node popover) back to the global keyVariables array.
 
 ## Suggested Execution Order
 
