@@ -6,6 +6,7 @@ import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils/cn';
 import { PathMap } from '@/components/flow/PathMap';
+import { ReactFlowStyles } from '@/components/flow/ReactFlowStyles';
 import { BuilderCanvas } from '@/components/builder/BuilderCanvas';
 import { PolicyEditor } from './PolicyEditor';
 import { ConditionToggles } from './ConditionToggles';
@@ -55,9 +56,11 @@ export function CenterPanel() {
       return (
         <div className="flex flex-1 flex-col">
           <EditorSection />
-          <div className="relative min-h-0 flex-1">
-            <BuilderCanvas />
-          </div>
+          <ReactFlowStyles>
+            <div className="relative min-h-0 flex-1">
+              <BuilderCanvas />
+            </div>
+          </ReactFlowStyles>
           <div className="border-t border-border-subtle bg-surface-card">
             <div className="px-4 pt-2 pb-1">
               <StatusBanner />
@@ -84,9 +87,11 @@ export function CenterPanel() {
           </div>
         )}
 
-        <div className="relative min-h-0 flex-1">
-          <BuilderCanvas />
-        </div>
+        <ReactFlowStyles>
+          <div className="relative min-h-0 flex-1">
+            <BuilderCanvas />
+          </div>
+        </ReactFlowStyles>
 
         <div className="border-t border-border-subtle bg-surface-card">
           <div className="px-4 pt-2 pb-1">
@@ -141,9 +146,11 @@ export function CenterPanel() {
         </div>
       )}
 
-      <div className="relative min-h-0 flex-1">
-        <PathMap />
-      </div>
+      <ReactFlowStyles>
+          <div className="relative min-h-0 flex-1">
+            <PathMap />
+          </div>
+        </ReactFlowStyles>
 
       <div className="border-t border-border-subtle bg-surface-card">
         <div className="px-4 pt-2 pb-1">
