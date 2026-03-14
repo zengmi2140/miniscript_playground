@@ -13,6 +13,9 @@ import type {
 } from '@/lib/engine/types';
 import type { Scenario } from '@/lib/engine/types';
 import { SCENARIOS } from '@/lib/scenarios/data';
+import type { BuilderSyncState, BuildStarterId, StrategyNode } from '@/lib/builder/types';
+import { getTemplate } from '@/lib/builder/templates';
+import { serializeStrategyTree } from '@/lib/builder/serialize';
 
 interface PlaygroundActions {
   setPlaygroundMode: (mode: PlaygroundMode) => void;
@@ -41,13 +44,36 @@ interface PlaygroundActions {
   setRightPanelOpen: (open: boolean) => void;
 
   loadScenario: (scenarioId: string) => void;
-  restoreSession: (payload: { policy: string; keyVariables: KeyVariable[]; context: ScriptContext; network: Network }) => void;
+  restoreSession: (payload: { policy: string; keyVariables: KeyVariable[]; context: ScriptContext; network: Network; playgroundMode?: PlaygroundMode }) => void;
   reset: () => void;
+
+  // Builder actions
+  setStrategyTree: (tree: StrategyNode | null) => void;
+  setBuilderSyncState: (state: BuilderSyncState) => void;
+  setSelectedBuilderNodeId: (id: string | null) => void;
+  setLastBuilderPolicySnapshot: (policy: string | null) => void;
+  enterBuildMode: () => void;
+  applyBuildStarter: (starterId: BuildStarterId) => void;
+  updateStrategyTree: (tree: StrategyNode) => void;
 }
 
-export type PlaygroundStore = PlaygroundState & PlaygroundActions;
+interface BuilderState {
+  strategyTree: StrategyNode | null;
+  builderSyncState: BuilderSyncState;
+  selectedBuilderNodeId: string | null;
+  lastBuilderPolicySnapshot: string | null;
+}
 
-const initialState: PlaygroundState = {
+export type PlaygroundStore = PlaygroundState & BuilderState & PlaygroundActions;
+
+const initialBuilderState: BuilderState = {
+  strategyTree: null,
+  builderSyncState: 'synced',
+  selectedBuilderNodeId: null,
+  lastBuilderPolicySnapshot: null,
+};
+
+const initialState: PlaygroundState & BuilderState = {
   playgroundMode: 'scenario',
   policy: '',
   context: 'wsh',
@@ -69,6 +95,8 @@ const initialState: PlaygroundState = {
   activeResultTab: 'paths',
   isLeftPanelOpen: true,
   isRightPanelOpen: true,
+
+  ...initialBuilderState,
 };
 
 export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
@@ -138,6 +166,7 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
     if (!scenario) return;
 
     set({
+      playgroundMode: 'scenario',
       policy: scenario.policy,
       context: scenario.context,
       keyVariables: [...scenario.keyVariables],
@@ -151,11 +180,17 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
       spendingPaths: [],
       selectedPathIndex: null,
       activeResultTab: 'paths',
+      // Reset builder state when loading scenario
+      strategyTree: null,
+      builderSyncState: 'synced',
+      selectedBuilderNodeId: null,
+      lastBuilderPolicySnapshot: null,
     });
   },
 
   restoreSession: (payload) => {
     set({
+      playgroundMode: payload.playgroundMode ?? 'scenario',
       policy: payload.policy,
       context: payload.context,
       network: payload.network,
@@ -170,8 +205,62 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
       currentTimeBlocks: 0,
       selectedPathIndex: null,
       activeResultTab: 'paths',
+      // Reset builder state - will be rehydrated from policy via useBuilderSync
+      strategyTree: null,
+      builderSyncState: 'synced',
+      selectedBuilderNodeId: null,
+      lastBuilderPolicySnapshot: null,
     });
   },
 
   reset: () => set(initialState),
+
+  // Builder actions
+  setStrategyTree: (strategyTree) => set({ strategyTree }),
+  setBuilderSyncState: (builderSyncState) => set({ builderSyncState }),
+  setSelectedBuilderNodeId: (selectedBuilderNodeId) => set({ selectedBuilderNodeId }),
+  setLastBuilderPolicySnapshot: (lastBuilderPolicySnapshot) => set({ lastBuilderPolicySnapshot }),
+
+  enterBuildMode: () => {
+    set({
+      playgroundMode: 'build',
+      activeScenarioId: null,
+      policy: '',
+      strategyTree: null,
+      keyVariables: [],
+      compilationResult: null,
+      compilationError: null,
+      semanticTree: null,
+      spendingPaths: [],
+      availableKeys: new Set<string>(),
+      availableHashes: new Set<string>(),
+      currentTimeBlocks: 0,
+      selectedPathIndex: null,
+      selectedBuilderNodeId: null,
+      builderSyncState: 'synced',
+      lastBuilderPolicySnapshot: null,
+    });
+  },
+
+  applyBuildStarter: (starterId) => {
+    const template = getTemplate(starterId);
+    const policy = serializeStrategyTree(template.tree);
+
+    set({
+      strategyTree: template.tree,
+      policy,
+      keyVariables: template.keyVariables,
+      builderSyncState: 'synced',
+      lastBuilderPolicySnapshot: policy,
+    });
+  },
+
+  updateStrategyTree: (tree) => {
+    const policy = serializeStrategyTree(tree);
+    set({
+      strategyTree: tree,
+      policy,
+      lastBuilderPolicySnapshot: policy,
+    });
+  },
 }));

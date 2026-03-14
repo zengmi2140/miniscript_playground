@@ -9,6 +9,7 @@ export function useAutoSave() {
   const keyVariables = usePlaygroundStore((s) => s.keyVariables);
   const context = usePlaygroundStore((s) => s.context);
   const network = usePlaygroundStore((s) => s.network);
+  const playgroundMode = usePlaygroundStore((s) => s.playgroundMode);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -19,7 +20,7 @@ export function useAutoSave() {
     }
 
     timerRef.current = setTimeout(() => {
-      saveSession({ policy, keyVariables, context, network });
+      saveSession({ policy, keyVariables, context, network, playgroundMode });
     }, 800);
 
     return () => {
@@ -27,5 +28,5 @@ export function useAutoSave() {
         clearTimeout(timerRef.current);
       }
     };
-  }, [policy, keyVariables, context, network]);
+  }, [policy, keyVariables, context, network, playgroundMode]);
 }

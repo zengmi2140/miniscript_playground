@@ -1,10 +1,11 @@
-import type { KeyVariable, ScriptContext, Network } from '@/lib/engine/types';
+import type { KeyVariable, ScriptContext, Network, PlaygroundMode } from '@/lib/engine/types';
 
 export interface SharePayload {
   policy: string;
   keyVariables: KeyVariable[];
   context: ScriptContext;
   network: Network;
+  playgroundMode?: PlaygroundMode;
 }
 
 export function encodeSharePayload(payload: SharePayload): string {
