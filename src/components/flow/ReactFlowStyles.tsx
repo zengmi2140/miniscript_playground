@@ -1,8 +1,8 @@
 'use client';
 
-// Import ReactFlow styles in a client component
-// This avoids issues with @import in globals.css
-import '@xyflow/react/dist/style.css';
+// Import local ReactFlow styles (extracted for Next.js compatibility)
+// Next.js doesn't support importing CSS from node_modules in component files
+import '@/styles/reactflow.css';
 
 export function ReactFlowStyles({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
