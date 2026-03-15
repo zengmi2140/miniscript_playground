@@ -68,7 +68,7 @@ function BuilderCanvasInner() {
         nodeTypes={builderNodeTypes}
         edgeTypes={builderEdgeTypes}
         fitView
-        fitViewOptions={{ padding: 0.4 }}
+        fitViewOptions={{ padding: 0.5, includeHiddenNodes: false, minZoom: 0.5, maxZoom: 1.5 }}
         nodesDraggable={false}
         nodesConnectable={false}
         elementsSelectable={true}
