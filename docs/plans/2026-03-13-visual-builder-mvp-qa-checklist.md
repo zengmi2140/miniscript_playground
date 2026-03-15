@@ -28,30 +28,33 @@ Status: Ready for Testing
 
 ---
 
-## Phase 2: Starter Templates
+## Phase 2: Free-Build Entry Point
 
-### Starter Card Selection
+### Initial Placeholder Node
 
-- [ ] When entering build mode with no tree, starter cards are shown
-- [ ] Three starter cards visible: Single Control, Shared Control, With Recovery Path
+- [ ] When entering build mode, a placeholder root node is shown (not starter templates)
+- [ ] Placeholder node has dashed border and "选择策略类型" label
+- [ ] Clicking placeholder opens strategy type selection
 
-### Single Control Template
+### Strategy Type Selection
 
-- [ ] Click "Single Control" → tree shows single `pk(Alice)` node
-- [ ] Policy editor shows `pk(Alice)`
-- [ ] KeyVariables includes Alice with a test public key
+- [ ] Four options available: Single Signature, All Required, Any One, Threshold Multisig
+- [ ] Selecting "Single Signature" creates a signature node
+- [ ] Selecting "All Required" creates an AND group with add-child placeholder
+- [ ] Selecting "Any One" creates an OR group with add-child placeholder
+- [ ] Selecting "Threshold Multisig" creates 2-of-3 structure with 3 placeholder slots
 
-### Shared Control Template (2-of-3 Multisig)
+### Threshold Default Behavior
 
-- [ ] Click "Shared Control" → tree shows threshold 2-of-3 structure
-- [ ] Policy editor shows `thresh(2,pk(Alice),pk(Bob),pk(Charlie))`
-- [ ] KeyVariables includes Alice, Bob, Charlie
+- [ ] Threshold defaults to k=2
+- [ ] 3 child placeholder slots are created by default
+- [ ] User can edit each slot to select/create a role
 
-### With Recovery Path Template
+### Role Selection Flow
 
-- [ ] Click "With Recovery Path" → tree shows AND(User, OR(Service, older(4320)))
-- [ ] Policy editor shows `and(pk(User),or(pk(Service),older(4320)))`
-- [ ] KeyVariables includes User, Service
+- [ ] "Add Signature" shows existing roles list first
+- [ ] "Create New Role" option at bottom of role list
+- [ ] Creating new role generates test public key automatically
 
 ---
 
@@ -205,8 +208,9 @@ Status: Ready for Testing
 
 ### Empty States
 
-- [ ] Empty tree shows starter cards (not blank canvas)
-- [ ] Deleting all nodes returns to starter card view
+- [ ] Empty tree shows placeholder root node (not blank canvas)
+- [ ] Deleting root node shows confirmation dialog
+- [ ] Confirming deletion returns to initial placeholder state
 
 ### Role Deletion Conflict
 
