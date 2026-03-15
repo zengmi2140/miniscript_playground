@@ -16,9 +16,18 @@ export {
   updateNode,
   deleteNode,
   addChildToGroup,
-  wrapNodeInGroup,
+  wrapNodeWithGroup,
+  updateThreshold,
+  updateTimelock,
+  updateSignatureRole,
   isPureMultisig,
 } from './node-ops';
 
 // Flow conversion
 export { builderTreeToFlow } from './tree-to-flow';
+
+// Status computation
+export { computeNodeStatus, computeAllNodeStatuses } from './status';
+
+// Path highlighting
+export { collectHighlightedNodeIds } from './path-highlighting';
