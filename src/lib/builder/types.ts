@@ -18,7 +18,22 @@ export type StrategyNode =
   | StrategyGroupNode
   | StrategySignatureNode
   | StrategyTimelockNode
-  | StrategyHashlockNode;
+  | StrategyHashlockNode
+  | StrategyPlaceholderNode;
+
+/**
+ * Placeholder node - used as initial entry point or "add child" slot
+ */
+export interface StrategyPlaceholderNode {
+  id: string;
+  kind: 'placeholder';
+  /**
+   * What type of placeholder this is:
+   * - 'root': Initial root node asking user to pick strategy type
+   * - 'child': "Add condition" placeholder inside a group
+   */
+  placeholderType: 'root' | 'child';
+}
 
 export interface StrategyGroupNode {
   id: string;

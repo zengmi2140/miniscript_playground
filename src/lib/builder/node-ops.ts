@@ -268,3 +268,124 @@ export function collectRoleIds(tree: StrategyNode): Set<string> {
   collect(tree);
   return roles;
 }
+
+/**
+ * Convert a root placeholder node to a specific strategy type
+ */
+export function convertRootPlaceholder(
+  tree: StrategyNode,
+  targetType: 'signature' | 'group',
+  options: {
+    roleId?: string;
+    groupOp?: 'all' | 'any' | 'threshold';
+    threshold?: number;
+    initialChildCount?: number;
+  } = {}
+): StrategyNode {
+  if (tree.kind !== 'placeholder' || tree.placeholderType !== 'root') {
+    return tree;
+  }
+
+  if (targetType === 'signature') {
+    return {
+      id: generateNodeId(),
+      kind: 'signature',
+      roleId: options.roleId || 'Signer1',
+    };
+  }
+
+  // Group type
+  const op = options.groupOp || 'all';
+  const threshold = options.threshold ?? 2;
+  const initialChildCount = options.initialChildCount ?? (op === 'threshold' ? 3 : 0);
+
+  // Create initial children for threshold groups
+  const children: StrategyNode[] = [];
+  for (let i = 0; i < initialChildCount; i++) {
+    children.push({
+      id: generateNodeId(),
+      kind: 'placeholder',
+      placeholderType: 'child',
+    });
+  }
+
+  return {
+    id: generateNodeId(),
+    kind: 'group',
+    op,
+    threshold: op === 'threshold' ? threshold : undefined,
+    children,
+  };
+}
+
+/**
+ * Convert a child placeholder to a specific node type
+ */
+export function convertChildPlaceholder(
+  tree: StrategyNode,
+  placeholderId: string,
+  targetType: 'signature' | 'timelock' | 'group',
+  options: {
+    roleId?: string;
+    timelockBlocks?: number;
+    groupOp?: 'all' | 'any' | 'threshold';
+    threshold?: number;
+  } = {}
+): StrategyNode {
+  return updateNode(tree, placeholderId, (node) => {
+    if (node.kind !== 'placeholder') return node;
+
+    if (targetType === 'signature') {
+      return {
+        id: generateNodeId(),
+        kind: 'signature',
+        roleId: options.roleId || 'Signer1',
+      };
+    }
+
+    if (targetType === 'timelock') {
+      return {
+        id: generateNodeId(),
+        kind: 'timelock',
+        mode: 'relative',
+        value: options.timelockBlocks || 4320,
+        unit: 'blocks',
+      };
+    }
+
+    // Nested group
+    const op = options.groupOp || 'all';
+    return {
+      id: generateNodeId(),
+      kind: 'group',
+      op,
+      threshold: op === 'threshold' ? (options.threshold ?? 2) : undefined,
+      children: [],
+    };
+  });
+}
+
+/**
+ * Create default key variables for a number of signers
+ */
+export function createDefaultKeyVariables(count: number): Array<{ name: string; policyName: string; publicKey: string }> {
+  const names = ['Alice', 'Bob', 'Charlie', 'Dave', 'Eve', 'Frank', 'Grace', 'Henry'];
+  const result: Array<{ name: string; policyName: string; publicKey: string }> = [];
+
+  for (let i = 0; i < count; i++) {
+    const name = names[i] || `Signer${i + 1}`;
+    const prefix = Math.random() > 0.5 ? '02' : '03';
+    const bytes = Array.from({ length: 32 }, () =>
+      Math.floor(Math.random() * 256)
+        .toString(16)
+        .padStart(2, '0')
+    ).join('');
+    result.push({
+      name,
+      policyName: name,
+      publicKey: prefix + bytes,
+    });
+  }
+
+  return result;
+}

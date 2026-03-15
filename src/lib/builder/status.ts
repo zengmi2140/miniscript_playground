@@ -32,6 +32,12 @@ export function computeBuilderStatus(
     let status: BuilderNodeStatus;
 
     switch (node.kind) {
+      case 'placeholder': {
+        // Placeholder nodes are always pending (waiting for user input)
+        status = 'pending';
+        break;
+      }
+
       case 'signature': {
         // Signature is satisfied if the role is in availableKeys
         status = availableKeys.has(node.roleId) ? 'satisfied' : 'missing';
@@ -56,8 +62,15 @@ export function computeBuilderStatus(
       }
 
       case 'group': {
-        // First, compute status for all children
-        const childStatuses = node.children.map(child => computeNodeStatus(child));
+        // First, compute status for all real children (exclude placeholders)
+        const realChildren = node.children.filter(child => child.kind !== 'placeholder');
+        const childStatuses = realChildren.map(child => computeNodeStatus(child));
+        
+        // Empty groups are pending
+        if (childStatuses.length === 0) {
+          status = 'pending';
+          break;
+        }
 
         switch (node.op) {
           case 'all': {

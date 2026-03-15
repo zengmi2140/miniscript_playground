@@ -23,6 +23,11 @@ export {
   addSignatureChild,
   addTimelockChild,
   collectRoleIds,
+  convertRootPlaceholder,
+  convertChildPlaceholder,
+  createDefaultKeyVariables,
+  createSignatureNode,
+  createTimelockNode,
 } from './node-ops';
 
 // Flow conversion
