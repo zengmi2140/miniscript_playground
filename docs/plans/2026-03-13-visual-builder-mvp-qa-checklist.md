@@ -44,7 +44,7 @@ Status: Ready for Testing
 ### Shared Control Template (2-of-3 Multisig)
 
 - [ ] Click "Shared Control" → tree shows threshold 2-of-3 structure
-- [ ] Policy editor shows `multi(2,Alice,Bob,Charlie)`
+- [ ] Policy editor shows `thresh(2,pk(Alice),pk(Bob),pk(Charlie))`
 - [ ] KeyVariables includes Alice, Bob, Charlie
 
 ### With Recovery Path Template
@@ -112,12 +112,12 @@ Status: Ready for Testing
 
 - [ ] Editing tree via popover immediately updates Policy text
 - [ ] Adding/removing nodes updates Policy text
-- [ ] Policy syntax is canonical (multi for pure multisig, and/or/thresh for mixed)
+- [ ] Policy syntax is canonical (thresh for thresholds, and/or for groups)
 
 ### Policy → Builder (Reverse Sync)
 
 - [ ] Typing supported Policy in editor updates builder tree
-- [ ] Supported: `pk()`, `and()`, `or()`, `thresh()`, `multi()`, `older()`
+- [ ] Supported: `pk()`, `and()`, `or()`, `thresh()`, `older()`
 - [ ] Tree restructures to match new Policy
 
 ### Text-Led Mode (Unsupported Constructs)

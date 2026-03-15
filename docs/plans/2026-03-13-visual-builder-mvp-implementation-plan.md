@@ -153,7 +153,7 @@ Example:
 
 ```ts
 expect(serializeStrategyTree(singleSigTemplate().tree)).toBe('pk(Alice)');
-expect(serializeStrategyTree(sharedControlTemplate().tree)).toBe('multi(2,Alice,Bob,Charlie)'); // pure multisig uses multi()
+expect(serializeStrategyTree(sharedControlTemplate().tree)).toBe('thresh(2,pk(Alice),pk(Bob),pk(Charlie))'); // Policy uses thresh(), multi() is Miniscript-level
 expect(serializeStrategyTree(recoveryTemplate().tree)).toBe('and(pk(User),or(pk(Service),older(4320)))');
 ```
 
@@ -1034,7 +1034,7 @@ Use the QA checklist doc plus these scenarios:
 - From empty Playground -> click `自己动手` -> see starter cards.
 - From any preloaded scenario -> click `自己动手` -> previous scenario policy is cleared and starter cards are shown.
 - Choose `单人控制` -> Policy becomes `pk(Alice)` -> toggle Alice -> node turns satisfied.
-- Choose `多人共管` -> default is `2-of-3` -> Policy becomes `multi(2,Alice,Bob,Charlie)` -> update roles -> Policy updates canonically.
+- Choose `多人共管` -> default is `2-of-3` -> Policy becomes `thresh(2,pk(Alice),pk(Bob),pk(Charlie))` -> update roles -> Policy updates canonically.
 - Choose `带恢复路径` -> move slider before/after `4320` -> timelock node changes pending/satisfied.
 - Edit timelock via popover -> use dropdown to select "30 days" -> blocks field auto-updates to 4320 -> conversion display shows "~30 days".
 - Edit timelock via popover -> manually type 1008 blocks -> conversion display shows "~7 days".

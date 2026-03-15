@@ -68,7 +68,8 @@ function BuilderCanvasInner() {
         fitViewOptions={{ padding: 0.4 }}
         nodesDraggable={false}
         nodesConnectable={false}
-        elementsSelectable={false}
+        elementsSelectable={true}
+        nodesFocusable={true}
         panOnDrag
         zoomOnScroll
         minZoom={0.3}

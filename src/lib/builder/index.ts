@@ -2,7 +2,7 @@
 export * from './types';
 
 // Templates
-export { getTemplate, singleControlTemplate, sharedControlTemplate, recoveryTemplate } from './templates';
+export { getTemplate, singleSigTemplate, sharedControlTemplate, recoveryTemplate, resetNodeIdCounter } from './templates';
 
 // Serialization
 export { serializeStrategyTree } from './serialize';
@@ -12,15 +12,17 @@ export { importFromSemanticTree } from './from-semantic-tree';
 
 // Node operations
 export {
-  findNodeById,
+  findNode,
   updateNode,
-  deleteNode,
-  addChildToGroup,
-  wrapNodeWithGroup,
+  removeNode,
+  addChildNode,
+  wrapNodeInGroup,
   updateThreshold,
-  updateTimelock,
+  updateTimelockValue,
   updateSignatureRole,
-  isPureMultisig,
+  addSignatureChild,
+  addTimelockChild,
+  collectRoleIds,
 } from './node-ops';
 
 // Flow conversion
