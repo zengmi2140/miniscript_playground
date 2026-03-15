@@ -7,10 +7,27 @@
 
 import type { BuildStarterId, BuilderTemplate, StrategyNode } from './types';
 
+// Valid secp256k1 test public keys (from DEFAULT_TEST_KEYS)
+const TEST_PUBLIC_KEYS = [
+  '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+  '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5',
+  '02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9',
+];
+
 let nodeIdCounter = 0;
+let keyIndex = 0;
 
 function generateNodeId(): string {
   return `node_${++nodeIdCounter}`;
+}
+
+/**
+ * Get a valid test public key (cycles through predefined valid keys)
+ */
+function getTestPublicKey(): string {
+  const key = TEST_PUBLIC_KEYS[keyIndex % TEST_PUBLIC_KEYS.length];
+  keyIndex++;
+  return key;
 }
 
 /**
@@ -18,19 +35,7 @@ function generateNodeId(): string {
  */
 export function resetNodeIdCounter(): void {
   nodeIdCounter = 0;
-}
-
-/**
- * Generate a random compressed public key for testing (66 hex chars)
- */
-function generateTestPublicKey(): string {
-  const prefix = Math.random() > 0.5 ? '02' : '03';
-  const bytes = Array.from({ length: 32 }, () =>
-    Math.floor(Math.random() * 256)
-      .toString(16)
-      .padStart(2, '0')
-  ).join('');
-  return prefix + bytes;
+  keyIndex = 0;
 }
 
 /**
@@ -47,7 +52,7 @@ export function singleSigTemplate(): BuilderTemplate {
     tree,
     policy: 'pk(Alice)',
     keyVariables: [
-      { name: 'Alice', policyName: 'Alice', publicKey: generateTestPublicKey() },
+      { name: 'Alice', policyName: 'Alice', publicKey: getTestPublicKey() },
     ],
   };
 }
@@ -70,11 +75,11 @@ export function sharedControlTemplate(): BuilderTemplate {
 
   return {
     tree,
-    policy: 'multi(2,Alice,Bob,Charlie)',
+    policy: 'thresh(2,pk(Alice),pk(Bob),pk(Charlie))',
     keyVariables: [
-      { name: 'Alice', policyName: 'Alice', publicKey: generateTestPublicKey() },
-      { name: 'Bob', policyName: 'Bob', publicKey: generateTestPublicKey() },
-      { name: 'Charlie', policyName: 'Charlie', publicKey: generateTestPublicKey() },
+      { name: 'Alice', policyName: 'Alice', publicKey: getTestPublicKey() },
+      { name: 'Bob', policyName: 'Bob', publicKey: getTestPublicKey() },
+      { name: 'Charlie', policyName: 'Charlie', publicKey: getTestPublicKey() },
     ],
   };
 }
@@ -111,8 +116,8 @@ export function recoveryTemplate(): BuilderTemplate {
     tree,
     policy: 'and(pk(User),or(pk(Service),older(4320)))',
     keyVariables: [
-      { name: 'User', policyName: 'User', publicKey: generateTestPublicKey() },
-      { name: 'Service', policyName: 'Service', publicKey: generateTestPublicKey() },
+      { name: 'User', policyName: 'User', publicKey: getTestPublicKey() },
+      { name: 'Service', policyName: 'Service', publicKey: getTestPublicKey() },
     ],
   };
 }
