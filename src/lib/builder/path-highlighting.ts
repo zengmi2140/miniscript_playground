@@ -40,6 +40,11 @@ export function collectHighlightedNodeIds(
    */
   function findMatchingNodes(node: StrategyNode): boolean {
     switch (node.kind) {
+      case 'placeholder': {
+        // Placeholders never match
+        return false;
+      }
+
       case 'signature': {
         if (pathKeys.has(node.roleId)) {
           highlightedIds.add(node.id);
@@ -63,10 +68,13 @@ export function collectHighlightedNodeIds(
 
       case 'group': {
         // For groups, we need to determine which children are on the path
+        // Filter out placeholders
+        const realChildren = node.children.filter(c => c.kind !== 'placeholder');
+        
         switch (node.op) {
           case 'all': {
             // AND: all children must be on the path
-            const childMatches = node.children.map(child => findMatchingNodes(child));
+            const childMatches = realChildren.map(child => findMatchingNodes(child));
             const allMatch = childMatches.every(m => m);
             if (allMatch) {
               highlightedIds.add(node.id);
@@ -79,7 +87,7 @@ export function collectHighlightedNodeIds(
           case 'any': {
             // OR: only highlight the branch(es) that satisfy the path
             let anyMatch = false;
-            for (const child of node.children) {
+            for (const child of realChildren) {
               if (findMatchingNodes(child)) {
                 anyMatch = true;
                 // Don't break - check all children to collect all matching nodes
@@ -93,7 +101,7 @@ export function collectHighlightedNodeIds(
 
           case 'threshold': {
             // THRESHOLD: highlight matched participant leaves plus the parent
-            const matchedCount = node.children.filter(child => 
+            const matchedCount = realChildren.filter(child => 
               findMatchingNodes(child)
             ).length;
             

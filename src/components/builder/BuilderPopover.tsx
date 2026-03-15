@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { X, Plus, Trash2, Key, Clock } from 'lucide-react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { X, Plus, Trash2, Key, Clock, Users, AlertTriangle } from 'lucide-react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils/cn';
@@ -13,9 +13,17 @@ import {
   removeNode,
   addSignatureChild,
   addTimelockChild,
+  addChildNode,
+  convertRootPlaceholder,
+  convertChildPlaceholder,
+  createDefaultKeyVariables,
+  createSignatureNode,
+  createTimelockNode,
 } from '@/lib/builder/node-ops';
 import { TIMELOCK_PRESETS, blocksToHumanTime, type TimelockPresetKey } from '@/lib/builder/types';
 import type { StrategyNode } from '@/lib/builder/types';
+
+type PopoverMode = 'root-type-select' | 'add-child' | 'edit-signature' | 'edit-timelock' | 'edit-threshold' | 'edit-group' | 'confirm-delete';
 
 export function BuilderPopover() {
   const { t } = useI18n();
@@ -25,112 +33,222 @@ export function BuilderPopover() {
   const setSelectedBuilderNodeId = usePlaygroundStore((s) => s.setSelectedBuilderNodeId);
   const updateStrategyTree = usePlaygroundStore((s) => s.updateStrategyTree);
   const addKeyVariable = usePlaygroundStore((s) => s.addKeyVariable);
+  const setKeyVariables = usePlaygroundStore((s) => s.setKeyVariables);
+  const setStrategyTree = usePlaygroundStore((s) => s.setStrategyTree);
 
   const [newRoleName, setNewRoleName] = useState('');
   const [showAddRole, setShowAddRole] = useState(false);
+  const [confirmDeleteTarget, setConfirmDeleteTarget] = useState<string | null>(null);
+
+  // Parse the selected node ID - could be a regular ID or "add_child:{parentId}"
+  const { isAddChildMode, targetNodeId, parentIdForAdd } = useMemo(() => {
+    if (!selectedBuilderNodeId) {
+      return { isAddChildMode: false, targetNodeId: null, parentIdForAdd: null };
+    }
+    if (selectedBuilderNodeId.startsWith('add_child:')) {
+      const parentId = selectedBuilderNodeId.replace('add_child:', '');
+      return { isAddChildMode: true, targetNodeId: null, parentIdForAdd: parentId };
+    }
+    return { isAddChildMode: false, targetNodeId: selectedBuilderNodeId, parentIdForAdd: null };
+  }, [selectedBuilderNodeId]);
 
   const selectedNode = useMemo(() => {
-    if (!strategyTree || !selectedBuilderNodeId) return null;
-    return findNode(strategyTree, selectedBuilderNodeId);
-  }, [strategyTree, selectedBuilderNodeId]);
+    if (!strategyTree || !targetNodeId) return null;
+    return findNode(strategyTree, targetNodeId);
+  }, [strategyTree, targetNodeId]);
+
+  // Determine popover mode
+  const mode: PopoverMode | null = useMemo(() => {
+    if (confirmDeleteTarget) return 'confirm-delete';
+    if (isAddChildMode) return 'add-child';
+    if (!selectedNode) return null;
+    
+    if (selectedNode.kind === 'placeholder' && selectedNode.placeholderType === 'root') {
+      return 'root-type-select';
+    }
+    if (selectedNode.kind === 'signature') return 'edit-signature';
+    if (selectedNode.kind === 'timelock') return 'edit-timelock';
+    if (selectedNode.kind === 'group') {
+      if (selectedNode.op === 'threshold') return 'edit-threshold';
+      return 'edit-group';
+    }
+    return null;
+  }, [selectedNode, isAddChildMode, confirmDeleteTarget]);
 
   const handleClose = useCallback(() => {
     setSelectedBuilderNodeId(null);
     setShowAddRole(false);
     setNewRoleName('');
+    setConfirmDeleteTarget(null);
   }, [setSelectedBuilderNodeId]);
 
+  // ============ Root Type Selection ============
+  const handleSelectRootType = useCallback(
+    (type: 'signature' | 'all' | 'any' | 'threshold') => {
+      if (!strategyTree) return;
+
+      if (type === 'signature') {
+        // Create default key variables
+        const defaultKeys = createDefaultKeyVariables(1);
+        setKeyVariables(defaultKeys);
+        const newTree = convertRootPlaceholder(strategyTree, 'signature', { roleId: defaultKeys[0].name });
+        updateStrategyTree(newTree);
+      } else {
+        // Group type
+        const op = type;
+        const initialChildCount = op === 'threshold' ? 3 : 0;
+        
+        // Create default key variables for threshold
+        if (op === 'threshold') {
+          const defaultKeys = createDefaultKeyVariables(3);
+          setKeyVariables(defaultKeys);
+          
+          // Create threshold group with signature children
+          const newTree: StrategyNode = {
+            id: 'root_group',
+            kind: 'group',
+            op: 'threshold',
+            threshold: 2,
+            children: defaultKeys.map((kv, i) => ({
+              id: `sig_${i}`,
+              kind: 'signature' as const,
+              roleId: kv.name,
+            })),
+          };
+          setStrategyTree(newTree);
+        } else {
+          // For all/any, start with empty group
+          const newTree = convertRootPlaceholder(strategyTree, 'group', { groupOp: op, initialChildCount: 0 });
+          updateStrategyTree(newTree);
+        }
+      }
+      handleClose();
+    },
+    [strategyTree, updateStrategyTree, setKeyVariables, setStrategyTree, handleClose]
+  );
+
+  // ============ Add Child ============
+  const handleAddChildType = useCallback(
+    (type: 'signature' | 'timelock' | 'group', groupOp?: 'all' | 'any' | 'threshold') => {
+      if (!strategyTree || !parentIdForAdd) return;
+
+      let newTree: StrategyNode;
+      if (type === 'signature') {
+        // Use first available role or create new
+        const roleId = keyVariables.length > 0 ? keyVariables[0].name : 'Signer1';
+        if (keyVariables.length === 0) {
+          const newKey = createDefaultKeyVariables(1)[0];
+          addKeyVariable(newKey);
+        }
+        newTree = addSignatureChild(strategyTree, parentIdForAdd, roleId);
+      } else if (type === 'timelock') {
+        newTree = addTimelockChild(strategyTree, parentIdForAdd, 4320);
+      } else {
+        // Nested group
+        const childGroup: StrategyNode = {
+          id: `nested_${Date.now()}`,
+          kind: 'group',
+          op: groupOp || 'all',
+          threshold: groupOp === 'threshold' ? 2 : undefined,
+          children: [],
+        };
+        newTree = addChildNode(strategyTree, parentIdForAdd, childGroup);
+      }
+
+      updateStrategyTree(newTree);
+      handleClose();
+    },
+    [strategyTree, parentIdForAdd, keyVariables, addKeyVariable, updateStrategyTree, handleClose]
+  );
+
+  // ============ Edit Signature ============
   const handleRoleSelect = useCallback(
     (roleId: string) => {
-      if (!strategyTree || !selectedBuilderNodeId) return;
-      const newTree = updateSignatureRole(strategyTree, selectedBuilderNodeId, roleId);
+      if (!strategyTree || !targetNodeId) return;
+      const newTree = updateSignatureRole(strategyTree, targetNodeId, roleId);
       updateStrategyTree(newTree);
     },
-    [strategyTree, selectedBuilderNodeId, updateStrategyTree]
+    [strategyTree, targetNodeId, updateStrategyTree]
   );
 
   const handleAddNewRole = useCallback(() => {
     if (!newRoleName.trim()) return;
     const name = newRoleName.trim();
 
-    // Generate a random test public key
-    const prefix = Math.random() > 0.5 ? '02' : '03';
-    const bytes = Array.from({ length: 32 }, () =>
-      Math.floor(Math.random() * 256)
-        .toString(16)
-        .padStart(2, '0')
-    ).join('');
-    const publicKey = prefix + bytes;
+    const newKey = createDefaultKeyVariables(1)[0];
+    newKey.name = name;
+    newKey.policyName = name;
+    addKeyVariable(newKey);
 
-    // Add to key variables
-    addKeyVariable({ name, policyName: name, publicKey });
-
-    // If we're editing a signature node, also update it
-    if (selectedNode?.kind === 'signature' && strategyTree && selectedBuilderNodeId) {
-      const newTree = updateSignatureRole(strategyTree, selectedBuilderNodeId, name);
+    // Update the signature node to use this role
+    if (selectedNode?.kind === 'signature' && strategyTree && targetNodeId) {
+      const newTree = updateSignatureRole(strategyTree, targetNodeId, name);
       updateStrategyTree(newTree);
     }
 
     setNewRoleName('');
     setShowAddRole(false);
-  }, [newRoleName, addKeyVariable, selectedNode, strategyTree, selectedBuilderNodeId, updateStrategyTree]);
+  }, [newRoleName, addKeyVariable, selectedNode, strategyTree, targetNodeId, updateStrategyTree]);
 
+  // ============ Edit Timelock ============
   const handleTimelockChange = useCallback(
     (value: number) => {
-      if (!strategyTree || !selectedBuilderNodeId) return;
-      const newTree = updateTimelockValue(strategyTree, selectedBuilderNodeId, value);
+      if (!strategyTree || !targetNodeId) return;
+      const newTree = updateTimelockValue(strategyTree, targetNodeId, value);
       updateStrategyTree(newTree);
     },
-    [strategyTree, selectedBuilderNodeId, updateStrategyTree]
+    [strategyTree, targetNodeId, updateStrategyTree]
   );
 
+  // ============ Edit Threshold ============
   const handleThresholdChange = useCallback(
     (k: number) => {
-      if (!strategyTree || !selectedBuilderNodeId) return;
-      const newTree = updateThreshold(strategyTree, selectedBuilderNodeId, k);
+      if (!strategyTree || !targetNodeId) return;
+      const newTree = updateThreshold(strategyTree, targetNodeId, k);
       updateStrategyTree(newTree);
     },
-    [strategyTree, selectedBuilderNodeId, updateStrategyTree]
+    [strategyTree, targetNodeId, updateStrategyTree]
   );
 
-  const handleDelete = useCallback(() => {
-    if (!strategyTree || !selectedBuilderNodeId) return;
-    const newTree = removeNode(strategyTree, selectedBuilderNodeId);
-    if (newTree) {
-      updateStrategyTree(newTree);
+  // ============ Delete ============
+  const handleDeleteRequest = useCallback((nodeId: string) => {
+    // Check if this is the root node
+    if (strategyTree?.id === nodeId) {
+      setConfirmDeleteTarget(nodeId);
+    } else {
+      // Direct delete for non-root nodes
+      if (!strategyTree) return;
+      const newTree = removeNode(strategyTree, nodeId);
+      if (newTree) {
+        updateStrategyTree(newTree);
+      }
+      handleClose();
     }
+  }, [strategyTree, updateStrategyTree, handleClose]);
+
+  const handleConfirmDelete = useCallback(() => {
+    // Reset to initial placeholder state
+    const initialTree: StrategyNode = {
+      id: 'root_placeholder',
+      kind: 'placeholder',
+      placeholderType: 'root',
+    };
+    setStrategyTree(initialTree);
+    setKeyVariables([]);
     handleClose();
-  }, [strategyTree, selectedBuilderNodeId, updateStrategyTree, handleClose]);
+  }, [setStrategyTree, setKeyVariables, handleClose]);
 
-  const handleAddSignature = useCallback(
-    (roleId: string) => {
-      if (!strategyTree || !selectedBuilderNodeId) return;
-      const newTree = addSignatureChild(strategyTree, selectedBuilderNodeId, roleId);
-      updateStrategyTree(newTree);
-    },
-    [strategyTree, selectedBuilderNodeId, updateStrategyTree]
-  );
-
-  const handleAddTimelock = useCallback(() => {
-    if (!strategyTree || !selectedBuilderNodeId) return;
-    const newTree = addTimelockChild(strategyTree, selectedBuilderNodeId, 4320);
-    updateStrategyTree(newTree);
-  }, [strategyTree, selectedBuilderNodeId, updateStrategyTree]);
-
-  // Close when clicking outside
+  // Close on outside click
   useEffect(() => {
     if (!selectedBuilderNodeId) return;
 
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      // Don't close if clicking inside the popover
       if (target.closest('[data-builder-popover]')) return;
-      // Don't close if clicking on a node (let node click handler manage)
       if (target.closest('.react-flow__node')) return;
       handleClose();
     };
 
-    // Use setTimeout to avoid immediate close on the click that opened it
     const timer = setTimeout(() => {
       document.addEventListener('click', handleClickOutside);
     }, 0);
@@ -141,24 +259,23 @@ export function BuilderPopover() {
     };
   }, [selectedBuilderNodeId, handleClose]);
 
-  if (!selectedNode) return null;
+  if (!mode) return null;
 
   return (
     <div
       data-builder-popover
       className="absolute right-4 top-4 z-50 w-72 rounded-lg border border-border-subtle bg-surface-card p-4 shadow-xl"
     >
+      {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-text-primary">
-          {selectedNode.kind === 'signature' && t('builder.node.signature')}
-          {selectedNode.kind === 'timelock' && t('builder.node.timelock')}
-          {selectedNode.kind === 'group' && (
-            selectedNode.op === 'threshold'
-              ? t('builder.node.threshold')
-              : selectedNode.op === 'all'
-              ? t('builder.node.all')
-              : t('builder.node.any')
-          )}
+          {mode === 'root-type-select' && (t('builder.starter.title') || '选择策略类型')}
+          {mode === 'add-child' && (t('builder.node.addChild') || '添加条件')}
+          {mode === 'edit-signature' && t('builder.node.signature')}
+          {mode === 'edit-timelock' && t('builder.node.timelock')}
+          {mode === 'edit-threshold' && t('builder.node.threshold')}
+          {mode === 'edit-group' && (selectedNode?.kind === 'group' && selectedNode.op === 'all' ? t('builder.node.all') : t('builder.node.any'))}
+          {mode === 'confirm-delete' && (t('builder.confirm.title') || '确认删除')}
         </h3>
         <button
           onClick={handleClose}
@@ -169,168 +286,296 @@ export function BuilderPopover() {
         </button>
       </div>
 
-          {/* Signature Node Editor */}
-          {selectedNode.kind === 'signature' && (
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs font-medium text-text-secondary mb-1.5 block">
-                  {t('builder.popover.selectRole')}
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {keyVariables.map((kv) => (
-                    <button
-                      key={kv.name}
-                      onClick={() => handleRoleSelect(kv.name)}
-                      className={cn(
-                        'rounded-full px-3 py-1 text-xs font-medium transition-colors',
-                        selectedNode.roleId === kv.name
-                          ? 'bg-btc-500 text-white'
-                          : 'bg-surface-elevated text-text-secondary hover:bg-surface-elevated/80'
-                      )}
-                    >
-                      {kv.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
+      {/* Root Type Selection */}
+      {mode === 'root-type-select' && (
+        <div className="space-y-2">
+          <p className="text-xs text-text-muted mb-3">{t('builder.starter.subtitle') || '从一个常见模式开始'}</p>
+          <button
+            onClick={() => handleSelectRootType('signature')}
+            className="w-full flex items-center gap-3 rounded-lg border border-border-subtle bg-surface-elevated p-3 text-left hover:border-btc-500 hover:bg-btc-500/10 transition-all"
+          >
+            <Key className="h-5 w-5 text-btc-500" />
+            <div>
+              <p className="text-sm font-medium text-text-primary">{t('builder.starter.singleControl') || '单签名'}</p>
+              <p className="text-xs text-text-muted">{t('builder.starter.singleControlDesc') || '单个密钥控制'}</p>
+            </div>
+          </button>
+          <button
+            onClick={() => handleSelectRootType('threshold')}
+            className="w-full flex items-center gap-3 rounded-lg border border-border-subtle bg-surface-elevated p-3 text-left hover:border-btc-500 hover:bg-btc-500/10 transition-all"
+          >
+            <Users className="h-5 w-5 text-btc-500" />
+            <div>
+              <p className="text-sm font-medium text-text-primary">{t('builder.starter.sharedControl') || '门限多签'}</p>
+              <p className="text-xs text-text-muted">{t('builder.starter.sharedControlDesc') || '多签 (2-of-3)'}</p>
+            </div>
+          </button>
+          <button
+            onClick={() => handleSelectRootType('all')}
+            className="w-full flex items-center gap-3 rounded-lg border border-border-subtle bg-surface-elevated p-3 text-left hover:border-btc-500 hover:bg-btc-500/10 transition-all"
+          >
+            <div className="flex h-5 w-5 items-center justify-center text-btc-500 font-bold text-xs">&amp;</div>
+            <div>
+              <p className="text-sm font-medium text-text-primary">{t('builder.node.all') || '都需要'}</p>
+              <p className="text-xs text-text-muted">所有条件都要满足</p>
+            </div>
+          </button>
+          <button
+            onClick={() => handleSelectRootType('any')}
+            className="w-full flex items-center gap-3 rounded-lg border border-border-subtle bg-surface-elevated p-3 text-left hover:border-btc-500 hover:bg-btc-500/10 transition-all"
+          >
+            <div className="flex h-5 w-5 items-center justify-center text-btc-500 font-bold text-xs">|</div>
+            <div>
+              <p className="text-sm font-medium text-text-primary">{t('builder.node.any') || '任选一'}</p>
+              <p className="text-xs text-text-muted">满足其中一个即可</p>
+            </div>
+          </button>
+        </div>
+      )}
 
-              {showAddRole ? (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newRoleName}
-                    onChange={(e) => setNewRoleName(e.target.value)}
-                    placeholder="Name"
-                    className="flex-1 rounded border border-border-subtle bg-surface-elevated px-2 py-1 text-sm text-text-primary placeholder:text-text-muted focus:border-btc-500 focus:outline-none"
-                    autoFocus
-                    onKeyDown={(e) => e.key === 'Enter' && handleAddNewRole()}
-                  />
-                  <button
-                    onClick={handleAddNewRole}
-                    className="rounded bg-btc-500 px-2 py-1 text-xs font-medium text-white hover:bg-btc-600"
-                  >
-                    {t('playground.keys.add')}
-                  </button>
-                </div>
-              ) : (
+      {/* Add Child */}
+      {mode === 'add-child' && (
+        <div className="space-y-2">
+          <button
+            onClick={() => handleAddChildType('signature')}
+            className="w-full flex items-center gap-3 rounded-lg border border-border-subtle bg-surface-elevated p-3 text-left hover:border-btc-500 hover:bg-btc-500/10 transition-all"
+          >
+            <Key className="h-4 w-4 text-btc-500" />
+            <div>
+              <p className="text-sm font-medium text-text-primary">{t('builder.action.addSignature') || '添加签名'}</p>
+            </div>
+          </button>
+          <button
+            onClick={() => handleAddChildType('timelock')}
+            className="w-full flex items-center gap-3 rounded-lg border border-border-subtle bg-surface-elevated p-3 text-left hover:border-btc-500 hover:bg-btc-500/10 transition-all"
+          >
+            <Clock className="h-4 w-4 text-btc-500" />
+            <div>
+              <p className="text-sm font-medium text-text-primary">{t('builder.action.addTimelock') || '添加时间锁'}</p>
+            </div>
+          </button>
+          <div className="pt-2 border-t border-border-subtle">
+            <p className="text-xs text-text-muted mb-2">添加嵌套组</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleAddChildType('group', 'all')}
+                className="flex-1 rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-xs text-text-secondary hover:border-btc-500"
+              >
+                都需要
+              </button>
+              <button
+                onClick={() => handleAddChildType('group', 'any')}
+                className="flex-1 rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-xs text-text-secondary hover:border-btc-500"
+              >
+                任选一
+              </button>
+              <button
+                onClick={() => handleAddChildType('group', 'threshold')}
+                className="flex-1 rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-xs text-text-secondary hover:border-btc-500"
+              >
+                门限
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Signature */}
+      {mode === 'edit-signature' && selectedNode?.kind === 'signature' && (
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-medium text-text-secondary mb-1.5 block">
+              {t('builder.popover.selectRole')}
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {keyVariables.map((kv) => (
                 <button
-                  onClick={() => setShowAddRole(true)}
-                  className="flex items-center gap-1.5 text-xs text-btc-500 hover:text-btc-400"
+                  key={kv.name}
+                  onClick={() => handleRoleSelect(kv.name)}
+                  className={cn(
+                    'rounded-full px-3 py-1 text-xs font-medium transition-colors',
+                    selectedNode.roleId === kv.name
+                      ? 'bg-btc-500 text-white'
+                      : 'bg-surface-elevated text-text-secondary hover:bg-surface-elevated/80'
+                  )}
                 >
-                  <Plus className="h-3 w-3" />
-                  {t('builder.popover.addRole')}
+                  {kv.name}
                 </button>
-              )}
+              ))}
             </div>
+          </div>
+
+          {showAddRole ? (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newRoleName}
+                onChange={(e) => setNewRoleName(e.target.value)}
+                placeholder="Name"
+                className="flex-1 rounded border border-border-subtle bg-surface-elevated px-2 py-1 text-sm text-text-primary placeholder:text-text-muted focus:border-btc-500 focus:outline-none"
+                autoFocus
+                onKeyDown={(e) => e.key === 'Enter' && handleAddNewRole()}
+              />
+              <button
+                onClick={handleAddNewRole}
+                className="rounded bg-btc-500 px-2 py-1 text-xs font-medium text-white hover:bg-btc-600"
+              >
+                添加
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowAddRole(true)}
+              className="flex items-center gap-1.5 text-xs text-btc-500 hover:text-btc-400"
+            >
+              <Plus className="h-3 w-3" />
+              {t('builder.popover.addRole')}
+            </button>
           )}
 
-          {/* Timelock Node Editor */}
-          {selectedNode.kind === 'timelock' && selectedNode.mode === 'relative' && (
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs font-medium text-text-secondary mb-1.5 block">
-                  {t('builder.popover.blocks')}
-                </label>
-                <input
-                  type="number"
-                  value={selectedNode.value}
-                  onChange={(e) => handleTimelockChange(parseInt(e.target.value) || 0)}
-                  className="w-full rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-sm text-text-primary focus:border-btc-500 focus:outline-none"
-                  min={1}
-                />
-                <p className="mt-1 text-xs text-text-muted">
-                  {blocksToHumanTime(selectedNode.value)}
-                </p>
-              </div>
+          <div className="mt-4 pt-3 border-t border-border-subtle">
+            <button
+              onClick={() => handleDeleteRequest(targetNodeId!)}
+              className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-400"
+            >
+              <Trash2 className="h-3 w-3" />
+              {t('builder.node.delete')}
+            </button>
+          </div>
+        </div>
+      )}
 
-              <div>
-                <label className="text-xs font-medium text-text-secondary mb-1.5 block">
-                  {t('builder.popover.timePreset')}
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {(Object.keys(TIMELOCK_PRESETS) as TimelockPresetKey[]).map((key) => (
-                    <button
-                      key={key}
-                      onClick={() => handleTimelockChange(TIMELOCK_PRESETS[key])}
-                      className={cn(
-                        'rounded-full px-2 py-0.5 text-xs transition-colors',
-                        selectedNode.value === TIMELOCK_PRESETS[key]
-                          ? 'bg-btc-500 text-white'
-                          : 'bg-surface-elevated text-text-secondary hover:bg-surface-elevated/80'
-                      )}
-                    >
-                      {key}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+      {/* Edit Timelock */}
+      {mode === 'edit-timelock' && selectedNode?.kind === 'timelock' && (
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-medium text-text-secondary mb-1.5 block">
+              {t('builder.popover.blocks')}
+            </label>
+            <input
+              type="number"
+              value={selectedNode.value}
+              onChange={(e) => handleTimelockChange(parseInt(e.target.value) || 0)}
+              className="w-full rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-sm text-text-primary focus:border-btc-500 focus:outline-none"
+              min={1}
+            />
+            <p className="mt-1 text-xs text-text-muted">
+              {blocksToHumanTime(selectedNode.value)}
+            </p>
+          </div>
 
-          {/* Threshold Group Editor */}
-          {selectedNode.kind === 'group' && selectedNode.op === 'threshold' && (
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs font-medium text-text-secondary mb-1.5 block">
-                  {t('builder.popover.threshold')}
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    value={selectedNode.threshold ?? 1}
-                    onChange={(e) => handleThresholdChange(parseInt(e.target.value) || 1)}
-                    className="w-16 rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-sm text-text-primary focus:border-btc-500 focus:outline-none"
-                    min={1}
-                    max={selectedNode.children.length}
-                  />
-                  <span className="text-sm text-text-muted">
-                    / {selectedNode.children.length}
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-text-muted">
-                  {t('builder.popover.thresholdHint')
-                    .replace('{k}', String(selectedNode.threshold ?? 1))
-                    .replace('{n}', String(selectedNode.children.length))}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Group Add Child Actions */}
-          {selectedNode.kind === 'group' && (
-            <div className="mt-4 pt-3 border-t border-border-subtle">
-              <label className="text-xs font-medium text-text-secondary mb-2 block">
-                {t('builder.node.addChild')}
-              </label>
-              <div className="flex gap-2">
+          <div>
+            <label className="text-xs font-medium text-text-secondary mb-1.5 block">
+              {t('builder.popover.timePreset')}
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {(Object.keys(TIMELOCK_PRESETS) as TimelockPresetKey[]).map((key) => (
                 <button
-                  onClick={() => handleAddSignature(keyVariables[0]?.name || 'New')}
-                  className="flex items-center gap-1.5 rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-xs text-text-secondary hover:border-border-hover"
+                  key={key}
+                  onClick={() => handleTimelockChange(TIMELOCK_PRESETS[key])}
+                  className={cn(
+                    'rounded-full px-2 py-0.5 text-xs transition-colors',
+                    selectedNode.value === TIMELOCK_PRESETS[key]
+                      ? 'bg-btc-500 text-white'
+                      : 'bg-surface-elevated text-text-secondary hover:bg-surface-elevated/80'
+                  )}
                 >
-                  <Key className="h-3 w-3" />
-                  {t('builder.node.signature')}
+                  {key}
                 </button>
-                <button
-                  onClick={handleAddTimelock}
-                  className="flex items-center gap-1.5 rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-xs text-text-secondary hover:border-border-hover"
-                >
-                  <Clock className="h-3 w-3" />
-                  {t('builder.node.timelock')}
-                </button>
-              </div>
+              ))}
             </div>
-          )}
+          </div>
 
-          {/* Delete Action */}
-      <div className="mt-4 pt-3 border-t border-border-subtle">
-        <button
-          onClick={handleDelete}
-          className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-400"
-        >
-          <Trash2 className="h-3 w-3" />
-          {t('builder.node.delete')}
-        </button>
-      </div>
+          <div className="mt-4 pt-3 border-t border-border-subtle">
+            <button
+              onClick={() => handleDeleteRequest(targetNodeId!)}
+              className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-400"
+            >
+              <Trash2 className="h-3 w-3" />
+              {t('builder.node.delete')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Threshold */}
+      {mode === 'edit-threshold' && selectedNode?.kind === 'group' && selectedNode.op === 'threshold' && (
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-medium text-text-secondary mb-1.5 block">
+              {t('builder.popover.threshold')}
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                value={selectedNode.threshold ?? 1}
+                onChange={(e) => handleThresholdChange(parseInt(e.target.value) || 1)}
+                className="w-16 rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-sm text-text-primary focus:border-btc-500 focus:outline-none"
+                min={1}
+                max={selectedNode.children.filter(c => c.kind !== 'placeholder').length || 1}
+              />
+              <span className="text-sm text-text-muted">
+                / {selectedNode.children.filter(c => c.kind !== 'placeholder').length}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-border-subtle">
+            <button
+              onClick={() => handleDeleteRequest(targetNodeId!)}
+              className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-400"
+            >
+              <Trash2 className="h-3 w-3" />
+              {t('builder.node.delete')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Group (all/any) */}
+      {mode === 'edit-group' && selectedNode?.kind === 'group' && (
+        <div className="space-y-3">
+          <p className="text-xs text-text-muted">
+            {selectedNode.op === 'all' ? '所有子条件都必须满足' : '只需满足其中一个子条件'}
+          </p>
+          
+          <div className="mt-4 pt-3 border-t border-border-subtle">
+            <button
+              onClick={() => handleDeleteRequest(targetNodeId!)}
+              className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-400"
+            >
+              <Trash2 className="h-3 w-3" />
+              {t('builder.node.delete')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Delete */}
+      {mode === 'confirm-delete' && (
+        <div className="space-y-3">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-text-secondary">
+              确定要删除整个策略吗？这将重置画布到初始状态。
+            </p>
+          </div>
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={() => setConfirmDeleteTarget(null)}
+              className="flex-1 rounded border border-border-subtle bg-surface-elevated px-3 py-1.5 text-sm text-text-secondary hover:bg-surface-elevated/80"
+            >
+              取消
+            </button>
+            <button
+              onClick={handleConfirmDelete}
+              className="flex-1 rounded bg-red-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-600"
+            >
+              确认删除
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

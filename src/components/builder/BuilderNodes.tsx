@@ -161,8 +161,67 @@ export const BuilderConditionNode = memo(function BuilderConditionNode({ data }:
   );
 });
 
+export const BuilderPlaceholderNode = memo(function BuilderPlaceholderNode({ data }: NodeProps) {
+  const { t } = useI18n();
+  const setSelectedBuilderNodeId = usePlaygroundStore((s) => s.setSelectedBuilderNodeId);
+
+  const handleClick = useCallback(() => {
+    if (!data.isReadOnly) {
+      setSelectedBuilderNodeId(data.strategyNodeId);
+    }
+  }, [data.isReadOnly, data.strategyNodeId, setSelectedBuilderNodeId]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className={cn(
+        'flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-btc-500/50 bg-btc-500/5 transition-all cursor-pointer hover:border-btc-500 hover:bg-btc-500/10',
+        data.isReadOnly && 'opacity-60 cursor-not-allowed',
+      )}
+      style={{ width: 200, height: 60 }}
+      onClick={!data.isReadOnly ? handleClick : undefined}
+    >
+      <Plus className="h-5 w-5 text-btc-500 mb-1" />
+      <span className="text-xs font-medium text-btc-500">{data.label}</span>
+      <Handle type="source" position={Position.Bottom} className="!h-1.5 !w-1.5 !border-0 !bg-transparent" />
+    </motion.div>
+  );
+});
+
+export const BuilderAddChildNode = memo(function BuilderAddChildNode({ data }: NodeProps) {
+  const { t } = useI18n();
+  const setSelectedBuilderNodeId = usePlaygroundStore((s) => s.setSelectedBuilderNodeId);
+
+  const handleClick = useCallback(() => {
+    if (!data.isReadOnly) {
+      // For add child nodes, we pass the parent group ID
+      setSelectedBuilderNodeId(`add_child:${data.strategyNodeId}`);
+    }
+  }, [data.isReadOnly, data.strategyNodeId, setSelectedBuilderNodeId]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className={cn(
+        'flex items-center justify-center rounded-md border border-dashed border-border-subtle bg-surface-elevated/50 transition-all cursor-pointer hover:border-btc-500 hover:bg-btc-500/10',
+        data.isReadOnly && 'opacity-40 cursor-not-allowed',
+      )}
+      style={{ width: 120, height: 36 }}
+      onClick={!data.isReadOnly ? handleClick : undefined}
+    >
+      <Handle type="target" position={Position.Top} className="!h-1.5 !w-1.5 !border-0 !bg-transparent" />
+      <Plus className="h-3.5 w-3.5 text-text-muted mr-1" />
+      <span className="text-xs text-text-muted">{data.label}</span>
+    </motion.div>
+  );
+});
+
 export const builderNodeTypes = {
   builderRoot: BuilderRootNode,
   builderOperator: BuilderOperatorNode,
   builderCondition: BuilderConditionNode,
+  builderPlaceholder: BuilderPlaceholderNode,
+  builderAddChild: BuilderAddChildNode,
 };

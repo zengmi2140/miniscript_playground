@@ -23,6 +23,10 @@ import type { StrategyNode } from './types';
  */
 export function serializeStrategyTree(node: StrategyNode): string {
   switch (node.kind) {
+    case 'placeholder':
+      // Placeholder nodes don't serialize - they represent incomplete state
+      return '';
+
     case 'signature':
       return `pk(${node.roleId})`;
 
@@ -37,9 +41,11 @@ export function serializeStrategyTree(node: StrategyNode): string {
       return `${node.hashType}(${node.digest})`;
 
     case 'group': {
-      const childPolicies = node.children.map((child) =>
-        serializeStrategyTree(child)
-      );
+      // Filter out placeholder children before serializing
+      const childPolicies = node.children
+        .filter((child) => child.kind !== 'placeholder')
+        .map((child) => serializeStrategyTree(child))
+        .filter((p) => p !== '');
 
       switch (node.op) {
         case 'all':
@@ -56,6 +62,7 @@ export function serializeStrategyTree(node: StrategyNode): string {
           const k = node.threshold ?? 1;
           // Policy language uses thresh(k,pk(),...) for all thresholds
           // multi() is a Miniscript-level construct, not Policy-level
+          if (childPolicies.length === 0) return '';
           return `thresh(${k},${childPolicies.join(',')})`;
         }
 
