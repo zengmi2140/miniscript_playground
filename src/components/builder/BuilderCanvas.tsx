@@ -8,7 +8,6 @@ import { builderTreeToFlow } from '@/lib/builder/tree-to-flow';
 import { collectHighlightedNodeIds } from '@/lib/builder/path-highlighting';
 import { builderNodeTypes } from './BuilderNodes';
 import { builderEdgeTypes } from './BuilderEdge';
-import { BuilderEmptyState } from './BuilderEmptyState';
 import { BuilderSyncBanner } from './BuilderSyncBanner';
 import { BuilderPopover } from './BuilderPopover';
 
@@ -51,9 +50,13 @@ function BuilderCanvasInner() {
     });
   }, [strategyTree, availableKeys, currentTimeBlocks, highlightedIds, definedRoles, isReadOnly, locale]);
 
-  // Show empty state if no tree
+  // If no tree exists, show a minimal state
   if (!strategyTree) {
-    return <BuilderEmptyState />;
+    return (
+      <div className="relative h-full w-full flex items-center justify-center">
+        <p className="text-sm text-text-muted">加载中...</p>
+      </div>
+    );
   }
 
   return (

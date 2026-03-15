@@ -13,7 +13,7 @@ import type {
 } from '@/lib/engine/types';
 import type { Scenario } from '@/lib/engine/types';
 import { SCENARIOS } from '@/lib/scenarios/data';
-import type { BuilderSyncState, BuildStarterId, StrategyNode } from '@/lib/builder/types';
+import type { BuilderSyncState, BuildStarterId, StrategyNode, StrategyPlaceholderNode } from '@/lib/builder/types';
 import { getTemplate } from '@/lib/builder/templates';
 import { serializeStrategyTree } from '@/lib/builder/serialize';
 
@@ -222,11 +222,18 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
   setLastBuilderPolicySnapshot: (lastBuilderPolicySnapshot) => set({ lastBuilderPolicySnapshot }),
 
   enterBuildMode: () => {
+    // Create initial placeholder root node
+    const initialTree: StrategyNode = {
+      id: 'root_placeholder',
+      kind: 'placeholder',
+      placeholderType: 'root',
+    };
+
     set({
       playgroundMode: 'build',
       activeScenarioId: null,
       policy: '',
-      strategyTree: null,
+      strategyTree: initialTree,
       keyVariables: [],
       compilationResult: null,
       compilationError: null,

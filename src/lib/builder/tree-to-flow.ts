@@ -10,7 +10,7 @@ import type { Node, Edge } from '@xyflow/react';
 import type { StrategyNode } from './types';
 import { blocksToHumanTime } from './types';
 
-export type BuilderNodeType = 'builderRoot' | 'builderOperator' | 'builderCondition';
+export type BuilderNodeType = 'builderRoot' | 'builderOperator' | 'builderCondition' | 'builderPlaceholder' | 'builderAddChild';
 
 export type BuilderNodeStatus = 'satisfied' | 'pending' | 'missing';
 
@@ -25,10 +25,12 @@ export interface BuilderFlowNodeData {
   roleId?: string;
   timelockValue?: number;
   timelockMode?: 'relative' | 'absolute';
+  placeholderType?: 'root' | 'child';
   status: BuilderNodeStatus;
   isReadOnly: boolean;
   isHighlighted: boolean;
   isUndefinedRole?: boolean;
+  isAddButton?: boolean;
   [key: string]: unknown;
 }
 
@@ -42,6 +44,8 @@ const NODE_SIZES: Record<BuilderNodeType, { width: number; height: number }> = {
   builderRoot: { width: 180, height: 44 },
   builderOperator: { width: 140, height: 40 },
   builderCondition: { width: 160, height: 44 },
+  builderPlaceholder: { width: 200, height: 60 },
+  builderAddChild: { width: 120, height: 36 },
 };
 
 let flowNodeIdCounter = 0;
@@ -67,6 +71,10 @@ function computeNodeStatus(
   statusMap: Map<string, BuilderNodeStatus>
 ): BuilderNodeStatus {
   switch (node.kind) {
+    case 'placeholder':
+      // Placeholders are always in pending state (waiting for user input)
+      return 'pending';
+
     case 'signature':
       return availableKeys.has(node.roleId) ? 'satisfied' : 'missing';
 
@@ -82,9 +90,14 @@ function computeNodeStatus(
       return 'missing';
 
     case 'group': {
-      const childStatuses = node.children.map(
+      // Filter out placeholders when computing group status
+      const realChildren = node.children.filter((c) => c.kind !== 'placeholder');
+      const childStatuses = realChildren.map(
         (child) => statusMap.get(child.id) ?? 'missing'
       );
+
+      // Empty group = pending (waiting for children)
+      if (childStatuses.length === 0) return 'pending';
 
       switch (node.op) {
         case 'all':
@@ -142,6 +155,9 @@ function computeAllStatuses(
  */
 function getNodeLabel(node: StrategyNode, locale: 'zh' | 'en' = 'zh'): string {
   switch (node.kind) {
+    case 'placeholder':
+      return locale === 'zh' ? '选择策略类型' : 'Choose Strategy Type';
+
     case 'signature':
       return node.roleId;
 
@@ -161,8 +177,11 @@ function getNodeLabel(node: StrategyNode, locale: 'zh' | 'en' = 'zh'): string {
           return locale === 'zh' ? '都需要' : 'All Required';
         case 'any':
           return locale === 'zh' ? '任选一' : 'Any One';
-        case 'threshold':
-          return `${node.threshold ?? 1}-of-${node.children.length}`;
+        case 'threshold': {
+          // Count real children (exclude placeholders)
+          const realChildCount = node.children.filter((c) => c.kind !== 'placeholder').length;
+          return `${node.threshold ?? 1}-of-${realChildCount}`;
+        }
         default:
           return '';
       }
@@ -193,12 +212,17 @@ function buildFlowGraph(
   const isHighlighted = ctx.highlightedIds.has(strategyNode.id);
   const label = getNodeLabel(strategyNode, ctx.locale);
 
-  const isLeaf = strategyNode.kind !== 'group';
-  const nodeType: BuilderNodeType = !parentFlowId
-    ? 'builderRoot'
-    : isLeaf
-    ? 'builderCondition'
-    : 'builderOperator';
+  // Determine node type
+  let nodeType: BuilderNodeType;
+  if (strategyNode.kind === 'placeholder') {
+    nodeType = strategyNode.placeholderType === 'root' ? 'builderPlaceholder' : 'builderAddChild';
+  } else if (!parentFlowId) {
+    nodeType = 'builderRoot';
+  } else if (strategyNode.kind === 'group') {
+    nodeType = 'builderOperator';
+  } else {
+    nodeType = 'builderCondition';
+  }
 
   const isUndefinedRole =
     strategyNode.kind === 'signature' && !ctx.definedRoles.has(strategyNode.roleId);
@@ -218,12 +242,15 @@ function buildFlowGraph(
   if (strategyNode.kind === 'group') {
     nodeData.op = strategyNode.op;
     nodeData.threshold = strategyNode.threshold;
-    nodeData.childCount = strategyNode.children.length;
+    // Count real children (exclude placeholders)
+    nodeData.childCount = strategyNode.children.filter((c) => c.kind !== 'placeholder').length;
   } else if (strategyNode.kind === 'signature') {
     nodeData.roleId = strategyNode.roleId;
   } else if (strategyNode.kind === 'timelock') {
     nodeData.timelockValue = strategyNode.value;
     nodeData.timelockMode = strategyNode.mode;
+  } else if (strategyNode.kind === 'placeholder') {
+    nodeData.placeholderType = strategyNode.placeholderType;
   }
 
   ctx.nodes.push({
@@ -243,10 +270,38 @@ function buildFlowGraph(
     });
   }
 
-  // Recursively process children
+  // Recursively process children for group nodes
   if (strategyNode.kind === 'group') {
     for (const child of strategyNode.children) {
       buildFlowGraph(child, ctx, flowId, strategyNode.op);
+    }
+    
+    // Add a virtual "add child" placeholder if not in read-only mode
+    if (!ctx.isReadOnly) {
+      const addChildId = nextFlowId();
+      const addChildLabel = ctx.locale === 'zh' ? '+ 添加条件' : '+ Add Condition';
+      ctx.nodes.push({
+        id: addChildId,
+        type: 'builderAddChild',
+        position: { x: 0, y: 0 },
+        data: {
+          nodeType: 'builderAddChild',
+          strategyNodeId: strategyNode.id, // Parent group ID for adding children
+          label: addChildLabel,
+          kind: 'placeholder' as const,
+          status: 'pending',
+          isReadOnly: false,
+          isHighlighted: false,
+          isAddButton: true,
+        },
+      });
+      ctx.edges.push({
+        id: `e_${flowId}_${addChildId}`,
+        source: flowId,
+        target: addChildId,
+        type: 'builderEdge',
+        data: { relation: strategyNode.op, satisfied: false },
+      });
     }
   }
 
@@ -259,7 +314,14 @@ function layoutWithDagre(
 ): void {
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: 'TB', nodesep: 50, ranksep: 70 });
+  // Increase spacing for cleaner layout
+  g.setGraph({ 
+    rankdir: 'TB', 
+    nodesep: 60,   // Horizontal spacing between nodes
+    ranksep: 80,   // Vertical spacing between ranks
+    edgesep: 20,   // Minimum separation between edges
+    align: 'UL',   // Align nodes to upper-left for consistency
+  });
 
   for (const node of nodes) {
     const size = NODE_SIZES[node.type as BuilderNodeType] || NODE_SIZES.builderCondition;
