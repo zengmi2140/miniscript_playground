@@ -367,23 +367,26 @@ export function convertChildPlaceholder(
 
 /**
  * Create default key variables for a number of signers
+ * Uses valid secp256k1 test public keys from DEFAULT_TEST_KEYS
  */
 export function createDefaultKeyVariables(count: number): Array<{ name: string; policyName: string; publicKey: string }> {
+  // Valid secp256k1 test public keys
+  const testKeys = [
+    '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+    '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5',
+    '02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9',
+  ];
+
   const names = ['Alice', 'Bob', 'Charlie', 'Dave', 'Eve', 'Frank', 'Grace', 'Henry'];
   const result: Array<{ name: string; policyName: string; publicKey: string }> = [];
 
   for (let i = 0; i < count; i++) {
     const name = names[i] || `Signer${i + 1}`;
-    const prefix = Math.random() > 0.5 ? '02' : '03';
-    const bytes = Array.from({ length: 32 }, () =>
-      Math.floor(Math.random() * 256)
-        .toString(16)
-        .padStart(2, '0')
-    ).join('');
+    const publicKey = testKeys[i % testKeys.length]; // Cycle through valid keys
     result.push({
       name,
       policyName: name,
-      publicKey: prefix + bytes,
+      publicKey,
     });
   }
 
