@@ -312,6 +312,12 @@ function layoutWithDagre(
   nodes: Node<BuilderFlowNodeData>[],
   edges: Edge<BuilderFlowEdgeData>[]
 ): void {
+  // If only one node, position it at center manually - dagre can produce NaN for single nodes
+  if (nodes.length === 1) {
+    nodes[0].position = { x: 0, y: 0 };
+    return;
+  }
+
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
   // Increase spacing for cleaner layout
@@ -337,10 +343,10 @@ function layoutWithDagre(
   for (const node of nodes) {
     const pos = g.node(node.id);
     const size = NODE_SIZES[node.type as BuilderNodeType] || NODE_SIZES.builderCondition;
-    node.position = {
-      x: pos.x - size.width / 2,
-      y: pos.y - size.height / 2,
-    };
+    // Guard against NaN from dagre in edge cases
+    const x = isNaN(pos?.x) ? 0 : pos.x - size.width / 2;
+    const y = isNaN(pos?.y) ? 0 : pos.y - size.height / 2;
+    node.position = { x, y };
   }
 }
 
@@ -371,8 +377,7 @@ export function builderTreeToFlow(
     locale = 'zh',
   } = options;
 
-  // Compute statuses bottom-up
-  const statusMap = new Map<string, BuilderNodeStatus>();
+  // Compute statuses bottom-up  const statusMap = new Map<string, BuilderNodeStatus>();
   computeAllStatuses(tree, availableKeys, currentTimeBlocks, statusMap);
 
   const ctx: BuildContext = {
