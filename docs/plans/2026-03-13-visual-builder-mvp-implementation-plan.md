@@ -4,7 +4,11 @@
 
 **Goal:** Build the `自己动手` -> `build` mode MVP as a constrained visual strategy editor that syncs with the Policy editor, overlays live satisfaction status on the same canvas, and preserves future compatibility for `after()` and hashlocks.
 
-**Architecture:** Add a new builder domain layer (`StrategyNode`, templates, serializer, semantic-tree importer, node ops) and make `build` mode use that tree as the source of truth while continuing to compile through the existing `policy -> compile -> miniscript -> paths` pipeline. The center column switches from read-only `PathMap` to a new editable builder canvas in `build` mode, while the right panel stays focused on path cards and technical output. Entering `build` mode from the `自己动手` card always creates a fresh blank builder workspace with starter cards; only restored `build` sessions or `build` share links rehydrate an existing policy/tree. Text edits remain allowed once inside `build` mode; supported structures round-trip back into the builder, unsupported-but-valid structures degrade to a text-led read-only builder state, and syntax errors keep the last synced builder tree.
+**Architecture:** Add a new builder domain layer (`StrategyNode` including `placeholder` type, serializer, semantic-tree importer, node ops) and make `build` mode use that tree as the source of truth while continuing to compile through the existing `policy -> compile -> miniscript -> paths` pipeline. The center column switches from read-only `PathMap` to a new editable builder canvas in `build` mode, while the right panel stays focused on path cards and technical output.
+
+**Free-Build Entry Point:** Entering `build` mode from the `自己动手` card creates a fresh workspace with a **placeholder root node** (not starter templates). Users click the placeholder to choose a strategy type (single signature, AND group, OR group, or threshold multisig), then progressively add child conditions. Group nodes always display an "Add Condition" placeholder that remains permanently visible. This design provides maximum flexibility while maintaining a guided building experience.
+
+Text edits remain allowed once inside `build` mode; supported structures round-trip back into the builder, unsupported-but-valid structures degrade to a text-led read-only builder state, and syntax errors keep the last synced builder tree.
 
 **Tech Stack:** Next.js 14 App Router, React 18, TypeScript strict, Zustand, CodeMirror 6, React Flow (`@xyflow/react`), Dagre, framer-motion, Vitest, plus new UI test dependencies (`jsdom`, `@testing-library/react`, `@testing-library/user-event`, `@testing-library/jest-dom`).
 
@@ -26,6 +30,7 @@
 - No mobile builder UX beyond the existing desktop-only fallback.
 - Clicking `自己动手` from another mode must not import or preserve the current scene policy.
 - No regression to current `scenario` mode.
+- **No starter template selection screen** - users start with a placeholder root node and choose strategy type directly.
 
 ## Phase 0: Test Harness And Safety Rails
 
@@ -175,13 +180,17 @@ Create `src/lib/builder/types.ts` with at least:
 
 ```ts
 export type BuilderSyncState = 'synced' | 'text-led' | 'compile-error';
-export type BuildStarterId = 'single-control' | 'shared-control' | 'recovery';
 
 export type StrategyNode =
+  | { id: string; kind: 'placeholder'; placeholderType: 'root' | 'child' }
   | { id: string; kind: 'group'; op: 'all' | 'any' | 'threshold'; threshold?: number; children: StrategyNode[] }
   | { id: string; kind: 'signature'; roleId: string }
   | { id: string; kind: 'timelock'; mode: 'relative' | 'absolute'; value: number; unit: 'blocks' | 'date' | 'timestamp' }
   | { id: string; kind: 'hashlock'; hashType: 'sha256' | 'hash256' | 'ripemd160' | 'hash160'; digest: string };
+
+// Note: 'placeholder' nodes are used for:
+// - 'root': Initial entry point where user chooses strategy type
+// - 'child': "Add condition" slots inside groups (always visible, not serialized)
 
 // Common time period presets for the timelock dropdown (assuming ~10 min/block)
 export const TIMELOCK_PRESETS = {
@@ -378,7 +387,6 @@ setStrategyTree(tree: StrategyNode | null): void;
 setBuilderSyncState(state: BuilderSyncState): void;
 setSelectedBuilderNodeId(id: string | null): void;
 enterBuildMode(): void;
-applyBuildStarter(starterId: BuildStarterId): void;
 clearSelectedPath(): void;
 ```
 
@@ -386,6 +394,10 @@ Behavior:
 
 - `loadScenario` must force `playgroundMode: 'scenario'`
 - `enterBuildMode` must force `activeScenarioId: null`
+- `enterBuildMode` must create an initial placeholder root node:
+  ```ts
+  strategyTree: { id: 'root_placeholder', kind: 'placeholder', placeholderType: 'root' }
+  ```
 - `enterBuildMode` must also reset:
   - `policy: ''`
   - `strategyTree: null`
@@ -1016,26 +1028,29 @@ git commit -m "chore: finalize visual builder mvp polish and verification"
 The feature is not done until all of the following are true:
 
 1. `自己动手` is a working build-mode entry, not a placeholder.
-2. Clicking `自己动手` from another mode clears scene-derived state and lands in a blank builder workspace.
-3. `build` mode shows starter skeletons when no builder tree exists.
-4. Builder edits update the Policy editor immediately.
-5. Supported text edits round-trip back into the builder.
-6. Unsupported-but-valid structures show text-led mode instead of corrupting the builder.
-7. Syntax errors keep the last synced builder tree visible.
-8. Builder nodes display live satisfied/pending/missing status.
-9. Right-panel path selection highlights the matching builder branch.
-10. Existing scenario mode remains intact.
-11. The implementation leaves clean expansion seams for `after()` and hashlocks.
+2. Clicking `自己动手` from another mode clears scene-derived state and shows a placeholder root node.
+3. `build` mode shows placeholder root node for strategy type selection (no starter template cards).
+4. Group nodes always display a permanent "Add Condition" placeholder.
+5. Builder edits update the Policy editor immediately.
+6. Supported text edits round-trip back into the builder.
+7. Unsupported-but-valid structures show text-led mode instead of corrupting the builder.
+8. Syntax errors keep the last synced builder tree visible.
+9. Builder nodes display live satisfied/pending/missing status.
+10. Right-panel path selection highlights the matching builder branch.
+11. Existing scenario mode remains intact.
+12. The implementation leaves clean expansion seams for `after()` and hashlocks.
 
 ## Manual QA Matrix
 
 Use the QA checklist doc plus these scenarios:
 
-- From empty Playground -> click `自己动手` -> see starter cards.
-- From any preloaded scenario -> click `自己动手` -> previous scenario policy is cleared and starter cards are shown.
-- Choose `单人控制` -> Policy becomes `pk(Alice)` -> toggle Alice -> node turns satisfied.
-- Choose `多人共管` -> default is `2-of-3` -> Policy becomes `thresh(2,pk(Alice),pk(Bob),pk(Charlie))` -> update roles -> Policy updates canonically.
-- Choose `带恢复路径` -> move slider before/after `4320` -> timelock node changes pending/satisfied.
+- From empty Playground -> click `自己动手` -> see placeholder root node with "选择策略类型".
+- From any preloaded scenario -> click `自己动手` -> previous scenario policy is cleared and placeholder root shown.
+- Click placeholder -> choose `单签名` -> create signature node -> select role "Alice" -> Policy becomes `pk(Alice)`.
+- Click placeholder -> choose `门限多签` -> default 2-of-3 structure with 3 placeholder slots appears.
+- Fill in threshold slots with Alice, Bob, Charlie -> Policy becomes `thresh(2,pk(Alice),pk(Bob),pk(Charlie))`.
+- Click placeholder -> choose `都需要` -> add signature child -> add timelock child -> complex structure builds up.
+- In threshold group, click "+" to add more conditions beyond initial 3.
 - Edit timelock via popover -> use dropdown to select "30 days" -> blocks field auto-updates to 4320 -> conversion display shows "~30 days".
 - Edit timelock via popover -> manually type 1008 blocks -> conversion display shows "~7 days".
 - In node popover, click "quick add role" -> enter "Dave" -> new role appears in left panel keyVariables and is selectable in builder.
@@ -1057,6 +1072,8 @@ Use the QA checklist doc plus these scenarios:
 - Do not mutate the tree in place inside Zustand; all builder node ops must be pure.
 - Do not delete the tree structure when a role is deleted from left panel keyVariables; preserve the node with "undefined role" visual state.
 - Do not forget to sync newly created roles (via node popover) back to the global keyVariables array.
+- Do not serialize placeholder nodes to Policy - they represent incomplete/interactive state only.
+- Deleting the root node must show confirmation dialog before resetting to initial placeholder state.
 
 ## Suggested Execution Order
 
