@@ -34,7 +34,9 @@ export {
 export { builderTreeToFlow } from './tree-to-flow';
 
 // Status computation
-export { computeNodeStatus, computeAllNodeStatuses } from './status';
+export { computeBuilderStatus, getStatusLabel } from './status';
+export type { BuilderStatusMap } from './status';
+// Note: BuilderNodeStatus is re-exported from ./types via export * to avoid conflicts
 
 // Path highlighting
 export { collectHighlightedNodeIds } from './path-highlighting';
