@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import * as Popover from '@radix-ui/react-popover';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { X, Plus, Trash2, Key, Clock } from 'lucide-react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
@@ -118,37 +117,57 @@ export function BuilderPopover() {
     updateStrategyTree(newTree);
   }, [strategyTree, selectedBuilderNodeId, updateStrategyTree]);
 
+  // Close when clicking outside
+  useEffect(() => {
+    if (!selectedBuilderNodeId) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Don't close if clicking inside the popover
+      if (target.closest('[data-builder-popover]')) return;
+      // Don't close if clicking on a node (let node click handler manage)
+      if (target.closest('.react-flow__node')) return;
+      handleClose();
+    };
+
+    // Use setTimeout to avoid immediate close on the click that opened it
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside);
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [selectedBuilderNodeId, handleClose]);
+
   if (!selectedNode) return null;
 
   return (
-    <Popover.Root open={!!selectedBuilderNodeId} onOpenChange={(open) => !open && handleClose()}>
-      <Popover.Anchor className="fixed left-1/2 top-1/2" />
-      <Popover.Portal>
-        <Popover.Content
-          className="z-50 w-72 rounded-lg border border-border-subtle bg-surface-card p-4 shadow-xl"
-          sideOffset={5}
+    <div
+      data-builder-popover
+      className="absolute right-4 top-4 z-50 w-72 rounded-lg border border-border-subtle bg-surface-card p-4 shadow-xl"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold text-text-primary">
+          {selectedNode.kind === 'signature' && t('builder.node.signature')}
+          {selectedNode.kind === 'timelock' && t('builder.node.timelock')}
+          {selectedNode.kind === 'group' && (
+            selectedNode.op === 'threshold'
+              ? t('builder.node.threshold')
+              : selectedNode.op === 'all'
+              ? t('builder.node.all')
+              : t('builder.node.any')
+          )}
+        </h3>
+        <button
+          onClick={handleClose}
+          className="rounded p-1 text-text-muted hover:bg-surface-elevated hover:text-text-primary"
+          aria-label="Close"
         >
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-text-primary">
-              {selectedNode.kind === 'signature' && t('builder.node.signature')}
-              {selectedNode.kind === 'timelock' && t('builder.node.timelock')}
-              {selectedNode.kind === 'group' && (
-                selectedNode.op === 'threshold'
-                  ? t('builder.node.threshold')
-                  : selectedNode.op === 'all'
-                  ? t('builder.node.all')
-                  : t('builder.node.any')
-              )}
-            </h3>
-            <Popover.Close asChild>
-              <button
-                className="rounded p-1 text-text-muted hover:bg-surface-elevated hover:text-text-primary"
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </Popover.Close>
-          </div>
+          <X className="h-4 w-4" />
+        </button>
+      </div>
 
           {/* Signature Node Editor */}
           {selectedNode.kind === 'signature' && (
@@ -303,19 +322,15 @@ export function BuilderPopover() {
           )}
 
           {/* Delete Action */}
-          <div className="mt-4 pt-3 border-t border-border-subtle">
-            <button
-              onClick={handleDelete}
-              className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-400"
-            >
-              <Trash2 className="h-3 w-3" />
-              {t('builder.node.delete')}
-            </button>
-          </div>
-
-          <Popover.Arrow className="fill-surface-card" />
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
+      <div className="mt-4 pt-3 border-t border-border-subtle">
+        <button
+          onClick={handleDelete}
+          className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-400"
+        >
+          <Trash2 className="h-3 w-3" />
+          {t('builder.node.delete')}
+        </button>
+      </div>
+    </div>
   );
 }

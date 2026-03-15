@@ -18,9 +18,10 @@ describe('serializeStrategyTree', () => {
     expect(serializeStrategyTree(template.tree)).toBe('pk(Alice)');
   });
 
-  it('serializes shared control template as multi()', () => {
+  it('serializes shared control template as thresh()', () => {
     const template = sharedControlTemplate();
-    expect(serializeStrategyTree(template.tree)).toBe('multi(2,Alice,Bob,Charlie)');
+    // Policy language uses thresh(k,pk(),...) - multi() is a Miniscript-level construct
+    expect(serializeStrategyTree(template.tree)).toBe('thresh(2,pk(Alice),pk(Bob),pk(Charlie))');
   });
 
   it('serializes recovery template', () => {
@@ -94,7 +95,7 @@ describe('serializeStrategyTree', () => {
     expect(serializeStrategyTree(node)).toBe('thresh(2,pk(A),pk(B),older(1000))');
   });
 
-  it('serializes pure multisig threshold as multi()', () => {
+  it('serializes pure signature threshold as thresh()', () => {
     const node: StrategyNode = {
       id: 'root',
       kind: 'group',
@@ -107,7 +108,8 @@ describe('serializeStrategyTree', () => {
         { id: '4', kind: 'signature', roleId: 'D' },
       ],
     };
-    expect(serializeStrategyTree(node)).toBe('multi(3,A,B,C,D)');
+    // Policy language always uses thresh(k,pk(),...) - multi() is Miniscript-level
+    expect(serializeStrategyTree(node)).toBe('thresh(3,pk(A),pk(B),pk(C),pk(D))');
   });
 
   it('serializes hashlock', () => {
