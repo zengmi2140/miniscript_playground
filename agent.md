@@ -168,6 +168,7 @@ src/
 - `src/lib/builder/tree-to-flow.ts`：将 `StrategyNode` 转为 React Flow 图（Dagre 布局）；节点上叠加满足态；与 `src/lib/builder/types.ts`、`serialize.ts`、`node-ops.ts`、`path-highlighting.ts`、`status.ts` 等配合。
 - `src/components/builder/BuilderCanvas.tsx`：build 模式主画布；只读态由 `builderSyncState !== 'synced'` 控制。
 - `src/lib/hooks/useBuilderSync.ts`：在 `playgroundMode === 'build'` 时双向同步 Policy 文本与 `strategyTree`；挂载于 `playground/page.tsx`。
+- `src/lib/playground/add-next-key-variable.ts`：`createNextKeyVariable` / `generateRandomPubkey`，供左栏 `KeyVariableManager` 与 `BuilderPopover`（签名编辑「新建角色」）共用同一套「下一个角色」逻辑；浮层内一键创建后会 `updateSignatureRole` + `updateStrategyTree`。
 - 专项设计与范围见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 
 ### 花费路径分析
@@ -196,7 +197,7 @@ src/
   - Context / Network 选择
 
 - `src/components/playground/KeyVariableManager.tsx`
-  - 维护 policy 名称和公钥映射
+  - 维护 policy 名称和公钥映射；「添加」通过 `createNextKeyVariable` + `addKeyVariable`，与构建器签名浮层「新建角色」一致
   - 可随机生成测试公钥
 
 ### 中栏（flex-1）
@@ -324,6 +325,7 @@ src/
 ### 修改可视化构建（build 模式）
 
 - `src/lib/builder/tree-to-flow.ts`、`src/lib/builder/types.ts`、`src/lib/builder/serialize.ts`、`src/lib/builder/node-ops.ts`
+- `src/lib/playground/add-next-key-variable.ts`（角色「下一个」命名与公钥，与左栏共用）
 - `src/components/builder/BuilderCanvas.tsx`、`BuilderNodes.tsx`、`BuilderPopover.tsx`
 - `src/lib/hooks/useBuilderSync.ts`、`src/lib/stores/playground-store.ts`（`enterBuildMode`、`updateStrategyTree` 等）
 
@@ -368,6 +370,7 @@ src/
 - `src/lib/utils/__tests__/storage-share-builder.test.ts`
 - `src/components/playground/__tests__/LeftPanelBuildEntry.test.tsx`
 - `src/components/builder/__tests__/`（如 `BuilderPopover`、`BuilderStarterCards`）
+- `src/lib/playground/__tests__/add-next-key-variable.test.ts`
 - `src/components/results/__tests__/PathsTabSelection.test.tsx`
 
 这意味着：
