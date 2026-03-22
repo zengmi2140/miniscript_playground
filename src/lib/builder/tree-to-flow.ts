@@ -5,7 +5,6 @@
  * for display in the builder canvas.
  */
 
-import dagre from 'dagre';
 import type { Node, Edge } from '@xyflow/react';
 import type { StrategyNode } from './types';
 import { blocksToHumanTime } from './types';
@@ -314,11 +313,20 @@ function buildFlowGraph(
   return flowId;
 }
 
-function layoutWithDagre(
+/** Vertical gap between ranks (matches previous Dagre ranksep). */
+const RANK_SEP = 80;
+/** Horizontal gap between sibling subtrees. */
+const NODE_GAP = 80;
+
+/**
+ * Recursive TB layout: each parent is centered over the full width of its child row
+ * (including virtual add-child nodes). Subtree widths are computed bottom-up so
+ * nested groups never overlap siblings — unlike Dagre + parent-only nudging.
+ */
+function layoutBuilderTree(
   nodes: Node<BuilderFlowNodeData>[],
   edges: Edge<BuilderFlowEdgeData>[]
 ): void {
-  // If only one node, position it at center manually - dagre can produce NaN for single nodes
   if (nodes.length === 1) {
     const n = nodes[0];
     const size = NODE_SIZES[n.type as BuilderNodeType] || NODE_SIZES.builderCondition;
@@ -328,37 +336,81 @@ function layoutWithDagre(
     return;
   }
 
-  const g = new dagre.graphlib.Graph();
-  g.setDefaultEdgeLabel(() => ({}));
-  // Increase spacing for cleaner layout
-  g.setGraph({ 
-    rankdir: 'TB', 
-    nodesep: 60,   // Horizontal spacing between nodes
-    ranksep: 80,   // Vertical spacing between ranks
-    edgesep: 20,   // Minimum separation between edges
-    align: 'UL',   // Align nodes to upper-left for consistency
-  });
-
-  for (const node of nodes) {
-    const size = NODE_SIZES[node.type as BuilderNodeType] || NODE_SIZES.builderCondition;
-    g.setNode(node.id, { width: size.width, height: size.height });
+  const nodeById = new Map(nodes.map((n) => [n.id, n]));
+  const childrenByParent = new Map<string, string[]>();
+  for (const e of edges) {
+    const list = childrenByParent.get(e.source) ?? [];
+    list.push(e.target);
+    childrenByParent.set(e.source, list);
   }
 
-  for (const edge of edges) {
-    g.setEdge(edge.source, edge.target);
+  const hasIncoming = new Set<string>();
+  for (const e of edges) {
+    hasIncoming.add(e.target);
+  }
+  const roots = nodes.filter((n) => !hasIncoming.has(n.id));
+  if (roots.length === 0) return;
+
+  const measureMemo = new Map<string, number>();
+
+  function measureSubtree(id: string): number {
+    if (measureMemo.has(id)) return measureMemo.get(id)!;
+    const node = nodeById.get(id);
+    if (!node) {
+      measureMemo.set(id, 0);
+      return 0;
+    }
+    const selfW = NODE_SIZES[node.type as BuilderNodeType]?.width ?? NODE_SIZES.builderCondition.width;
+    const children = childrenByParent.get(id) ?? [];
+    if (children.length === 0) {
+      measureMemo.set(id, selfW);
+      return selfW;
+    }
+    let sum = 0;
+    for (const cid of children) {
+      sum += measureSubtree(cid);
+    }
+    sum += NODE_GAP * (children.length - 1);
+    const total = Math.max(selfW, sum);
+    measureMemo.set(id, total);
+    return total;
   }
 
-  dagre.layout(g);
+  function placeSubtree(id: string, depth: number, left: number, width: number): void {
+    const node = nodeById.get(id);
+    if (!node) return;
+    const sz = NODE_SIZES[node.type as BuilderNodeType] || NODE_SIZES.builderCondition;
+    const children = childrenByParent.get(id) ?? [];
+    node.position = { x: left + (width - sz.width) / 2, y: depth * RANK_SEP };
+    node.width = sz.width;
+    node.height = sz.height;
 
-  for (const node of nodes) {
-    const pos = g.node(node.id);
-    const size = NODE_SIZES[node.type as BuilderNodeType] || NODE_SIZES.builderCondition;
-    // Guard against NaN from dagre in edge cases
-    const x = isNaN(pos?.x) ? 0 : pos.x - size.width / 2;
-    const y = isNaN(pos?.y) ? 0 : pos.y - size.height / 2;
-    node.position = { x, y };
-    node.width = size.width;
-    node.height = size.height;
+    if (children.length === 0) return;
+
+    const childWidths = children.map((cid) => measureMemo.get(cid) ?? 0);
+    let childRowWidth = 0;
+    for (let i = 0; i < children.length; i++) {
+      childRowWidth += childWidths[i];
+      if (i < children.length - 1) childRowWidth += NODE_GAP;
+    }
+    const childLeftStart = left + (width - childRowWidth) / 2;
+    let cursor = childLeftStart;
+    for (let i = 0; i < children.length; i++) {
+      const cid = children[i];
+      const cw = childWidths[i];
+      placeSubtree(cid, depth + 1, cursor, cw);
+      cursor += cw;
+      if (i < children.length - 1) cursor += NODE_GAP;
+    }
+  }
+
+  let xCursor = 0;
+  for (let r = 0; r < roots.length; r++) {
+    const rootId = roots[r].id;
+    const w = measureSubtree(rootId);
+    placeSubtree(rootId, 0, xCursor, w);
+    xCursor += w;
+    if (r < roots.length - 1) xCursor += NODE_GAP;
   }
 }
 
@@ -404,7 +456,7 @@ export function builderTreeToFlow(
   };
 
   buildFlowGraph(tree, ctx);
-  layoutWithDagre(ctx.nodes, ctx.edges);
+  layoutBuilderTree(ctx.nodes, ctx.edges);
 
   return { nodes: ctx.nodes, edges: ctx.edges };
 }

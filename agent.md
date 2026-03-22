@@ -25,7 +25,7 @@ Miniscript Lab 是一个 **场景优先、以花费路径为中心** 的 Bitcoin
 - 语言：TypeScript strict
 - 状态管理：Zustand
 - 编辑器：CodeMirror 6
-- 可视化：React Flow (`@xyflow/react`) + Dagre
+- 可视化：React Flow (`@xyflow/react`)；**scenario** 路径图用 Dagre TB（`src/lib/flow/tree-to-flow.ts`），**build** 策略树用自实现递归 TB 布局（`src/lib/builder/tree-to-flow.ts`，非 Dagre）
 - 动画：framer-motion
 - 样式：Tailwind CSS + 少量 shadcn/ui 基础设施
 - Bitcoin 相关库：
@@ -88,9 +88,9 @@ src/
     shared/         代码块、tooltip、popover 等通用组件
   lib/
     engine/         编译、路径分析、Miniscript 解析、时间工具、类型
-    builder/        可视化构建：StrategyNode、序列化、tree-to-flow、路径高亮、节点操作
+    builder/        可视化构建：StrategyNode、序列化、tree-to-flow（递归 TB）、路径高亮、节点操作
     editor/         CodeMirror Policy 语法高亮
-    flow/           语义树 -> React Flow 图（scenario 路径图）
+    flow/           语义树 -> React Flow 图（scenario 路径图，Dagre TB）
     glossary/       术语解释
     hooks/          useCompiler、useAutoSave、useBuilderSync（build 同步）
     i18n/           轻量双语系统
@@ -165,7 +165,7 @@ src/
 
 ### 可视化构建（build /「自己动手」模式）
 
-- `src/lib/builder/tree-to-flow.ts`：将 `StrategyNode` 转为 React Flow 图（Dagre 布局）；节点上叠加满足态；与 `src/lib/builder/types.ts`、`serialize.ts`、`node-ops.ts`、`path-highlighting.ts`、`status.ts` 等配合。
+- `src/lib/builder/tree-to-flow.ts`：将 `StrategyNode` 转为 React Flow 图；**递归 TB 布局**（子树宽度自下而上、节点自上而下，父在直接子行含「+ 添加条件」上水平居中）；节点上叠加满足态；与 `src/lib/builder/types.ts`、`serialize.ts`、`node-ops.ts`、`path-highlighting.ts`、`status.ts` 等配合。
 - `src/components/builder/BuilderCanvas.tsx`：build 模式主画布；只读态由 `builderSyncState !== 'synced'` 控制。
 - `src/lib/hooks/useBuilderSync.ts`：在 `playgroundMode === 'build'` 时双向同步 Policy 文本与 `strategyTree`；挂载于 `playground/page.tsx`。
 - `src/lib/playground/add-next-key-variable.ts`：`createNextKeyVariable` / `generateRandomPubkey`，供左栏 `KeyVariableManager` 与 `BuilderPopover`（签名编辑「新建角色」）共用同一套「下一个角色」逻辑；浮层内一键创建后会 `updateSignatureRole` + `updateStrategyTree`。

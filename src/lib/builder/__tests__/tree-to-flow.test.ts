@@ -30,9 +30,9 @@ describe('builderTreeToFlow', () => {
       const template = sharedControlTemplate();
       const { nodes, edges } = builderTreeToFlow(template.tree, defaultOptions);
 
-      // Root + 3 children
-      expect(nodes).toHaveLength(4);
-      expect(edges).toHaveLength(3);
+      // Root + 3 signatures + add-child placeholder
+      expect(nodes).toHaveLength(5);
+      expect(edges).toHaveLength(4);
 
       const root = nodes.find((n) => n.type === 'builderRoot');
       expect(root).toBeDefined();
@@ -47,9 +47,9 @@ describe('builderTreeToFlow', () => {
       const template = recoveryTemplate();
       const { nodes, edges } = builderTreeToFlow(template.tree, defaultOptions);
 
-      // Root (and) + User sig + or group + Service sig + timelock
-      expect(nodes).toHaveLength(5);
-      expect(edges).toHaveLength(4);
+      // Root + User + OR + add; OR + Service + timelock + add
+      expect(nodes).toHaveLength(7);
+      expect(edges).toHaveLength(6);
 
       const root = nodes.find((n) => n.type === 'builderRoot');
       expect(root?.data.op).toBe('all');
@@ -129,9 +129,9 @@ describe('builderTreeToFlow', () => {
       const template = recoveryTemplate();
 
       // Need User + (Service OR timelock)
-      // Nothing available -> missing
+      // Nothing available: User missing, OR has timelock pending -> root pending
       let result = builderTreeToFlow(template.tree, defaultOptions);
-      expect(result.nodes[0].data.status).toBe('missing');
+      expect(result.nodes[0].data.status).toBe('pending');
 
       // User available, timelock pending -> pending
       result = builderTreeToFlow(template.tree, {
@@ -159,6 +159,48 @@ describe('builderTreeToFlow', () => {
       });
 
       expect(nodes.every((n) => n.data.isReadOnly)).toBe(true);
+    });
+  });
+
+  describe('layout: parent centered over direct children', () => {
+    function expectParentCenteredOverChildren(
+      nodes: ReturnType<typeof builderTreeToFlow>['nodes'],
+      edges: ReturnType<typeof builderTreeToFlow>['edges'],
+      parentId: string
+    ): void {
+      const parent = nodes.find((n) => n.id === parentId);
+      expect(parent).toBeDefined();
+      const childEdges = edges.filter((e) => e.source === parentId);
+      expect(childEdges.length).toBeGreaterThan(0);
+      let left = Infinity;
+      let right = -Infinity;
+      for (const e of childEdges) {
+        const c = nodes.find((n) => n.id === e.target);
+        expect(c).toBeDefined();
+        const w = c!.width ?? 0;
+        left = Math.min(left, c!.position.x);
+        right = Math.max(right, c!.position.x + w);
+      }
+      const bboxCenter = (left + right) / 2;
+      const pw = parent!.width ?? 0;
+      const parentCenter = parent!.position.x + pw / 2;
+      expect(Math.abs(parentCenter - bboxCenter)).toBeLessThan(1);
+    }
+
+    it('centers root over threshold group children row', () => {
+      const template = sharedControlTemplate();
+      const { nodes, edges } = builderTreeToFlow(template.tree, defaultOptions);
+      const root = nodes.find((n) => n.type === 'builderRoot');
+      expect(root).toBeDefined();
+      expectParentCenteredOverChildren(nodes, edges, root!.id);
+    });
+
+    it('centers nested OR group over its children row', () => {
+      const template = recoveryTemplate();
+      const { nodes, edges } = builderTreeToFlow(template.tree, defaultOptions);
+      const orOp = nodes.find((n) => n.type === 'builderOperator' && n.data.op === 'any');
+      expect(orOp).toBeDefined();
+      expectParentCenteredOverChildren(nodes, edges, orOp!.id);
     });
   });
 
