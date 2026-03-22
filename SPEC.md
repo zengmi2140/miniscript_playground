@@ -398,6 +398,7 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 - 中栏 **不再** 单独展示与 scenario 相同的那张「花费路径图」；改为 **受约束的策略树编辑器**（`BuilderCanvas`，`src/components/builder/*`），在同一 React Flow 画布上编辑结构并叠加满足态（已满足 / 等待 / 缺失）。布局由 `src/lib/builder/tree-to-flow.ts`（Dagre）负责。
 - 领域模型为 `StrategyNode`（`src/lib/builder/types.ts`），与 `MiniscriptNode` 分离；MVP 支持签名、`all` / `any` / 阈值组、相对时间锁 `older()` 等；`after()` 与哈希锁在类型与未来扩展上预留，首版 UI 可不开放编辑。
 - 右栏花费路径列表与 scenario 一致；在 build 模式下点击路径卡片可 **高亮** 画布上与该路径相关的分支（`path-highlighting.ts`）。
+- 签名节点编辑浮层（`BuilderPopover`）中的「新建角色」与左栏 **角色变量** 的「添加」共用 `src/lib/playground/add-next-key-variable.ts` 中的「下一个角色」规则（优先 `Alice`…`Frank`，否则 `Key{n}`，测试公钥来自 `DEFAULT_TEST_KEYS` 或随机）；**一键**创建角色并将 **当前签名节点** 绑定到该角色（无需在浮层内输入名称）。
 - 更完整的产品约束与不在 MVP 范围内的条目见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 
 **节点尺寸规格（Scenario 路径图）：**
@@ -1412,6 +1413,9 @@ miniscript-lab/
 │   │   ├── utils/
 │   │   │   ├── share.ts                     # URL 编码/解码分享链接（可含 playgroundMode）
 │   │   │   └── storage.ts                   # localStorage 读写封装
+│   │   │
+│   │   ├── playground/
+│   │   │   └── add-next-key-variable.ts     # 左栏「添加」与签名浮层「新建角色」共用的下一角色逻辑
 │   │   │
 │   │   ├── stores/
 │   │   │   └── playground-store.ts          # Zustand store（§5.1 + 可视化构建状态）

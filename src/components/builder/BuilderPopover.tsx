@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useCallback, useMemo, useEffect, useState } from 'react';
 import { X, Plus, Trash2, Key, Clock, Users, AlertTriangle } from 'lucide-react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
@@ -22,6 +22,7 @@ import {
 } from '@/lib/builder/node-ops';
 import { TIMELOCK_PRESETS, blocksToHumanTime, type TimelockPresetKey } from '@/lib/builder/types';
 import type { StrategyNode } from '@/lib/builder/types';
+import { createNextKeyVariable } from '@/lib/playground/add-next-key-variable';
 
 type PopoverMode = 'root-type-select' | 'add-child' | 'edit-signature' | 'edit-timelock' | 'edit-threshold' | 'edit-group' | 'confirm-delete';
 
@@ -36,8 +37,6 @@ export function BuilderPopover() {
   const setKeyVariables = usePlaygroundStore((s) => s.setKeyVariables);
   const setStrategyTree = usePlaygroundStore((s) => s.setStrategyTree);
 
-  const [newRoleName, setNewRoleName] = useState('');
-  const [showAddRole, setShowAddRole] = useState(false);
   const [confirmDeleteTarget, setConfirmDeleteTarget] = useState<string | null>(null);
 
   // Parse the selected node ID - could be a regular ID or "add_child:{parentId}"
@@ -77,8 +76,6 @@ export function BuilderPopover() {
 
   const handleClose = useCallback(() => {
     setSelectedBuilderNodeId(null);
-    setShowAddRole(false);
-    setNewRoleName('');
     setConfirmDeleteTarget(null);
   }, [setSelectedBuilderNodeId]);
 
@@ -171,24 +168,21 @@ export function BuilderPopover() {
     [strategyTree, targetNodeId, updateStrategyTree]
   );
 
-  const handleAddNewRole = useCallback(() => {
-    if (!newRoleName.trim()) return;
-    const name = newRoleName.trim();
-
-    const newKey = createDefaultKeyVariables(1)[0];
-    newKey.name = name;
-    newKey.policyName = name;
-    addKeyVariable(newKey);
-
-    // Update the signature node to use this role
+  const handleQuickAddRole = useCallback(() => {
+    const kv = createNextKeyVariable(keyVariables);
+    addKeyVariable(kv);
     if (selectedNode?.kind === 'signature' && strategyTree && targetNodeId) {
-      const newTree = updateSignatureRole(strategyTree, targetNodeId, name);
+      const newTree = updateSignatureRole(strategyTree, targetNodeId, kv.name);
       updateStrategyTree(newTree);
     }
-
-    setNewRoleName('');
-    setShowAddRole(false);
-  }, [newRoleName, addKeyVariable, selectedNode, strategyTree, targetNodeId, updateStrategyTree]);
+  }, [
+    keyVariables,
+    addKeyVariable,
+    selectedNode,
+    strategyTree,
+    targetNodeId,
+    updateStrategyTree,
+  ]);
 
   // ============ Edit Timelock ============
   const handleTimelockChange = useCallback(
@@ -405,33 +399,14 @@ export function BuilderPopover() {
             </div>
           </div>
 
-          {showAddRole ? (
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newRoleName}
-                onChange={(e) => setNewRoleName(e.target.value)}
-                placeholder="Name"
-                className="flex-1 rounded border border-border-subtle bg-surface-elevated px-2 py-1 text-sm text-text-primary placeholder:text-text-muted focus:border-btc-500 focus:outline-none"
-                autoFocus
-                onKeyDown={(e) => e.key === 'Enter' && handleAddNewRole()}
-              />
-              <button
-                onClick={handleAddNewRole}
-                className="rounded bg-btc-500 px-2 py-1 text-xs font-medium text-white hover:bg-btc-600"
-              >
-                添加
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowAddRole(true)}
-              className="flex items-center gap-1.5 text-xs text-btc-500 hover:text-btc-400"
-            >
-              <Plus className="h-3 w-3" />
-              {t('builder.popover.addRole')}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleQuickAddRole}
+            className="flex items-center gap-1.5 text-xs text-btc-500 hover:text-btc-400"
+          >
+            <Plus className="h-3 w-3" />
+            {t('builder.popover.addRole')}
+          </button>
 
           <div className="mt-4 pt-3 border-t border-border-subtle">
             <button
