@@ -46,9 +46,9 @@ describe('Builder Templates', () => {
       }
     });
 
-    it('returns policy multi(2,Alice,Bob,Charlie)', () => {
+    it('returns policy thresh(2,pk(Alice),pk(Bob),pk(Charlie))', () => {
       const template = sharedControlTemplate();
-      expect(template.policy).toBe('multi(2,Alice,Bob,Charlie)');
+      expect(template.policy).toBe('thresh(2,pk(Alice),pk(Bob),pk(Charlie))');
     });
 
     it('returns three key variables', () => {
@@ -108,7 +108,7 @@ describe('Builder Templates', () => {
 
     it('returns shared-control template', () => {
       const template = getTemplate('shared-control');
-      expect(template.policy).toBe('multi(2,Alice,Bob,Charlie)');
+      expect(template.policy).toBe('thresh(2,pk(Alice),pk(Bob),pk(Charlie))');
     });
 
     it('returns recovery template', () => {
