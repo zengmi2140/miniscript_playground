@@ -5,6 +5,7 @@ import { ReactFlow, ReactFlowProvider } from '@xyflow/react';
 import { treeToFlow } from '@/lib/flow/tree-to-flow';
 import { nodeTypes } from './FlowNodes';
 import { edgeTypes } from './PathEdge';
+import { NodeInternalsSync } from './NodeInternalsSync';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 
@@ -39,7 +40,9 @@ function PathMapInner() {
       maxZoom={2}
       proOptions={{ hideAttribution: true }}
       style={{ background: 'transparent' }}
-    />
+    >
+      <NodeInternalsSync />
+    </ReactFlow>
   );
 }
 

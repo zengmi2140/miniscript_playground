@@ -57,8 +57,8 @@ function NodeWrapper({
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       className={cn(
         'flex items-center justify-center rounded-lg border-2 transition-all',
         colors.border,
@@ -173,8 +173,8 @@ export const BuilderPlaceholderNode = memo(function BuilderPlaceholderNode({ dat
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       className={cn(
         'flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-btc-500/50 bg-btc-500/5 transition-all cursor-pointer hover:border-btc-500 hover:bg-btc-500/10',
         data.isReadOnly && 'opacity-60 cursor-not-allowed',
@@ -202,8 +202,8 @@ export const BuilderAddChildNode = memo(function BuilderAddChildNode({ data }: N
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       className={cn(
         'flex items-center justify-center rounded-md border border-dashed border-border-subtle bg-surface-elevated/50 transition-all cursor-pointer hover:border-btc-500 hover:bg-btc-500/10',
         data.isReadOnly && 'opacity-40 cursor-not-allowed',

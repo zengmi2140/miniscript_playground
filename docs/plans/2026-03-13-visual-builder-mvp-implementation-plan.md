@@ -227,13 +227,12 @@ Rules:
 
 - `group(all)` -> `and(...)` or nested canonical `and(...)`
 - `group(any)` -> canonical `or(...)`
-- `group(threshold)` with all `signature` children -> `multi(k,RoleName1,RoleName2,...)` (pure multisig shorthand)
-- `group(threshold)` with mixed children -> `thresh(k,...)` (generic threshold)
+- `group(threshold)` -> `thresh(k,pk(...),...)`（Policy 层统一用 `thresh` + `pk()`；不输出 `multi(k,...)` 字面量，与 `serialize.ts` 注释一致）
 - `signature` -> `pk(RoleName)`
 - `timelock(relative)` -> `older(n)`
 - `timelock(absolute)` and `hashlock` may serialize, but are not used in MVP UI
 
-Note: The `multi(k,...)` vs `thresh(k,...)` distinction only affects serialization output. In the builder canvas (path graph visualization), both are expanded into k-of-n threshold nodes with participant leaves for visual clarity.
+Note: In the builder canvas, threshold groups are expanded into k-of-n nodes with participant leaves for visual clarity.
 
 Do not optimize for every possible policy spelling; output a canonical builder-owned Policy format.
 

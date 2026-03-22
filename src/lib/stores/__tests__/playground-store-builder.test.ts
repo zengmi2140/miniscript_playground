@@ -12,7 +12,7 @@ describe('Playground Store - Builder', () => {
   describe('loadScenario', () => {
     it('sets playgroundMode to scenario', () => {
       const store = usePlaygroundStore.getState();
-      store.loadScenario('escrow-2of3');
+      store.loadScenario('multisig-2of3');
 
       expect(usePlaygroundStore.getState().playgroundMode).toBe('scenario');
     });
@@ -26,7 +26,7 @@ describe('Playground Store - Builder', () => {
       expect(usePlaygroundStore.getState().strategyTree).not.toBeNull();
 
       // Then load a scenario
-      store.loadScenario('escrow-2of3');
+      store.loadScenario('multisig-2of3');
 
       expect(usePlaygroundStore.getState().strategyTree).toBeNull();
       expect(usePlaygroundStore.getState().builderSyncState).toBe('synced');
@@ -41,11 +41,11 @@ describe('Playground Store - Builder', () => {
       expect(usePlaygroundStore.getState().playgroundMode).toBe('build');
     });
 
-    it('clears policy, strategyTree, and keyVariables', () => {
+    it('clears policy and keyVariables; sets fresh root placeholder tree', () => {
       const store = usePlaygroundStore.getState();
 
       // Setup some existing state
-      store.loadScenario('escrow-2of3');
+      store.loadScenario('multisig-2of3');
       expect(usePlaygroundStore.getState().policy).not.toBe('');
 
       // Enter build mode
@@ -53,7 +53,11 @@ describe('Playground Store - Builder', () => {
 
       const state = usePlaygroundStore.getState();
       expect(state.policy).toBe('');
-      expect(state.strategyTree).toBeNull();
+      expect(state.strategyTree).toEqual({
+        id: 'root_placeholder',
+        kind: 'placeholder',
+        placeholderType: 'root',
+      });
       expect(state.keyVariables).toHaveLength(0);
     });
 
@@ -68,8 +72,8 @@ describe('Playground Store - Builder', () => {
 
     it('clears activeScenarioId', () => {
       const store = usePlaygroundStore.getState();
-      store.loadScenario('escrow-2of3');
-      expect(usePlaygroundStore.getState().activeScenarioId).toBe('escrow-2of3');
+      store.loadScenario('multisig-2of3');
+      expect(usePlaygroundStore.getState().activeScenarioId).toBe('multisig-2of3');
 
       store.enterBuildMode();
 
@@ -118,12 +122,14 @@ describe('Playground Store - Builder', () => {
       expect(state.strategyTree?.kind).toBe('signature');
     });
 
-    it('seeds policy for shared-control as multi()', () => {
+    it('seeds policy for shared-control as thresh(2,pk(...))', () => {
       const store = usePlaygroundStore.getState();
       store.enterBuildMode();
       store.applyBuildStarter('shared-control');
 
-      expect(usePlaygroundStore.getState().policy).toBe('multi(2,Alice,Bob,Charlie)');
+      expect(usePlaygroundStore.getState().policy).toBe(
+        'thresh(2,pk(Alice),pk(Bob),pk(Charlie))',
+      );
     });
 
     it('seeds keyVariables for shared-control', () => {

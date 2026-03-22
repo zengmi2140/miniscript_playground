@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { ReactFlow, ReactFlowProvider } from '@xyflow/react';
+import { NodeInternalsSync } from '@/components/flow/NodeInternalsSync';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 import { builderTreeToFlow } from '@/lib/builder/tree-to-flow';
@@ -79,7 +80,9 @@ function BuilderCanvasInner() {
         maxZoom={2}
         proOptions={{ hideAttribution: true }}
         style={{ background: 'transparent' }}
-      />
+      >
+        <NodeInternalsSync />
+      </ReactFlow>
       {selectedBuilderNodeId && !isReadOnly && <BuilderPopover />}
     </div>
   );
