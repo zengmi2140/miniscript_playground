@@ -253,10 +253,13 @@ function buildFlowGraph(
     nodeData.placeholderType = strategyNode.placeholderType;
   }
 
+  const size = NODE_SIZES[nodeType];
   ctx.nodes.push({
     id: flowId,
     type: nodeType,
     position: { x: 0, y: 0 },
+    width: size.width,
+    height: size.height,
     data: nodeData,
   });
 
@@ -280,10 +283,13 @@ function buildFlowGraph(
     if (!ctx.isReadOnly) {
       const addChildId = nextFlowId();
       const addChildLabel = ctx.locale === 'zh' ? '+ 添加条件' : '+ Add Condition';
+      const addChildSize = NODE_SIZES.builderAddChild;
       ctx.nodes.push({
         id: addChildId,
         type: 'builderAddChild',
         position: { x: 0, y: 0 },
+        width: addChildSize.width,
+        height: addChildSize.height,
         data: {
           nodeType: 'builderAddChild',
           strategyNodeId: strategyNode.id, // Parent group ID for adding children
@@ -314,7 +320,11 @@ function layoutWithDagre(
 ): void {
   // If only one node, position it at center manually - dagre can produce NaN for single nodes
   if (nodes.length === 1) {
-    nodes[0].position = { x: 0, y: 0 };
+    const n = nodes[0];
+    const size = NODE_SIZES[n.type as BuilderNodeType] || NODE_SIZES.builderCondition;
+    n.position = { x: 0, y: 0 };
+    n.width = size.width;
+    n.height = size.height;
     return;
   }
 
@@ -347,6 +357,8 @@ function layoutWithDagre(
     const x = isNaN(pos?.x) ? 0 : pos.x - size.width / 2;
     const y = isNaN(pos?.y) ? 0 : pos.y - size.height / 2;
     node.position = { x, y };
+    node.width = size.width;
+    node.height = size.height;
   }
 }
 
@@ -377,7 +389,8 @@ export function builderTreeToFlow(
     locale = 'zh',
   } = options;
 
-  // Compute statuses bottom-up  const statusMap = new Map<string, BuilderNodeStatus>();
+  // Compute statuses bottom-up
+  const statusMap = new Map<string, BuilderNodeStatus>();
   computeAllStatuses(tree, availableKeys, currentTimeBlocks, statusMap);
 
   const ctx: BuildContext = {

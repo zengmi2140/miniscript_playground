@@ -61,7 +61,7 @@ npx vitest run
 - `/playground`
   - 三栏 Playground，是项目主界面。
   - 入口组件：`src/app/playground/page.tsx`
-  - 负责读取 URL 分享参数 `?s=`、场景参数 `?scenario=`、以及本地缓存会话。
+  - 负责读取 URL 分享参数 `?s=`（payload 可含 `playgroundMode`，用于恢复 **build / scenario** 会话）、场景参数 `?scenario=`、以及本地缓存会话；并挂载 `useCompiler`、`useAutoSave`、`useBuilderSync`。
 
 - `/compare`
   - 当前只是 Coming Soon 占位页。
@@ -75,20 +75,24 @@ npx vitest run
 
 ```text
 src/
-  app/              Next.js 路由、布局、OG
+  app/              Next.js 路由、布局、动态 OG、globals.css
   components/
-    flow/           花费路径图与 React Flow 节点/边
-    layout/         顶部导航
-    playground/     三栏工作台、编辑器、条件面板
+    providers.tsx   Theme + I18n 根 Provider
+    ui/             shadcn 基础组件（如 button）
+    builder/        build 模式：可视化策略树画布（BuilderCanvas、节点、浮层、同步横幅）
+    flow/           scenario 模式：花费路径图与 React Flow 节点/边
+    layout/         顶部导航（Header）
+    playground/     三栏布局（ThreeColumnLayout）、左/中/右各面板
     results/        右侧结果 tabs
     scenarios/      首页场景卡片
     shared/         代码块、tooltip、popover 等通用组件
   lib/
     engine/         编译、路径分析、Miniscript 解析、时间工具、类型
+    builder/        可视化构建：StrategyNode、序列化、tree-to-flow、路径高亮、节点操作
     editor/         CodeMirror Policy 语法高亮
-    flow/           语义树 -> React Flow 图
+    flow/           语义树 -> React Flow 图（scenario 路径图）
     glossary/       术语解释
-    hooks/          自动编译、自动保存
+    hooks/          useCompiler、useAutoSave、useBuilderSync（build 同步）
     i18n/           轻量双语系统
     scenarios/      预设场景和标签
     stores/         Zustand 单一主 store
@@ -111,7 +115,9 @@ src/
 
 - 单一事实源是 `src/lib/stores/playground-store.ts`。
 - 里面既放业务状态，也放 UI 状态：
+  - `playgroundMode`：`'scenario' | 'build'`（**自己动手** 进入 `build`；`loadScenario` 进入 `scenario`）
   - policy 文本
+  - **build 模式**：`strategyTree`（`StrategyNode`）、`builderSyncState`、`selectedBuilderNodeId`、`lastBuilderPolicySnapshot`；`enterBuildMode()` 会清空场景相关状态并置入根占位节点；`applyBuildStarter()` / `updateStrategyTree()` 维护树与 Policy 字符串
   - key variables
   - context / network
   - compilation result / error / semantic tree / spending paths
@@ -139,7 +145,7 @@ src/
   - 输出 `CompilationResult` 含 `policy`、`policyWithKeys`、`miniscript`、`miniscriptWithKeys` 等。`policy`/`miniscript` 保留角色名供路径图解析；`policyWithKeys`/`miniscriptWithKeys` 含真实公钥供右栏 Tab 展示。
   - 错误会被映射成中英文友好的 `FriendlyError`。
 
-### 语义树与路径图
+### 语义树与路径图（scenario 模式）
 
 - `src/lib/engine/miniscript-parser.ts`
   - 将编译出来的 Miniscript 字符串（`result.miniscript`，含角色名）解析成自定义 `MiniscriptNode` 语义树。
@@ -155,6 +161,14 @@ src/
   - `PathMap.tsx` 挂载 React Flow。
   - `FlowNodes.tsx` 定义 root/operator/condition 三类节点。
   - `PathEdge.tsx` 用实线/虚线/颜色表示 and/or/threshold 与满足状态。
+  - `NodeInternalsSync.tsx` 在节点尺寸变化时触发布局同步。
+
+### 可视化构建（build /「自己动手」模式）
+
+- `src/lib/builder/tree-to-flow.ts`：将 `StrategyNode` 转为 React Flow 图（Dagre 布局）；节点上叠加满足态；与 `src/lib/builder/types.ts`、`serialize.ts`、`node-ops.ts`、`path-highlighting.ts`、`status.ts` 等配合。
+- `src/components/builder/BuilderCanvas.tsx`：build 模式主画布；只读态由 `builderSyncState !== 'synced'` 控制。
+- `src/lib/hooks/useBuilderSync.ts`：在 `playgroundMode === 'build'` 时双向同步 Policy 文本与 `strategyTree`；挂载于 `playground/page.tsx`。
+- 专项设计与范围见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 
 ### 花费路径分析
 
@@ -168,16 +182,16 @@ src/
 - `src/lib/hooks/useAutoSave.ts`
   - 800ms debounce 保存到 localStorage。
 - `src/lib/utils/storage.ts`
-  - localStorage key: `miniscript-lab-session`
+  - localStorage key: `miniscript-lab-session`（会话含 `playgroundMode`）
 - `src/lib/utils/share.ts`
-  - 分享链接把 payload 编码进 `?s=`。
+  - 分享链接把 payload 编码进 `?s=`（`SharePayload` 可含 `playgroundMode`）。
 
 ## 8. 关键 UI 结构
 
 ### 左栏（240px）
 
 - `src/components/playground/LeftPanel.tsx`
-  - 预设场景列表（含"自己动手"Coming Soon 占位卡片）
+  - 预设场景列表；首项为 **「自己动手」** 入口，点击进入 `enterBuildMode()`（`build` 模式）
   - Key 变量管理
   - Context / Network 选择
 
@@ -189,8 +203,8 @@ src/
 
 - `src/components/playground/CenterPanel.tsx`
   - 顶部：Policy 编辑器（可折叠）
-  - 中部：花费路径图
-  - 路径图下方：状态结论横幅
+  - 中部：`playgroundMode === 'build'` 时为 `BuilderCanvas`（可视化策略树）；否则为 `PathMap` 花费路径图
+  - 主画布下方：状态结论横幅
   - 底部：条件切换 + 时间滑块
 
 - `src/components/playground/PolicyEditor.tsx`
@@ -269,8 +283,7 @@ src/
    - 根节点直接显示顶层条件逻辑类型（都需要/任选一/k-of-n），而非通用的"花费条件"。
    - 单一叶子条件的策略不再创建根节点，直接显示条件节点。
 
-10. `playgroundMode` 状态字段已在 store 中预留（`'scenario' | 'build'`），但 `'build'` 模式尚未实现。
-   - 左栏中"自己动手"卡片目前只是 Coming Soon 占位。
+10. **build 模式**（自己动手）已实现为 MVP：受约束策略树 + Policy 双向同步；并非任意拖线流程图。不支持的结构会进入 `text-led`，详见 `useBuilderSync` 与 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 
 ## 11. 常见改动从哪里入手
 
@@ -302,11 +315,17 @@ src/
 - `src/components/results/PathsTab.tsx`
 - `src/components/results/WarningsTab.tsx`
 
-### 修改路径图展示
+### 修改路径图展示（scenario 模式）
 
 - `src/lib/flow/tree-to-flow.ts`
 - `src/components/flow/FlowNodes.tsx`
 - `src/components/flow/PathEdge.tsx`
+
+### 修改可视化构建（build 模式）
+
+- `src/lib/builder/tree-to-flow.ts`、`src/lib/builder/types.ts`、`src/lib/builder/serialize.ts`、`src/lib/builder/node-ops.ts`
+- `src/components/builder/BuilderCanvas.tsx`、`BuilderNodes.tsx`、`BuilderPopover.tsx`
+- `src/lib/hooks/useBuilderSync.ts`、`src/lib/stores/playground-store.ts`（`enterBuildMode`、`updateStrategyTree` 等）
 
 ### 修改 Policy 编辑器
 
@@ -335,17 +354,27 @@ src/
 
 ## 12. 测试覆盖现状
 
-当前测试集中在 `src/lib/engine/__tests__/`：
+引擎与工具测试在 `src/lib/engine/__tests__/`：
 
 - `compiler.test.ts`
 - `miniscript-parser.test.ts`
 - `time-utils.test.ts`
 
+可视化构建相关补充测试（非穷尽）：
+
+- `src/lib/stores/__tests__/playground-store-builder.test.ts`
+- `src/lib/builder/__tests__/`（含 `serialize`、`templates`、`from-semantic-tree` 等）
+- `src/lib/hooks/__tests__/useBuilderSync.test.ts`
+- `src/lib/utils/__tests__/storage-share-builder.test.ts`
+- `src/components/playground/__tests__/LeftPanelBuildEntry.test.tsx`
+- `src/components/builder/__tests__/`（如 `BuilderPopover`、`BuilderStarterCards`）
+- `src/components/results/__tests__/PathsTabSelection.test.tsx`
+
 这意味着：
 
-- 编译管线和时间工具有基本覆盖。
-- UI、i18n、store、React Flow 交互几乎没有自动化测试。
-- 如果改动 UI 逻辑，至少要自己跑一遍 Playground 的关键路径。
+- 编译管线和时间工具有基本覆盖；构建器与同步逻辑有部分单元测试。
+- 大量 UI、i18n、React Flow 交互仍依赖手动验证。
+- 如果改动 UI 逻辑，至少要自己跑一遍 Playground 的关键路径（含 scenario 与 **自己动手** build 流程）。
 
 ## 13. AI 工具改动本项目时的工作准则
 
@@ -370,6 +399,9 @@ src/
 - `SPEC.md`
   - 更完整的产品规格和设计意图，适合做大功能时参考。
 
+- `docs/plans/2026-03-13-visual-builder-mvp-design.md` / `2026-03-13-visual-builder-mvp-implementation-plan.md`
+  - 「自己动手」可视化构建 MVP 的产品与实现说明。
+
 - `replit.md`
   - 一份较接近“架构速览”的实现说明，可作为补充。
 
@@ -379,4 +411,4 @@ src/
 
 > 一个以 Zustand 为状态中心、以 bitcoinerlab 编译链路为计算核心、以 React Flow 为教学可视化载体的 Next.js 客户端应用。
 
-主工作面在 `/playground`，主风险点在 `compiler.ts`、`path-analyzer.ts`、`miniscript-parser.ts` 和 `tree-to-flow.ts`，主产品约束是“纯前端、本地确定性、只做教学、不碰主网生产用途”。
+主工作面在 `/playground`，主风险点在 `compiler.ts`、`path-analyzer.ts`、`miniscript-parser.ts`、`lib/flow/tree-to-flow.ts`（scenario）与 **`lib/builder/*` + `useBuilderSync.ts`（build）**，主产品约束是“纯前端、本地确定性、只做教学、不碰主网生产用途”。

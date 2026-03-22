@@ -13,8 +13,8 @@ export const BuilderEdge = memo(function BuilderEdge({
   sourcePosition,
   targetPosition,
   data,
-}: EdgeProps<BuilderFlowEdgeData>) {
-  // Use smooth step path with offset to create cleaner connections
+}: EdgeProps) {
+  const edgeData = data as BuilderFlowEdgeData | undefined;
   const [edgePath] = getSmoothStepPath({
     sourceX,
     sourceY,
@@ -23,10 +23,10 @@ export const BuilderEdge = memo(function BuilderEdge({
     targetY,
     targetPosition,
     borderRadius: 12,
-    offset: 20, // Add offset for cleaner routing
+    offset: 0,
   });
 
-  const strokeColor = data?.satisfied ? '#22C55E' : '#57534E'; // stone-600 for better visibility
+  const strokeColor = edgeData?.satisfied ? '#22C55E' : '#57534E'; // stone-600 for better visibility
 
   return (
     <BaseEdge

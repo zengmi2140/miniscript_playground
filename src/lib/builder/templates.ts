@@ -58,7 +58,8 @@ export function singleSigTemplate(): BuilderTemplate {
 }
 
 /**
- * Shared control template: multi(2,Alice,Bob,Charlie)
+ * 多人共管起手模板：2-of-3，Policy 字符串为
+ * `thresh(2,pk(Alice),pk(Bob),pk(Charlie))`（与 serializeStrategyTree 一致）。
  */
 export function sharedControlTemplate(): BuilderTemplate {
   const tree: StrategyNode = {

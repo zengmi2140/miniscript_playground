@@ -26,6 +26,7 @@ export const PathEdge = memo(function PathEdge({
     sourcePosition,
     targetPosition,
     borderRadius: 8,
+    offset: 0,
   });
 
   let stroke = '#44403C';
