@@ -391,11 +391,11 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 - OR 分支：虚线，表示"任选"
 - 满足路径上的边：颜色加深为绿色
 
-图布局：使用 Dagre 自顶向下（TB）布局，节点间距 60px 垂直 / 40px 水平。
+图布局（**scenario 模式**花费路径图）：使用 Dagre 自顶向下（TB）布局，节点间距 60px 垂直 / 40px 水平（实现见 `src/lib/flow/tree-to-flow.ts`）。
 
 **Build 模式（`playgroundMode === 'build'`）：可视化策略树画布**
 
-- 中栏 **不再** 单独展示与 scenario 相同的那张「花费路径图」；改为 **受约束的策略树编辑器**（`BuilderCanvas`，`src/components/builder/*`），在同一 React Flow 画布上编辑结构并叠加满足态（已满足 / 等待 / 缺失）。布局由 `src/lib/builder/tree-to-flow.ts`（Dagre）负责。
+- 中栏 **不再** 单独展示与 scenario 相同的那张「花费路径图」；改为 **受约束的策略树编辑器**（`BuilderCanvas`，`src/components/builder/*`），在同一 React Flow 画布上编辑结构并叠加满足态（已满足 / 等待 / 缺失）。布局由 `src/lib/builder/tree-to-flow.ts` 负责：**自下而上计算子树宽度、自上而下放置**，父节点在**整行直接子节点（含虚拟「+ 添加条件」）**的水平包围盒上居中；**不**使用 Dagre，以避免仅平移父节点时与兄弟子树重叠等问题。
 - 领域模型为 `StrategyNode`（`src/lib/builder/types.ts`），与 `MiniscriptNode` 分离；MVP 支持签名、`all` / `any` / 阈值组、相对时间锁 `older()` 等；`after()` 与哈希锁在类型与未来扩展上预留，首版 UI 可不开放编辑。
 - 右栏花费路径列表与 scenario 一致；在 build 模式下点击路径卡片可 **高亮** 画布上与该路径相关的分支（`path-highlighting.ts`）。
 - 签名节点编辑浮层（`BuilderPopover`）中的「新建角色」与左栏 **角色变量** 的「添加」共用 `src/lib/playground/add-next-key-variable.ts` 中的「下一个角色」规则（优先 `Alice`…`Frank`，否则 `Key{n}`，测试公钥来自 `DEFAULT_TEST_KEYS` 或随机）；**一键**创建角色并将 **当前签名节点** 绑定到该角色（无需在浮层内输入名称）。
@@ -1303,7 +1303,7 @@ const GLOSSARY: Record<string, { zh: string; en: string; explain_zh: string; exp
 | UI 组件      | shadcn/ui                         | latest               | 按需引入，不是完整库                                                  |
 | 编辑器        | CodeMirror 6                      | latest               | @codemirror/state + @codemirror/view + @codemirror/language |
 | 路径图        | @xyflow/react (React Flow v12)    | latest               | 节点/边交互                                                      |
-| 图布局        | dagre                             | latest               | 自动 TB 布局                                                    |
+| 图布局        | dagre + 自实现递归 TB             | latest / 内置        | **scenario** 路径图：`src/lib/flow/tree-to-flow.ts` 用 Dagre TB；**build** 策略树：`src/lib/builder/tree-to-flow.ts` 用递归 TB（父相对子行居中，含 add-child 占位） |
 | 动画         | framer-motion                     | latest               | 状态过渡动画                                                      |
 | 状态管理       | zustand                           | latest               | 轻量 store                                                    |
 | 图标         | lucide-react                      | latest               | 统一图标库                                                       |
@@ -1364,13 +1364,13 @@ miniscript-lab/
 │   │   ├── flow/                            # Scenario 模式：花费路径图
 │   │   │   ├── PathMap.tsx
 │   │   │   ├── FlowNodes.tsx / PathEdge.tsx / NodeInternalsSync.tsx
-│   │   │   └── （布局）lib/flow/tree-to-flow.ts
+│   │   │   └── （布局：Dagre TB）lib/flow/tree-to-flow.ts
 │   │   │
 │   │   ├── builder/                         # Build 模式：可视化策略树画布
 │   │   │   ├── BuilderCanvas.tsx
 │   │   │   ├── BuilderNodes.tsx / BuilderEdge.tsx
 │   │   │   ├── BuilderPopover.tsx / BuilderSyncBanner.tsx
-│   │   │   └── （布局）lib/builder/tree-to-flow.ts
+│   │   │   └── （布局：递归 TB，父相对子行居中）lib/builder/tree-to-flow.ts
 │   │   │
 │   │   ├── results/                         # 右栏技术 Tab 内容（由 RightPanel 组合）
 │   │   │   └── PolicyTab.tsx, MiniscriptTab.tsx, ScriptTab.tsx, DescriptorTab.tsx,
