@@ -5,21 +5,9 @@ import { Plus, Dice5, RotateCcw, Trash2, Pencil, Check, X } from 'lucide-react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 import { DEFAULT_TEST_KEYS } from '@/lib/scenarios/data';
+import { createNextKeyVariable, generateRandomPubkey } from '@/lib/playground/add-next-key-variable';
 import { cn } from '@/lib/utils/cn';
 import type { KeyVariable } from '@/lib/engine/types';
-import * as ecc from '@bitcoinerlab/secp256k1';
-
-function generateRandomPubkey(): string {
-  let pubkey: Uint8Array | null = null;
-  while (!pubkey) {
-    const privateKey = new Uint8Array(32);
-    crypto.getRandomValues(privateKey);
-    pubkey = ecc.pointFromScalar(privateKey, true);
-  }
-  return Array.from(pubkey)
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-}
 
 function KeyRow({ kv, onRemove }: { kv: KeyVariable; onRemove: () => void }) {
   const updateKeyVariable = usePlaygroundStore((s) => s.updateKeyVariable);
@@ -99,11 +87,7 @@ export function KeyVariableManager() {
   const activeScenarioId = usePlaygroundStore((s) => s.activeScenarioId);
 
   const handleAdd = useCallback(() => {
-    const existing = new Set(keyVariables.map((k) => k.name));
-    const names = ['Alice', 'Bob', 'Charlie', 'Dave', 'Eve', 'Frank'];
-    const newName = names.find((n) => !existing.has(n)) || `Key${keyVariables.length + 1}`;
-    const pubkey = DEFAULT_TEST_KEYS[newName] || generateRandomPubkey();
-    addKeyVariable({ name: newName, policyName: newName, publicKey: pubkey });
+    addKeyVariable(createNextKeyVariable(keyVariables));
   }, [keyVariables, addKeyVariable]);
 
   const handleRandom = useCallback(() => {

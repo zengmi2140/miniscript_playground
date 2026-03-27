@@ -1,4 +1,4 @@
-import type { KeyVariable, ScriptContext, Network } from '@/lib/engine/types';
+import type { KeyVariable, ScriptContext, Network, PlaygroundMode } from '@/lib/engine/types';
 
 const STORAGE_KEY = 'miniscript-lab-session';
 
@@ -7,6 +7,7 @@ export interface PersistedSession {
   keyVariables: KeyVariable[];
   context: ScriptContext;
   network: Network;
+  playgroundMode: PlaygroundMode;
   savedAt: number;
 }
 
@@ -29,6 +30,10 @@ export function loadSession(): PersistedSession | null {
       typeof parsed.network !== 'string'
     ) {
       return null;
+    }
+    // Default playgroundMode to 'scenario' for backward compatibility
+    if (!parsed.playgroundMode) {
+      parsed.playgroundMode = 'scenario';
     }
     return parsed as PersistedSession;
   } catch {

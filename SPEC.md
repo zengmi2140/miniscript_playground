@@ -301,7 +301,7 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 │ 可折叠    │                                │ 可折叠                │
 │          │  Policy 编辑器 (可折叠)          │                      │
 │ 场景选择   │  ─────────────────────          │  花费路径 (固定)      │
-│ (含自己   │  花费路径地图                     │  路径卡片列表          │
+│ (含自己   │  主画布：场景=路径图/build=策略树   │  路径卡片列表          │
 │  动手)   │  (React Flow, 可缩放)           │  ── 可拖拽分割条 ──   │
 │ ───────  │  ─────────────────────          │  Tab 面板:           │
 │ 角色变量   │  状态结论横幅                     │   Policy             │
@@ -324,8 +324,9 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 **区域 A: 场景选择器**
 
 - 场景列表（卡片形式，点击切换场景）
-- 第一个位置为"自己动手"特殊卡片（虚线边框 + Coming Soon 标签），预留为未来可视化策略构建器入口
-- 切换场景时自动填充 Policy 和 Key 变量
+- 第一个位置为 **「自己动手」** 入口卡片（可点击；`playgroundMode === 'build'` 时呈激活态）。点击后进入 **可视化构建（build）模式**（`playgroundMode: 'build'`）：清空当前场景-derived 状态，进入空白构建工作区（根占位节点 + 可选起手模板），**不继承**用户此前在场景模式下的 Policy / 角色变量 / 编译结果。从场景模式切换到普通预设场景仍通过下方场景卡片完成（`loadScenario` 会回到 `scenario` 模式）。
+- 通过分享链接 `?s=` 或本地会话恢复的 **build** 会话可携带已有 Policy，与「主动点自己动手」的清空规则不同；详见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
+- 切换场景（非「自己动手」）时自动填充 Policy 和 Key 变量
 
 **区域 B: 角色与 Key 变量**
 
@@ -353,8 +354,11 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 - 编辑后 500ms 防抖自动编译
 - 编译错误在编辑器下方显示（红色文字 + 友好中文描述）
 - 工具栏：[格式化] [清空] [复制] [分享🔗]
+- **Build 模式**下编辑器与可视化画布双向同步：画布操作更新 Policy；用户编辑 Policy 时，若结构仍在构建器支持范围内则回写 `strategyTree`，否则进入「文本主导」状态（`builderSyncState: 'text-led'`），不强行破坏画布。同步逻辑见 `useBuilderSync`（`src/lib/hooks/useBuilderSync.ts`）。
 
-**路径图区域：React Flow 路径图**
+**主画布（按 `playgroundMode` 二选一）**
+
+**Scenario 模式（`playgroundMode === 'scenario'`）：路径图区域 — React Flow 路径图**
 
 将 Miniscript 编译结果转化为简化的语义决策树（不是原始 AST）。
 
@@ -387,9 +391,17 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 - OR 分支：虚线，表示"任选"
 - 满足路径上的边：颜色加深为绿色
 
-图布局：使用 Dagre 自顶向下（TB）布局，节点间距 60px 垂直 / 40px 水平。
+图布局（**scenario 模式**花费路径图）：使用 Dagre 自顶向下（TB）布局，节点间距 60px 垂直 / 40px 水平（实现见 `src/lib/flow/tree-to-flow.ts`）。
 
-**节点尺寸规格：**
+**Build 模式（`playgroundMode === 'build'`）：可视化策略树画布**
+
+- 中栏 **不再** 单独展示与 scenario 相同的那张「花费路径图」；改为 **受约束的策略树编辑器**（`BuilderCanvas`，`src/components/builder/*`），在同一 React Flow 画布上编辑结构并叠加满足态（已满足 / 等待 / 缺失）。布局由 `src/lib/builder/tree-to-flow.ts` 负责：**自下而上计算子树宽度、自上而下放置**，父节点在**整行直接子节点（含虚拟「+ 添加条件」）**的水平包围盒上居中；**不**使用 Dagre，以避免仅平移父节点时与兄弟子树重叠等问题。
+- 领域模型为 `StrategyNode`（`src/lib/builder/types.ts`），与 `MiniscriptNode` 分离；MVP 支持签名、`all` / `any` / 阈值组、相对时间锁 `older()` 等；`after()` 与哈希锁在类型与未来扩展上预留，首版 UI 可不开放编辑。
+- 右栏花费路径列表与 scenario 一致；在 build 模式下点击路径卡片可 **高亮** 画布上与该路径相关的分支（`path-highlighting.ts`）。
+- 签名节点编辑浮层（`BuilderPopover`）中的「新建角色」与左栏 **角色变量** 的「添加」共用 `src/lib/playground/add-next-key-variable.ts` 中的「下一个角色」规则（优先 `Alice`…`Frank`，否则 `Key{n}`，测试公钥来自 `DEFAULT_TEST_KEYS` 或随机）；**一键**创建角色并将 **当前签名节点** 绑定到该角色（无需在浮层内输入名称）。
+- 更完整的产品约束与不在 MVP 范围内的条目见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
+
+**节点尺寸规格（Scenario 路径图）：**
 
 | 节点类型           | 宽度    | 高度   | 说明                              |
 | -------------- | ----- | ---- | ------------------------------- |
@@ -624,6 +636,10 @@ interface PlaygroundState {
   isLeftPanelOpen: boolean;
   isRightPanelOpen: boolean;
 }
+
+// ===== 可视化构建（build 模式）：Zustand store 在 PlaygroundState 之上另含
+// strategyTree、builderSyncState、selectedBuilderNodeId、lastBuilderPolicySnapshot。
+// StrategyNode、BuilderSyncState 等见 src/lib/builder/types.ts =====
 
 type ResultTab = 'policy' | 'miniscript' | 'script' | 'descriptor' | 'address' | 'paths' | 'warnings';
 
@@ -1283,11 +1299,11 @@ const GLOSSARY: Record<string, { zh: string; en: string; explain_zh: string; exp
 | ---------- | --------------------------------- | -------------------- | ----------------------------------------------------------- |
 | 框架         | Next.js (App Router)              | latest               | SSR + SEO + 分享预览                                            |
 | 语言         | TypeScript                        | strict mode          | 全项目强类型                                                      |
-| 样式         | Tailwind CSS                      | v4                   | 工具类优先                                                       |
+| 样式         | Tailwind CSS                      | v3.x（见 `package.json`） | 工具类优先                                                       |
 | UI 组件      | shadcn/ui                         | latest               | 按需引入，不是完整库                                                  |
 | 编辑器        | CodeMirror 6                      | latest               | @codemirror/state + @codemirror/view + @codemirror/language |
 | 路径图        | @xyflow/react (React Flow v12)    | latest               | 节点/边交互                                                      |
-| 图布局        | dagre                             | latest               | 自动 TB 布局                                                    |
+| 图布局        | dagre + 自实现递归 TB             | latest / 内置        | **scenario** 路径图：`src/lib/flow/tree-to-flow.ts` 用 Dagre TB；**build** 策略树：`src/lib/builder/tree-to-flow.ts` 用递归 TB（父相对子行居中，含 add-child 占位） |
 | 动画         | framer-motion                     | latest               | 状态过渡动画                                                      |
 | 状态管理       | zustand                           | latest               | 轻量 store                                                    |
 | 图标         | lucide-react                      | latest               | 统一图标库                                                       |
@@ -1309,66 +1325,56 @@ const GLOSSARY: Record<string, { zh: string; en: string; explain_zh: string; exp
 
 ```
 miniscript-lab/
-├── public/
-│   └── og-image.png                        # Open Graph 预览图
+├── public/                                  # 可选静态资源（仓库中可为空）
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx                       # 根布局（字体、主题、i18n Provider）
+│   │   ├── layout.tsx                       # 根布局（字体、Providers、Header）
 │   │   ├── page.tsx                         # 首页：场景画廊
-│   │   ├── playground/
-│   │   │   └── page.tsx                     # Playground 页
-│   │   └── globals.css                      # Tailwind 入口 + CSS 变量
+│   │   ├── globals.css                      # Tailwind 入口 + CSS 变量
+│   │   ├── opengraph-image.tsx              # 动态 OG 图（`/opengraph-image`）
+│   │   ├── compare/
+│   │   │   └── page.tsx                     # 对比页占位
+│   │   └── playground/
+│   │       └── page.tsx                     # Playground 页
 │   │
 │   ├── components/
-│   │   ├── ui/                              # shadcn/ui 组件（按需生成）
-│   │   │   ├── button.tsx
-│   │   │   ├── tabs.tsx
-│   │   │   ├── slider.tsx
-│   │   │   ├── toggle.tsx
-│   │   │   ├── tooltip.tsx
-│   │   │   ├── select.tsx
-│   │   │   ├── sheet.tsx                    # 移动端侧边栏
-│   │   │   └── ...
+│   │   ├── providers.tsx                    # ThemeProvider + I18nProvider
+│   │   ├── ui/                              # shadcn/ui（按需生成；当前仓库以 `button` 等为主）
+│   │   │   └── button.tsx
 │   │   │
 │   │   ├── layout/
-│   │   │   ├── Header.tsx                   # 顶部导航
-│   │   │   ├── ThreeColumnLayout.tsx        # 三栏布局容器
-│   │   │   └── BottomDrawer.tsx             # 底部抽屉（V2 栈机）
+│   │   │   └── Header.tsx                   # 顶部导航
 │   │   │
 │   │   ├── scenarios/
 │   │   │   ├── ScenarioGallery.tsx          # 场景卡片网格
 │   │   │   └── ScenarioCard.tsx             # 单个场景卡片
 │   │   │
-│   │   ├── editor/
-│   │   │   ├── PolicyEditor.tsx             # CodeMirror 编辑器封装
-│   │   │   ├── policy-language.ts           # CM6 语言定义（高亮 + 补全）
-│   │   │   ├── KeyVariableManager.tsx       # 角色变量管理面板
-│   │   │   └── ContextSelector.tsx          # P2WSH / Taproot 选择
+│   │   ├── playground/                      # 三栏工作台：左/中/右与 Policy 编辑等
+│   │   │   ├── ThreeColumnLayout.tsx
+│   │   │   ├── LeftPanel.tsx                # 含「自己动手」入口
+│   │   │   ├── CenterPanel.tsx              # scenario=PathMap / build=BuilderCanvas
+│   │   │   ├── RightPanel.tsx
+│   │   │   ├── PolicyEditor.tsx
+│   │   │   ├── KeyVariableManager.tsx
+│   │   │   ├── ContextSelector.tsx
+│   │   │   ├── ConditionToggles.tsx
+│   │   │   ├── TimeSlider.tsx
+│   │   │   └── StatusBanner.tsx
 │   │   │
-│   │   ├── pathmap/
-│   │   │   ├── PathMap.tsx                  # React Flow 路径图容器
-│   │   │   ├── nodes/
-│   │   │   │   ├── ConditionNode.tsx        # 条件节点（签名/时间/哈希）
-│   │   │   │   ├── OperatorNode.tsx         # AND/OR/Threshold 节点
-│   │   │   │   └── RootNode.tsx             # 根节点
-│   │   │   ├── edges/
-│   │   │   │   └── PathEdge.tsx             # 自定义边样式
-│   │   │   ├── TimeSlider.tsx               # 时间旅行滑块
-│   │   │   ├── ConditionToggles.tsx         # 条件开关面板
-│   │   │   ├── StatusBanner.tsx             # 当前状态结论横幅
-│   │   │   └── tree-to-flow.ts             # MiniscriptNode → React Flow 转换
+│   │   ├── flow/                            # Scenario 模式：花费路径图
+│   │   │   ├── PathMap.tsx
+│   │   │   ├── FlowNodes.tsx / PathEdge.tsx / NodeInternalsSync.tsx
+│   │   │   └── （布局：Dagre TB）lib/flow/tree-to-flow.ts
 │   │   │
-│   │   ├── results/
-│   │   │   ├── ResultPanel.tsx              # 右栏 Tab 面板容器
-│   │   │   ├── tabs/
-│   │   │   │   ├── PolicyTab.tsx
-│   │   │   │   ├── MiniscriptTab.tsx
-│   │   │   │   ├── ScriptTab.tsx
-│   │   │   │   ├── DescriptorTab.tsx
-│   │   │   │   ├── AddressTab.tsx
-│   │   │   │   ├── PathsTab.tsx             # 花费路径列表
-│   │   │   │   └── WarningsTab.tsx
-│   │   │   └── ExplainPopover.tsx           # "这是什么？" 弹窗
+│   │   ├── builder/                         # Build 模式：可视化策略树画布
+│   │   │   ├── BuilderCanvas.tsx
+│   │   │   ├── BuilderNodes.tsx / BuilderEdge.tsx
+│   │   │   ├── BuilderPopover.tsx / BuilderSyncBanner.tsx
+│   │   │   └── （布局：递归 TB，父相对子行居中）lib/builder/tree-to-flow.ts
+│   │   │
+│   │   ├── results/                         # 右栏技术 Tab 内容（由 RightPanel 组合）
+│   │   │   └── PolicyTab.tsx, MiniscriptTab.tsx, ScriptTab.tsx, DescriptorTab.tsx,
+│   │   │       AddressTab.tsx, PathsTab.tsx, WarningsTab.tsx
 │   │   │
 │   │   └── shared/
 │   │       ├── GlossaryTooltip.tsx          # 术语悬停提示
@@ -1378,12 +1384,20 @@ miniscript-lab/
 │   │
 │   ├── lib/
 │   │   ├── engine/
-│   │   │   ├── compiler.ts                  # 编译管线封装
+│   │   │   ├── compiler.ts                  # 编译管线 + descriptor / 地址派生（无单独 descriptor 文件）
 │   │   │   ├── path-analyzer.ts             # satisfier 输出 → SpendingPath[]
 │   │   │   ├── miniscript-parser.ts         # Miniscript string → MiniscriptNode tree
 │   │   │   ├── time-utils.ts                # 时间锁编码/解码/人类可读转换
-│   │   │   ├── descriptor-utils.ts          # descriptor + address 构建
-│   │   │   └── types.ts                     # 所有 TypeScript 类型（§5 的内容）
+│   │   │   └── types.ts                     # 核心引擎类型（§5 的部分内容）
+│   │   │
+│   │   ├── builder/                         # 可视化构建：StrategyNode、序列化、路径高亮
+│   │   │   └── types.ts, tree-to-flow.ts, serialize.ts, node-ops.ts, ...
+│   │   │
+│   │   ├── flow/                            # Scenario：MiniscriptNode → React Flow（与 components/flow 配合）
+│   │   │   └── tree-to-flow.ts
+│   │   │
+│   │   ├── editor/
+│   │   │   └── policy-language.ts           # CodeMirror Policy 语法高亮
 │   │   │
 │   │   ├── scenarios/
 │   │   │   └── data.ts                      # 6 个场景的完整数据
@@ -1392,26 +1406,33 @@ miniscript-lab/
 │   │   │   └── data.ts                      # 术语表数据
 │   │   │
 │   │   ├── i18n/
-│   │   │   ├── context.tsx                  # LocaleContext + Provider
+│   │   │   ├── context.tsx                  # LocaleContext + useI18n
 │   │   │   ├── zh.ts                        # 中文翻译
-│   │   │   ├── en.ts                        # 英文翻译
-│   │   │   └── useTranslation.ts            # useT() hook
+│   │   │   └── en.ts                        # 英文翻译
 │   │   │
-│   │   └── utils/
-│   │       ├── share.ts                     # URL 编码/解码分享链接
-│   │       └── storage.ts                   # localStorage 读写封装
+│   │   ├── utils/
+│   │   │   ├── share.ts                     # URL 编码/解码分享链接（可含 playgroundMode）
+│   │   │   └── storage.ts                   # localStorage 读写封装
+│   │   │
+│   │   ├── playground/
+│   │   │   └── add-next-key-variable.ts     # 左栏「添加」与签名浮层「新建角色」共用的下一角色逻辑
+│   │   │
+│   │   ├── stores/
+│   │   │   └── playground-store.ts          # Zustand store（§5.1 + 可视化构建状态）
+│   │   │
+│   │   └── hooks/
+│   │       ├── useCompiler.ts               # 编译 hook（防抖 + 错误处理）
+│   │       ├── useAutoSave.ts               # 会话持久化
+│   │       └── useBuilderSync.ts            # build 模式：Policy ↔ strategyTree 同步
 │   │
-│   ├── stores/
-│   │   └── playground-store.ts              # Zustand store（§5.1 PlaygroundState）
-│   │
-│   └── hooks/
-│       ├── useCompiler.ts                   # 编译 hook（防抖 + 错误处理）
-│       ├── usePathAnalysis.ts               # 路径分析 hook
-│       └── useShareUrl.ts                   # 分享链接 hook
+│   └── test/
+│       └── setup.ts                         # Vitest / Testing Library 全局设置
 │
-├── tailwind.config.ts                       # Tailwind 配置（含 §2.2 色彩变量）
+├── tailwind.config.js                       # Tailwind 配置（含 §2.2 色彩变量）
+├── postcss.config.js
+├── vitest.config.ts                         # Vitest
 ├── tsconfig.json
-├── next.config.ts
+├── next.config.mjs
 ├── package.json
 └── README.md
 ```
@@ -1435,6 +1456,12 @@ Miniscript Lab 在 MVP 阶段曾按照分阶段的方式实施（Phase 1–10：
 
 本 `SPEC.md` 继续作为**产品与体验层的唯一事实来源**，若与实施文档存在不一致，以本规格为准。
 
+**可视化构建（自己动手 / `build` 模式）MVP** 的专项设计与验收说明见：
+
+- `docs/plans/2026-03-13-visual-builder-mvp-design.md`
+- `docs/plans/2026-03-13-visual-builder-mvp-implementation-plan.md`
+- `docs/plans/2026-03-13-visual-builder-mvp-qa-checklist.md`
+
 ---
 
 ## 11. V2 路线图（MVP 之后）
@@ -1447,7 +1474,7 @@ Miniscript Lab 在 MVP 阶段曾按照分阶段的方式实施（Phase 1–10：
 4. **交互式课程** -- 渐进式教程 + 小测验 + 进度追踪
 5. **移动端阅读页** -- 场景浏览 + 教程 + 分享 + 结果查看
 6. **Lift / 反向分析** -- Script → Miniscript → Policy
-7. **图形节点编辑器（"自己动手"模式）** -- 拖拽式策略构建，用户在中栏通过可视化"积木"组合花费条件，`playgroundMode: 'build'` 已在状态中预留
+7. **引导搭建** -- 在 `build` 模式内提供向导式分步搭建（与已上线的「可视化构建」并列；设计预留见 `docs/plans/2026-03-13-visual-builder-mvp-design.md` §5.2）
 8. **导出代码** -- 生成 bitcoinjs-lib / BDK 代码片段
 9. **CodeMirror 完整 Lezer 语法** -- 替换 StreamLanguage 正则 tokenizer 为基于 @lezer/lr 的完整语法定义
 10. **rust-miniscript WASM 引擎** -- 替换 JS 引擎为最权威实现
@@ -1463,7 +1490,7 @@ Miniscript Lab 在 MVP 阶段曾按照分阶段的方式实施（Phase 1–10：
 5. **不要从零写 Bitcoin Script 执行器** -- 先由引擎算出 witness，再做教学可视化
 6. **不要支持私钥 / 助记词** -- 只碰公钥、测试 key、testnet
 7. **不要把"图"误当成"理解"** -- 理解来自状态变化和分支解释
-8. **不要默认图形节点编辑器** -- 新手容易迷失
+8. **不要默认进入「自己动手」构建模式** -- 新手仍应以场景与 Policy 编辑为主；`build` 模式是左栏明确的进阶入口，不应作为首次加载默认态
 9. **不要在任何功能中引入 AI/LLM** -- 编译/类型检查/sanity/satisfaction/解释文字全部确定性实现，无需网络请求
 10. **不要生成 mainnet 地址** -- 教育工具只用 testnet/signet
 
