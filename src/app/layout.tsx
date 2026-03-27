@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, IBM_Plex_Mono } from 'next/font/google';
 import { Providers } from '@/components/providers';
 import { Header } from '@/components/layout/Header';
 import './globals.css';
+import '@xyflow/react/dist/style.css';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],

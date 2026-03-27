@@ -11,6 +11,7 @@ import { RightPanel } from '@/components/playground/RightPanel';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useCompiler } from '@/lib/hooks/useCompiler';
 import { useAutoSave } from '@/lib/hooks/useAutoSave';
+import { useBuilderSync } from '@/lib/hooks/useBuilderSync';
 import { decodeSharePayload } from '@/lib/utils/share';
 import { loadSession } from '@/lib/utils/storage';
 import { useI18n } from '@/lib/i18n/context';
@@ -66,6 +67,7 @@ function DesktopPlayground() {
 
   useCompiler();
   useAutoSave();
+  useBuilderSync();
 
   useEffect(() => {
     if (initialized.current) return;
@@ -88,7 +90,13 @@ function DesktopPlayground() {
 
     const saved = loadSession();
     if (saved && saved.policy) {
-      restoreSession(saved);
+      restoreSession({
+        policy: saved.policy,
+        keyVariables: saved.keyVariables,
+        context: saved.context,
+        network: saved.network,
+        playgroundMode: saved.playgroundMode,
+      });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
