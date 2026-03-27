@@ -159,11 +159,14 @@ function buildGraph(
 
   if (msNode.type === 'multi') {
     const operatorId = nextId();
+    const opSize = NODE_SIZES.operator;
 
     nodes.push({
       id: operatorId,
       type: 'operator',
       position: { x: 0, y: 0 },
+      width: opSize.width,
+      height: opSize.height,
       data: {
         nodeType: 'operator',
         label: `${msNode.k}-of-${msNode.keys.length}`,
@@ -184,6 +187,7 @@ function buildGraph(
 
     const childStatuses: ('satisfied' | 'pending' | 'missing')[] = [];
 
+    const condSize = NODE_SIZES.condition;
     for (const keyName of msNode.keys) {
       const childId = nextId();
       const status = availableKeys.has(keyName) ? 'satisfied' : 'missing';
@@ -193,6 +197,8 @@ function buildGraph(
         id: childId,
         type: 'condition',
         position: { x: 0, y: 0 },
+        width: condSize.width,
+        height: condSize.height,
         data: {
           nodeType: 'condition',
           label: keyName,
@@ -229,10 +235,13 @@ function buildGraph(
     const id = nextId();
     const status = getConditionStatus(msNode, availableKeys, availableHashes, currentTimeBlocks);
     const label = conditionLabel(msNode, locale);
+    const condSize = NODE_SIZES.condition;
     nodes.push({
       id,
       type: 'condition',
       position: { x: 0, y: 0 },
+      width: condSize.width,
+      height: condSize.height,
       data: {
         nodeType: 'condition',
         label,
@@ -258,11 +267,14 @@ function buildGraph(
   if (msNode.type === 'and' || msNode.type === 'or') {
     const opType = msNode.type;
     const id = nextId();
+    const opSize = NODE_SIZES.operator;
 
     nodes.push({
       id,
       type: 'operator',
       position: { x: 0, y: 0 },
+      width: opSize.width,
+      height: opSize.height,
       data: {
         nodeType: 'operator',
         label: opType,
@@ -302,10 +314,13 @@ function buildGraph(
 
   if (msNode.type === 'threshold') {
     const id = nextId();
+    const opSize = NODE_SIZES.operator;
     nodes.push({
       id,
       type: 'operator',
       position: { x: 0, y: 0 },
+      width: opSize.width,
+      height: opSize.height,
       data: {
         nodeType: 'operator',
         label: `${msNode.k}-of-${msNode.n}`,
@@ -343,16 +358,29 @@ function buildGraph(
   }
 
   const id = nextId();
+  const condSize = NODE_SIZES.condition;
   nodes.push({
     id,
     type: 'condition',
     position: { x: 0, y: 0 },
+    width: condSize.width,
+    height: condSize.height,
     data: { nodeType: 'condition', label: '?', status: 'missing' },
   });
   return { nodeId: id, status: 'missing' };
 }
 
 function layoutWithDagre(nodes: Node<FlowNodeData>[], edges: Edge<FlowEdgeData>[]): void {
+  if (nodes.length <= 1) {
+    const size = nodes[0] ? (NODE_SIZES[nodes[0].type as FlowNodeType] || NODE_SIZES.condition) : { width: 0, height: 0 };
+    if (nodes[0]) {
+      nodes[0].position = { x: 0, y: 0 };
+      nodes[0].width = size.width;
+      nodes[0].height = size.height;
+    }
+    return;
+  }
+
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
   g.setGraph({ rankdir: 'TB', nodesep: 40, ranksep: 60 });
@@ -371,10 +399,11 @@ function layoutWithDagre(nodes: Node<FlowNodeData>[], edges: Edge<FlowEdgeData>[
   for (const node of nodes) {
     const pos = g.node(node.id);
     const size = NODE_SIZES[node.type as FlowNodeType] || NODE_SIZES.condition;
-    node.position = {
-      x: pos.x - size.width / 2,
-      y: pos.y - size.height / 2,
-    };
+    const x = pos != null && !isNaN(pos.x) ? pos.x - size.width / 2 : 0;
+    const y = pos != null && !isNaN(pos.y) ? pos.y - size.height / 2 : 0;
+    node.position = { x, y };
+    node.width = size.width;
+    node.height = size.height;
   }
 }
 
@@ -402,10 +431,13 @@ export function treeToFlow(
     buildGraph(tree, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, locale);
   } else if (tree.type === 'and' || tree.type === 'or') {
     const rootId = nextId();
+    const rootSize = NODE_SIZES.root;
     nodes.push({
       id: rootId,
       type: 'root',
       position: { x: 0, y: 0 },
+      width: rootSize.width,
+      height: rootSize.height,
       data: {
         nodeType: 'root',
         label: tree.type,
@@ -424,10 +456,13 @@ export function treeToFlow(
     if (rootNode) rootNode.data.status = compositeStatus;
   } else if (tree.type === 'threshold') {
     const rootId = nextId();
+    const rootSize = NODE_SIZES.root;
     nodes.push({
       id: rootId,
       type: 'root',
       position: { x: 0, y: 0 },
+      width: rootSize.width,
+      height: rootSize.height,
       data: {
         nodeType: 'root',
         label: `${tree.k}-of-${tree.n}`,
@@ -455,10 +490,14 @@ export function treeToFlow(
     if (rootNode) rootNode.data.status = compositeStatus;
   } else if (tree.type === 'multi') {
     const rootId = nextId();
+    const rootSize = NODE_SIZES.root;
+    const condSize = NODE_SIZES.condition;
     nodes.push({
       id: rootId,
       type: 'root',
       position: { x: 0, y: 0 },
+      width: rootSize.width,
+      height: rootSize.height,
       data: {
         nodeType: 'root',
         label: `${tree.k}-of-${tree.keys.length}`,
@@ -476,6 +515,8 @@ export function treeToFlow(
         id: childId,
         type: 'condition',
         position: { x: 0, y: 0 },
+        width: condSize.width,
+        height: condSize.height,
         data: {
           nodeType: 'condition',
           label: keyName,
