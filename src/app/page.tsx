@@ -1,56 +1,72 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Bitcoin } from 'lucide-react';
+import { ArrowRight, Key, Users, ShieldCheck, Heart, Vault, Lock, Code2, GitBranch, Layers, Zap } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
 import { ScenarioGallery } from '@/components/scenarios/ScenarioGallery';
+import { HomepageHero } from '@/components/home/HomepageHero';
+import { HomepageFeatures } from '@/components/home/HomepageFeatures';
+import { HomepageHowItWorks } from '@/components/home/HomepageHowItWorks';
 
 export default function ScenariosPage() {
   const { t } = useI18n();
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-10 md:py-16">
-      <div className="mb-10 text-center md:mb-12">
-        <div className="mb-4 flex justify-center md:mb-5">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-btc-500/10 md:h-14 md:w-14">
-            <Bitcoin className="h-7 w-7 text-btc-500 md:h-8 md:w-8" />
+    <div className="w-full">
+      <HomepageHero />
+      <HomepageHowItWorks />
+      <HomepageFeatures />
+
+      {/* Scenario Gallery */}
+      <section id="scenarios" className="mx-auto w-full max-w-5xl px-4 py-12 md:py-16">
+        <div className="mb-8 text-center md:mb-10">
+          <span className="mb-3 inline-block rounded-full border border-btc-500/20 bg-btc-500/10 px-3 py-1 text-xs font-medium text-btc-500">
+            {t('home.scenarios.label')}
+          </span>
+          <h2 className="mb-3 text-2xl font-bold text-text-primary md:text-3xl">
+            {t('home.scenarios.title')}
+          </h2>
+          <p className="text-sm text-text-secondary md:text-base">
+            {t('home.scenarios.subtitle')}
+          </p>
+        </div>
+        <ScenarioGallery />
+      </section>
+
+      {/* Bottom CTA */}
+      <section className="border-t border-border-subtle bg-surface-card py-12 md:py-16">
+        <div className="mx-auto max-w-5xl px-4 text-center">
+          <h2 className="mb-3 text-xl font-bold text-text-primary md:text-2xl">
+            {t('home.cta.title')}
+          </h2>
+          <p className="mb-8 text-sm text-text-secondary md:text-base">
+            {t('home.cta.subtitle')}
+          </p>
+          <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Link
+              href="/playground"
+              className="group inline-flex items-center gap-2 rounded-button bg-btc-500 px-6 py-3 text-sm font-semibold text-text-inverse transition-all hover:bg-btc-400"
+            >
+              {t('home.cta.playground')}
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link
+              href="/playground?mode=build"
+              className="group inline-flex items-center gap-2 rounded-button border border-border-default bg-surface-elevated px-6 py-3 text-sm font-medium text-text-primary transition-all hover:border-border-hover hover:bg-surface-overlay"
+            >
+              {t('home.cta.build')}
+              <ArrowRight className="h-4 w-4 text-text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-text-primary" />
+            </Link>
           </div>
         </div>
-        <h1 className="mb-3 text-[24px] font-bold leading-tight text-text-primary md:text-page-title">
-          {t('scenarios.title')}
-        </h1>
-        <p className="text-body text-text-secondary">
-          {t('scenarios.subtitle')}
-        </p>
-      </div>
+      </section>
 
-      <ScenarioGallery />
-
-      <div className="mt-10 flex flex-col items-center gap-4 md:mt-12">
-        <div className="flex items-center gap-3">
-          <div className="h-px w-12 bg-border-default md:w-16" />
-          <span className="text-small text-text-muted">
-            {t('scenarios.orWrite')}
-          </span>
-          <div className="h-px w-12 bg-border-default md:w-16" />
+      {/* Footer */}
+      <footer className="border-t border-border-subtle py-8">
+        <div className="mx-auto max-w-5xl px-4 text-center">
+          <p className="text-xs text-text-muted">{t('footer.description')}</p>
+          <p className="mt-1 text-xs text-text-muted">{t('footer.rights')}</p>
         </div>
-
-        <Link
-          href="/playground"
-          className="group inline-flex items-center gap-2 rounded-button border border-border-default bg-surface-elevated px-5 py-2.5 text-body font-medium text-text-primary transition-all hover:border-border-hover hover:bg-surface-overlay"
-        >
-          {t('scenarios.openBlank')}
-          <ArrowRight className="h-4 w-4 text-text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-text-primary" />
-        </Link>
-      </div>
-
-      <footer className="mt-16 border-t border-border-subtle pt-8 text-center md:mt-20">
-        <p className="text-small text-text-muted">
-          {t('footer.description')}
-        </p>
-        <p className="mt-2 text-small text-text-muted">
-          {t('footer.rights')}
-        </p>
       </footer>
     </div>
   );
