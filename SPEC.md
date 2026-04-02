@@ -183,7 +183,7 @@ hover 态：Primary → `--orange-600`；Secondary → `--bg-overlay`
 ```
 ┌─────────────────────┐
 │ 🔑 Alice 签名        │  ← semantic-key 背景色 10% 透明度 + 左侧色条
-└─────────────────────┘
+└────────────��────────┘
 ┌─────────────────────┐
 │ ⏳ 等待 30 天         │  ← semantic-timelock 背景色 10% 透明度 + 左侧色条
 └─────────────────────┘
@@ -324,7 +324,7 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 **区域 A: 场景选择器**
 
 - 场景列表（卡片形式，点击切换场景）
-- 第一个位置为 **「自己动手」** 入口卡片（可点击；`playgroundMode === 'build'` 时呈激活态）。点击后进入 **可视化构建（build）模式**（`playgroundMode: 'build'`）：清空当前场景-derived 状态，进入空白构建工作区（根占位节点 + 可选起手模板），**不继承**用户此前在场景模式下的 Policy / 角色变量 / 编译结果。从场景模式切换到普通预设场景仍通过下方场景卡片完成（`loadScenario` 会回到 `scenario` 模式）。
+- 第一个位置为 **「自己动手」** 入口卡片（可点击；`playgroundMode === 'build'` 时呈激活态）。点击后进入 **可视化构建（build）模式**（`playgroundMode: 'build'`）：清空当前场景-derived 状态，进入空白构建工作区（根占位节点 + 可选起手模板），**不继承**用户此前在场景模式下的 Policy / ��色变量 / 编译结果。从场景模式切换到普通预设场景仍通过下方场景卡片完成（`loadScenario` 会回到 `scenario` 模式）。
 - 通过分享链接 `?s=` 或本地会话恢复的 **build** 会话可携带已有 Policy，与「主动点自己动手」的清空规则不同；详见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 - 切换场景（非「自己动手」）时自动填充 Policy 和 Key 变量
 
@@ -399,6 +399,9 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 - 领域模型为 `StrategyNode`（`src/lib/builder/types.ts`），与 `MiniscriptNode` 分离；MVP 支持签名、`all` / `any` / 阈值组、相对时间锁 `older()` 等；`after()` 与哈希锁在类型与未来扩展上预留，首版 UI 可不开放编辑。
 - 右栏花费路径列表与 scenario 一致；在 build 模式下点击路径卡片可 **高亮** 画布上与该路径相关的分支（`path-highlighting.ts`）。
 - 签名节点编辑浮层（`BuilderPopover`）中的「新建角色」与左栏 **角色变量** 的「添加」共用 `src/lib/playground/add-next-key-variable.ts` 中的「下一个角色」规则（优先 `Alice`…`Frank`，否则 `Key{n}`，测试公钥来自 `DEFAULT_TEST_KEYS` 或随机）；**一键**创建角色并将 **当前签名节点** 绑定到该角色（无需在浮层内输入名称）。
+- **操作符切换**：Group 节点（根节点和嵌套 Group）上的操作符标签（都需要 / 任选一 / k-of-n）可点击，弹出 `OperatorSwitchPopover`，允许在 AND / OR / threshold 之间自由切换；切换到 threshold 时 k 值重置为 `min(2, realChildCount)`。
+- **节点包裹**：所有叶子节点（签名、时间锁）和 Group 节点的编辑浮层底部有「包裹进新组」三按钮（都需要 / 任选一 / 门限），点击后当前节点被包裹进一个新的父级 Group，原节点成为第一个子节点，同时添加一个 placeholder 子槽。
+- **嵌套深度检测**：包裹操作后若嵌套深度超过 5 层，画布底部显示黄色警告 toast（4 秒自动消失，可手动关闭），提示用户保持在 5 层以内。
 - 更完整的产品约束与不在 MVP 范围内的条目见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 
 **节点尺寸规格（Scenario 路径图）：**
@@ -638,8 +641,9 @@ interface PlaygroundState {
 }
 
 // ===== 可视化构建（build 模式）：Zustand store 在 PlaygroundState 之上另含
-// strategyTree、builderSyncState、selectedBuilderNodeId、lastBuilderPolicySnapshot。
-// StrategyNode、BuilderSyncState 等见 src/lib/builder/types.ts =====
+// strategyTree、builderSyncState、selectedBuilderNodeId、lastBuilderPolicySnapshot、builderDepthWarning。
+// StrategyNode、BuilderSyncState 等见 src/lib/builder/types.ts
+// 相关 actions：switchNodeOperator、wrapNode、clearDepthWarning =====
 
 type ResultTab = 'policy' | 'miniscript' | 'script' | 'descriptor' | 'address' | 'paths' | 'warnings';
 
@@ -1027,7 +1031,7 @@ const policyLanguage = StreamLanguage.define({
   icon: 'Users',
   title: { zh: '2-of-3 多签', en: '2-of-3 Multisig' },
   description: {
-    zh: '三把钥匙，任意两把就能花。适合团队或家庭共管。',
+    zh: '三把钥匙，任意两把就能花。适合团队或家庭共��。',
     en: 'Three keys, any two can spend. Great for teams or families.'
   },
   explanation: {
@@ -1129,7 +1133,7 @@ const policyLanguage = StreamLanguage.define({
     en: 'Hot + Cold dual-sign daily; recovery key kicks in after 120 days.'
   },
   explanation: {
-    zh: '双层安全设计：日常使用需要热钱包和冷钱包同时签名。如果冷钱包丢失或损坏，恢复密钥在 120 天（约 17,280 个区块）后可以独立花费。99@ 表示正常双签路径更常用。',
+    zh: '双层安全设计：日常使用需要热钱包和冷钱包同时签名。如果冷钱包丢失或损坏，恢复密钥�� 120 天（约 17,280 个区块）后可以独立花费。99@ 表示正常双签路径更常用。',
     en: '...'
   },
   policy: 'or(99@and(pk(Hot),pk(Cold)),and(pk(Recovery),older(17280)))',
