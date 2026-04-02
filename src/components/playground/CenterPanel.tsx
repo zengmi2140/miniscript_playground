@@ -11,11 +11,12 @@ import { ConditionToggles } from './ConditionToggles';
 import { TimeSlider } from './TimeSlider';
 import { StatusBanner } from './StatusBanner';
 
-// Gray placeholder shown while the heavy canvas chunks are downloading
+// Skeleton shown while the heavy canvas chunks are downloading
 function CanvasSkeleton() {
   return (
-    <div className="flex h-full w-full items-center justify-center bg-surface-base">
-      <div className="h-full w-full animate-pulse bg-surface-card/60" />
+    <div className="flex h-full w-full flex-col items-center justify-center bg-surface-base">
+      <div className="mb-3 h-8 w-8 animate-spin rounded-full border-2 border-border-subtle border-t-btc-500" />
+      <p className="text-sm text-text-muted">Loading...</p>
     </div>
   );
 }
