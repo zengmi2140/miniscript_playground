@@ -66,6 +66,21 @@ export const en: Record<string, string> = {
   'builder.node.any': 'Any One',
   'builder.node.addChild': 'Add Condition',
   'builder.node.delete': 'Delete',
+
+  // Operator switch
+  'builder.op.switch.title': 'Switch Operator',
+  'builder.op.all': 'All Required',
+  'builder.op.all.desc': 'All conditions must be satisfied (AND)',
+  'builder.op.any': 'Any One',
+  'builder.op.any.desc': 'Any one condition is enough (OR)',
+  'builder.op.threshold': 'Threshold',
+  'builder.op.threshold.desc': 'k-of-n: satisfy any k conditions',
+  'builder.op.threshold.k.label': 'Number required',
+  'builder.op.threshold.confirm': 'Confirm',
+
+  // Wrap
+  'builder.wrap.title': 'Wrap in New Group',
+  'builder.wrap.depthWarning': 'Deep nesting detected — consider keeping within 5 levels',
   'builder.node.wrap': 'Wrap as',
   'builder.node.undefinedRole': 'Undefined role',
   'builder.popover.selectRole': 'Select Role',
