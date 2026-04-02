@@ -10,6 +10,32 @@ export const en: Record<string, string> = {
   'home.hero.card.path2': 'Alice + wait 30 days',
   'home.hero.card.path3': 'Bob + wait 30 days',
 
+  // Miniscript Explainer section
+  'home.explainer.label': 'The Basics',
+  'home.explainer.title': 'What is Miniscript?',
+  'home.explainer.subtitle': 'Every Bitcoin UTXO is governed by a script that defines who can spend it and when. Miniscript is a structured language that makes those rules readable, composable, and formally verifiable.',
+
+  'home.explainer.what.title': 'What Miniscript Is',
+  'home.explainer.what.desc': 'Bitcoin Script is a low-level stack language that is hard to write correctly and even harder to audit. Miniscript is a structured subset of Bitcoin Script — it expresses spending conditions as composable policy trees, which tools automatically compile into on-chain scripts, eliminating hand-crafting errors.',
+
+  'home.explainer.why.title': 'Why It Matters',
+  'home.explainer.why.benefit1': 'Human-readable semantics: and(), or(), thresh() map directly to business logic anyone can understand',
+  'home.explainer.why.benefit2': 'Composable and auditable: conditions nest freely, tools auto-analyze all spending paths and minimal witnesses',
+  'home.explainer.why.benefit3': 'On-chain safe: compiled output is formally verified against all Bitcoin Script safety constraints',
+
+  'home.explainer.mission.title': 'Why We Built This',
+  'home.explainer.mission.desc': 'Miniscript tooling is scattered, documentation is dense, and there is a steep learning curve between wallet developers and advanced users. Miniscript Lab brings compilation, path analysis, and visual building into one interactive platform — so anyone can truly understand Bitcoin spending conditions.',
+
+  'home.explainer.comparison.old.title': 'Raw Bitcoin Script (hard to read)',
+  'home.explainer.comparison.old.example': `OP_2\n<Alice> <Bob> <Carol>\nOP_3 OP_CHECKMULTISIG`,
+  'home.explainer.comparison.old.problem1': 'Opcode stacks are non-intuitive — experts must trace every byte to understand intent',
+  'home.explainer.comparison.old.problem2': 'Even slightly complex conditions are nearly impossible to hand-write correctly — one wrong byte locks funds forever',
+
+  'home.explainer.comparison.new.title': 'Miniscript Policy (readable at a glance)',
+  'home.explainer.comparison.new.example': `or(\n  thresh(2, pk(Alice), pk(Bob), pk(Carol)),\n  and(pk(Alice), older(52560))\n)`,
+  'home.explainer.comparison.new.advantage1': 'Structure is semantics: or / and / thresh map directly to intent',
+  'home.explainer.comparison.new.advantage2': 'Compiles to an optimal script automatically — tools verify safety, no low-level code needed',
+
   'home.how.label': 'How It Works',
   'home.how.title': 'Three Steps to Any Spending Policy',
   'home.how.subtitle': 'From scenario selection to a complete on-chain script — with visual feedback every step of the way.',

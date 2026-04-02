@@ -10,6 +10,32 @@ export const zh: Record<string, string> = {
   'home.hero.card.path2': 'Alice + 等待 30 天',
   'home.hero.card.path3': 'Bob + 等待 30 天',
 
+  // Miniscript Explainer section
+  'home.explainer.label': '基础知识',
+  'home.explainer.title': '什么是 Miniscript？',
+  'home.explainer.subtitle': '每一个 Bitcoin UTXO 背后，都有一套规定"谁能花、何时能花"的脚本。Miniscript 是一种更结构化的语言，让这套规则变得可读、可组合、可验证。',
+
+  'home.explainer.what.title': 'Miniscript 是什么',
+  'home.explainer.what.desc': 'Bitcoin Script 是图灵不完备的低级脚本语言，直接编写容易出错且难以审计。Miniscript 是 Bitcoin Script 的一个结构化子集——它把花费条件表达为可组合的策略树，由工具自动编译为链上脚本，杜绝手写错误。',
+
+  'home.explainer.why.title': '为什么需要它',
+  'home.explainer.why.benefit1': '策略语义清晰：and()、or()、thresh() 直接描述业务逻辑，任何人都能读懂',
+  'home.explainer.why.benefit2': '可组合可审计：子条件自由嵌套，工具自动分析所有花费路径和最小 Witness',
+  'home.explainer.why.benefit3': '链上安全：编译结果经过形式化验证，满足 Bitcoin Script 的所有安全约束',
+
+  'home.explainer.mission.title': '我们为什么做这个',
+  'home.explainer.mission.desc': 'Miniscript 的工具链分散、文档晦涩，钱包开发者和高级用户之间存在巨大的学习门槛。Miniscript Lab 把编译、路径分析、可视化搭建整合到一个交互式平台，让任何人都能真正读懂 Bitcoin 花费条件。',
+
+  'home.explainer.comparison.old.title': '传统 Bitcoin Script（难以读懂）',
+  'home.explainer.comparison.old.example': `OP_2\n<Alice> <Bob> <Carol>\nOP_3 OP_CHECKMULTISIG`,
+  'home.explainer.comparison.old.problem1': '操作码堆叠，语义不直观，需要专家逐行解读',
+  'home.explainer.comparison.old.problem2': '稍微复杂的条件组合极难手写正确，一个字节错误就会锁死资金',
+
+  'home.explainer.comparison.new.title': 'Miniscript Policy（一眼读懂）',
+  'home.explainer.comparison.new.example': `or(\n  thresh(2, pk(Alice), pk(Bob), pk(Carol)),\n  and(pk(Alice), older(52560))\n)`,
+  'home.explainer.comparison.new.advantage1': '结构即语义：or / and / thresh 直接映射业务意图',
+  'home.explainer.comparison.new.advantage2': '自动编译为最优脚本，工具验证安全性，无需手写底层代码',
+
   'home.how.label': '使用流程',
   'home.how.title': '三步理解任意花费策略',
   'home.how.subtitle': '从场景选择到完整链上脚本，每一步都有可视化反馈。',
@@ -140,7 +166,7 @@ export const zh: Record<string, string> = {
   'playground.context.comingSoon': 'Coming Soon',
   'playground.pathmap.title': '花费路径地图',
   'playground.conditions.title': '条件模拟',
-  'playground.timeslider.label': '时间流逝',
+  'playground.timeslider.label': '时间流��',
   'playground.timeslider.blocks': '区块',
   'playground.timeslider.current': '当前: 第 {blocks} 区块 ≈ {human}',
   'playground.status.canSpend': '可花费: {path}',
