@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Key, Users, ShieldCheck, Heart, Vault, Lock, Code2, GitBranch, Layers, Zap } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
@@ -10,6 +11,29 @@ import { HomepageHowItWorks } from '@/components/home/HomepageHowItWorks';
 
 export default function ScenariosPage() {
   const { t } = useI18n();
+
+  // Layer 3: prefetch the compiler WASM and PathMap bundle while the user
+  // is browsing the homepage, so Playground loads faster when they click in.
+  useEffect(() => {
+    const id =
+      typeof requestIdleCallback !== 'undefined'
+        ? requestIdleCallback(() => {
+            import('@/components/flow/PathMap');
+            import('@/lib/hooks/useCompiler');
+          })
+        : window.setTimeout(() => {
+            import('@/components/flow/PathMap');
+            import('@/lib/hooks/useCompiler');
+          }, 3000);
+
+    return () => {
+      if (typeof cancelIdleCallback !== 'undefined') {
+        cancelIdleCallback(id as number);
+      } else {
+        clearTimeout(id as number);
+      }
+    };
+  }, []);
 
   return (
     <div className="w-full">
