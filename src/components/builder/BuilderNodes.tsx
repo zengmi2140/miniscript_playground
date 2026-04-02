@@ -3,7 +3,7 @@
 import { memo, useCallback, useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { motion } from 'framer-motion';
-import { Key, Clock, AlertTriangle, Plus, MoreHorizontal, ChevronDown } from 'lucide-react';
+import { Key, Clock, AlertTriangle, Plus, MoreHorizontal, ChevronDown, Users } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { useI18n } from '@/lib/i18n/context';
 import type { BuilderFlowNodeData } from '@/lib/builder/tree-to-flow';
