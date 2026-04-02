@@ -62,7 +62,7 @@ npx vitest run
   - 三栏 Playground，是项目主界面。
   - 入口组件：`src/app/playground/page.tsx`（纯 Server Component，用 `dynamic({ ssr: false })` 加载 `PlaygroundClient`）
   - 客户端组件：`src/app/playground/PlaygroundClient.tsx`（含 `'use client'`，负责读取 URL 分享参数 `?s=`、场景参数 `?scenario=`、本地缓存会话；并挂载 `useCompiler`、`useAutoSave`、`useBuilderSync`）
-  - **渐进式加载架构**：`page.tsx` 为纯 Server Component，避免 SSR 阶段执行客户端代码；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 也用 `dynamic({ ssr: false })` 懒加载；首页用 `requestIdleCallback` 预热编译器；scenario 模式停留 2 秒后后台预加载 Builder 代码。
+  - **渐进式加载架构**：`page.tsx` 直接 import `PlaygroundClient`（有 `'use client'`，服务端渲染三栏 HTML 框架，用户立即看到完整框架）；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载，期间显示带 spinner 的骨架屏；`PlaygroundContent` 移除了 `mode === 'loading'` 时返回 `null` 的逻辑，避免服务端输出空 HTML；`layout.tsx` 加 `<link rel="prefetch" href="/playground">` 让浏览器提前获取页面文档；首页用 `requestIdleCallback` 预热所有 Playground 模块（三栏组件、画布、编译器）；scenario 模式停留 2 秒后后台预加载 Builder 代码。
 
 - `/compare`
   - 当前只是 Coming Soon 占位页。
@@ -154,7 +154,7 @@ src/
 
 - `src/lib/engine/miniscript-parser.ts`
   - 将编译出来的 Miniscript 字符串（`result.miniscript`，含角色名）解析成自定义 `MiniscriptNode` 语义树。
-  - 会剥离 wrapper 前缀，例如 `v:`、`c:`、`sln:`。
+  - 会剥离 wrapper 前缀，例��� `v:`、`c:`、`sln:`。
 
 - `src/lib/flow/tree-to-flow.ts`
   - 把语义树转成 React Flow nodes/edges。
@@ -294,9 +294,9 @@ src/
 
 10. **build 模式**（自己动手）已实现为 MVP：受约束策略树 + Policy 双向同步；并非任意拖线流程图。不支持的结构会进入 `text-led`，详见 `useBuilderSync` 与 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 
-11. **渐进式加载**：`playground/page.tsx` 是纯 Server Component，用 `dynamic({ ssr: false })` 加载 `PlaygroundClient`；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 也用 `dynamic({ ssr: false })` 懒加载。这是为了避免 SSR 阶段执行客户端代码（ReactFlow、lucide-react 图标等）导致崩溃。
+11. **渐进式加载**：`playground/page.tsx` 直接 import `PlaygroundClient`（服务端渲染三栏框架 HTML，用户进入页面立即看到完整框架）；`PlaygroundContent` 移除了 `mode === 'loading' → null` 逻辑；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载，期间显示带 spinner 骨架屏；`layout.tsx` 加 `<link rel="prefetch">` 提前获取 Playground 页面；首页 `requestIdleCallback` 预热所有 Playground 模块（三栏组件、两个画布、编译器），同 Tab 内来回切换命中浏览器模块缓存无需重新加载，刷新后命中 HTTP 缓存（Next.js 文件名含 hash）极快恢复。
 
-12. **首页新设计**：首页由 `HomepageHero`、`HomepageHowItWorks`、`HomepageFeatures`、`ScenarioGallery` 组成，并用 `requestIdleCallback` 在浏览器空闲时预热编译器。
+12. **首页新设计**：首页由 `HomepageHero`、`HomepageHowItWorks`、`HomepageFeatures`、`ScenarioGallery` 组成，并用 `requestIdleCallback` 在浏览器空闲时预热所有 Playground 相关模块。
 
 ## 11. 常见改动从哪里入手
 
@@ -307,7 +307,7 @@ src/
   - `src/lib/scenarios/tags.ts`
   - `src/components/scenarios/ScenarioCard.tsx`
 
-### 修改 Policy 语法支持
+### 修改 Policy 语法��持
 
 通常至少要同时检查这些文件：
 

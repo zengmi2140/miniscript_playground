@@ -121,7 +121,9 @@ function DesktopPlayground() {
 function PlaygroundContent() {
   const mode = useViewportMode();
 
-  if (mode === 'loading') return null;
+  // On mobile, show fallback. During SSR / hydration ('loading'),
+  // render the desktop shell immediately — the user sees the frame
+  // right away instead of a blank screen, then viewport-check resolves.
   if (mode === 'mobile') return <MobileFallback />;
   return <DesktopPlayground />;
 }
