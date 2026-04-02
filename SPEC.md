@@ -183,7 +183,7 @@ hover 态：Primary → `--orange-600`；Secondary → `--bg-overlay`
 ```
 ┌─────────────────────┐
 │ 🔑 Alice 签名        │  ← semantic-key 背景色 10% 透明度 + 左侧色条
-└────────────���────────┘
+└────────────����────────┘
 ┌─────────────────────┐
 │ ⏳ 等待 30 天         │  ← semantic-timelock 背景色 10% 透明度 + 左侧色条
 └─────────────────────┘
@@ -332,9 +332,9 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 - **"打开空白 Playground"** → 导航到 `/playground`
 - **"用画布搭建策略"** → 导航到 `/playground?mode=build`
 
-#### 首页预加载策略（Layer 3）
+#### 首页预加载策略
 
-在首页组件 mount 后，用 `requestIdleCallback` 在浏览器空闲时预热编译器模块（`useCompiler`）和路径图组件（`PathMap`），确保用户点击进入 Playground 时这些代码已预加载。
+在首页组件 mount 后，用 `requestIdleCallback` 在浏览器空闲时预热**所有** Playground 相关模块，包括：三栏组件（`ThreeColumnLayout`、`LeftPanel`、`RightPanel`、`CenterPanel`）、两个画布（`PathMap`、`BuilderCanvas`、`BuilderNodes`）、编译器（`useCompiler`）。这样用户点击进入 Playground 时，所有代码已在浏览器内存中，切换体验接近 App 内页面切换。
 
 #### 首页设计实现
 
@@ -348,15 +348,19 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 
 #### 渐进式加载架构
 
-为了避免 SSR 阶段执行客户端代码（ReactFlow、lucide-react 图标等）导致模块加载崩溃，采用多层渐进式加载策略：
+目标：页面切换像 App 内导航一样丝滑——三栏框架立即可见，只有画布区域异步加载。
 
-- **Layer 1（修复 SSR 崩溃 + 懒加载）**：`playground/page.tsx` 是纯 Server Component，用 `dynamic({ ssr: false })` 加载客户端主组件 `PlaygroundClient.tsx`；`CenterPanel` 中的 `BuilderCanvas` 和 `PathMap` 也用 `dynamic({ ssr: false })` 懒加载，在组件下载期间显示灰色占位块（`CanvasSkeleton`）。
+- **框架立即可见**：`playground/page.tsx` 直接 import `PlaygroundClient`（有 `'use client'`），Next.js 在服务端渲染完整三栏 HTML 框架；`PlaygroundContent` 不再在 `mode === 'loading'` 时返回 `null`，避免服务端输出空 HTML 导致白屏。
 
-- **Layer 2（后台预加载）**：用户进入 Playground 的 scenario 模式后，`CenterPanel` 中的 `useEffect` 在 2 秒后悄悄触发 Builder 相关代码（`BuilderCanvas`、`BuilderNodes`）的预加载，使得用户切换到"自己动手"模式时无需等待。
+- **画布懒加载**：`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载，下载期间显示带 spinner 的骨架屏（`CanvasSkeleton`），用户不会看到空白。
 
-- **Layer 3（首页预热）**：首页在 `requestIdleCallback` 中预加载编译器和路径图模块，用户从首页进入 Playground 时已初始化完成。
+- **后台预加载（scenario 模式）**：`CenterPanel` 在用户浏览 scenario 模式 2 秒后，后台触发 `BuilderCanvas`、`BuilderNodes` 的预加载，切换到"自己动手"模式时无需等待。
 
-这三层策略的组合确保：用户从首页进入 Playground 时最快，直接进入 Playground 的次之（有骨架屏），scenario 模式停留后切换 build 模式瞬间。
+- **首页全量预热**：首页用 `requestIdleCallback` 预热所有 Playground 模块（三栏组件 + 两画布 + 编译器），用户从首页导航进入 Playground 时所有代码已就绪。
+
+- **文档级预取**：`layout.tsx` 加 `<link rel="prefetch" href="/playground" as="document">`，让浏览器提前获取 Playground 页面 HTML，无论从哪个页面导航过来都更快。
+
+- **缓存行为**：同 Tab 内来回切换命中浏览器**模块内存缓存**，完全不触发网络请求；普通刷新命中 **HTTP 缓存**（Next.js JS 文件名含 hash，`Cache-Control` 设置较长有效期），极快恢复；仅强制刷新（Ctrl+Shift+R）才重新下载。
 
 #### 整体布局
 
@@ -420,7 +424,7 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 - 高度自适应（最小 80px，最大 300px）
 - 语法高亮（见 §6.5）
 - 编辑后 500ms 防抖自动编译
-- 编译错误在编辑器下方显示（红色文字 + 友好中文描述）
+- 编���错误在编辑器下方显示（红色文字 + 友好中文描述）
 - 工具栏：[格式化] [清空] [复制] [分享🔗]
 - **Build 模式**下编辑器与可视化画布双向同步：画布操作更新 Policy；用户编辑 Policy 时，若结构仍在构建器支持范围内则回写 `strategyTree`，否则进入「文本主导」状态（`builderSyncState: 'text-led'`），不强行破坏画布。同步逻辑见 `useBuilderSync`（`src/lib/hooks/useBuilderSync.ts`）。
 
@@ -463,7 +467,7 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 
 **Build 模式（`playgroundMode === 'build'`）：可视化策略树画布**
 
-- 中栏 **不再** 单独展示与 scenario 相同的那张「花费路径图」；改为 **受约束的策略树编辑器**（`BuilderCanvas`，`src/components/builder/*`），在同一 React Flow 画布上编辑结构并叠加满足态（已满足 / 等待 / 缺失）。布局由 `src/lib/builder/tree-to-flow.ts` 负责：**自下而上计算子树宽度、自上而下放置**，父节点在**整行直接子节点（含虚拟「+ 添加条件」）**的水平包围盒上居中；**不**使用 Dagre，以避免仅平移父节点时与兄弟子树重叠等问题。
+- 中栏 **不再** 单独展示与 scenario 相同的那张「花费路径图」；改为 **受约束的策略树编辑器**（`BuilderCanvas`，`src/components/builder/*`），在同一 React Flow 画布��编辑结构并叠加满足态（已满足 / 等待 / 缺失）。布局由 `src/lib/builder/tree-to-flow.ts` 负责：**自下而上计算子树宽度、自上而下放置**，父节点在**整行直接子节点（含虚拟「+ 添加条件」）**的水平包围盒上居中；**不**使用 Dagre，以避免仅平移父节点时与兄弟子树重叠等问题。
 - 领域模型为 `StrategyNode`（`src/lib/builder/types.ts`），与 `MiniscriptNode` 分离；MVP 支持签名、`all` / `any` / 阈值组、相对时间锁 `older()` 等；`after()` 与哈希锁在类型与未来扩展上预留，首版 UI 可不开放编辑。
 - 右栏花费路径列表与 scenario 一致；在 build 模式下点击路径卡片可 **高亮** 画布上与该路径相关的分支（`path-highlighting.ts`）。
 - 签名节点编辑浮层（`BuilderPopover`）中的「新建角色」与左栏 **角色变量** 的「添加」共用 `src/lib/playground/add-next-key-variable.ts` 中的「下一个角色」规则（优先 `Alice`…`Frank`，否则 `Key{n}`，测试公钥来自 `DEFAULT_TEST_KEYS` 或随机）；**一键**创建角色并将 **当前签名节点** 绑定到该角色（无需在浮层内输入名称）。
@@ -1172,7 +1176,7 @@ const policyLanguage = StreamLanguage.define({
   icon: 'Vault',
   title: { zh: '退化多签金库', en: 'Degrading Multisig Vault' },
   description: {
-    zh: '平时 3-of-3 全员签名；90 天后降级为 2-of-3。',
+    zh: '平时 3-of-3 全员签名；90 天后降��为 2-of-3。',
     en: '3-of-3 normally; degrades to 2-of-3 after 90 days.'
   },
   explanation: {
@@ -1564,5 +1568,5 @@ Miniscript Lab 在 MVP 阶段曾按照分阶段的方式实施（Phase 1–10：
 7. **不要把"图"误当成"理解"** -- 理解来自状态变化和分支解释
 8. **不要默认进入「自己动手」构建模式** -- 新手仍应以场景与 Policy 编辑为主；`build` 模式是左栏明确的进阶入口，不应作为首次加载默认态
 9. **不要在任何功能中引入 AI/LLM** -- 编译/类型检查/sanity/satisfaction/解释文字全部确定性实现，无需网络请求
-10. **不要生成 mainnet 地址** -- 教育工具只用 testnet/signet
+10. **不要生成 mainnet 地址** -- 教育工具只�� testnet/signet
 
