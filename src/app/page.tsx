@@ -6,6 +6,7 @@ import { ArrowRight, Key, Users, ShieldCheck, Heart, Vault, Lock, Code2, GitBran
 import { useI18n } from '@/lib/i18n/context';
 import { ScenarioGallery } from '@/components/scenarios/ScenarioGallery';
 import { HomepageHero } from '@/components/home/HomepageHero';
+import { HomepageMiniscriptExplainer } from '@/components/home/HomepageMiniscriptExplainer';
 import { HomepageFeatures } from '@/components/home/HomepageFeatures';
 import { HomepageHowItWorks } from '@/components/home/HomepageHowItWorks';
 
@@ -48,6 +49,7 @@ export default function ScenariosPage() {
   return (
     <div className="w-full">
       <HomepageHero />
+      <HomepageMiniscriptExplainer />
       <HomepageHowItWorks />
       <HomepageFeatures />
 
