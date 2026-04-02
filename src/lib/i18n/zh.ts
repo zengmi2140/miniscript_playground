@@ -66,6 +66,21 @@ export const zh: Record<string, string> = {
   'builder.node.any': '任选一',
   'builder.node.addChild': '添加条件',
   'builder.node.delete': '删除',
+
+  // Operator switch
+  'builder.op.switch.title': '切换操作符',
+  'builder.op.all': '都需要',
+  'builder.op.all.desc': '所有子条件都必须满足（AND）',
+  'builder.op.any': '任选一',
+  'builder.op.any.desc': '满足其中一个即可（OR）',
+  'builder.op.threshold': '门限多签',
+  'builder.op.threshold.desc': 'k-of-n，满足 k 个条件即可',
+  'builder.op.threshold.k.label': '所需满足数量',
+  'builder.op.threshold.confirm': '确认',
+
+  // Wrap
+  'builder.wrap.title': '包裹进新组',
+  'builder.wrap.depthWarning': '嵌套层数较多，建议不超过 5 层',
   'builder.node.wrap': '包装为',
   'builder.node.undefinedRole': '未定义的角色',
   'builder.popover.selectRole': '选择角色',
