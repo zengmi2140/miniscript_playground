@@ -60,8 +60,9 @@ npx vitest run
 
 - `/playground`
   - 三栏 Playground，是项目主界面。
-  - 入口组件：`src/app/playground/page.tsx`
-  - 负责读取 URL 分享参数 `?s=`（payload 可含 `playgroundMode`，用于恢复 **build / scenario** 会话）、场景参数 `?scenario=`、以及本地缓存会话；并挂载 `useCompiler`、`useAutoSave`、`useBuilderSync`。
+  - 入口组件：`src/app/playground/page.tsx`（纯 Server Component，用 `dynamic({ ssr: false })` 加载 `PlaygroundClient`）
+  - 客户端组件：`src/app/playground/PlaygroundClient.tsx`（含 `'use client'`，负责读取 URL 分享参数 `?s=`、场景参数 `?scenario=`、本地缓存会话；并挂载 `useCompiler`、`useAutoSave`、`useBuilderSync`）
+  - **渐进式加载架构**：`page.tsx` 为纯 Server Component，避免 SSR 阶段执行客户端代码；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 也用 `dynamic({ ssr: false })` 懒加载；首页用 `requestIdleCallback` 预热编译器；scenario 模式停留 2 秒后后台预加载 Builder 代码。
 
 - `/compare`
   - 当前只是 Coming Soon 占位页。
@@ -76,11 +77,15 @@ npx vitest run
 ```text
 src/
   app/              Next.js 路由、布局、动态 OG、globals.css
+    playground/
+      page.tsx          纯 Server Component，dynamic 加载 PlaygroundClient
+      PlaygroundClient.tsx  客户端组件，含所有 hooks 和三栏布局
   components/
     providers.tsx   Theme + I18n 根 Provider
     ui/             shadcn 基础组件（如 button）
-    builder/        build 模式：可视化策略树画布（BuilderCanvas、节点、浮层、同步横幅）
+    builder/        build 模式：可视化策略树画布（BuilderCanvas、节点、浮层、OperatorSwitchPopover、同步横幅）
     flow/           scenario 模式：花费路径图与 React Flow 节点/边
+    home/           首页组件（HomepageHero、HomepageHowItWorks、HomepageFeatures）
     layout/         顶部导航（Header）
     playground/     三栏布局（ThreeColumnLayout）、左/中/右各面板
     results/        右侧结果 tabs
@@ -166,9 +171,12 @@ src/
 ### 可视化构建（build /「自己动手」模式）
 
 - `src/lib/builder/tree-to-flow.ts`：将 `StrategyNode` 转为 React Flow 图；**递归 TB 布局**（子树宽度自下而上、节点自上而下，父在直接子行含「+ 添加条件」上水平居中）；节点上叠加满足态；与 `src/lib/builder/types.ts`、`serialize.ts`、`node-ops.ts`、`path-highlighting.ts`、`status.ts` 等配合。
-- `src/components/builder/BuilderCanvas.tsx`：build 模式主画布；只读态由 `builderSyncState !== 'synced'` 控制。
-- `src/lib/hooks/useBuilderSync.ts`：在 `playgroundMode === 'build'` 时双向同步 Policy 文本与 `strategyTree`；挂载于 `playground/page.tsx`。
+- `src/components/builder/BuilderCanvas.tsx`：build 模式主画布；只读态由 `builderSyncState !== 'synced'` 控制；嵌套超过 5 层时显示黄色警告 toast。
+- `src/lib/hooks/useBuilderSync.ts`：在 `playgroundMode === 'build'` 时双向同步 Policy 文本与 `strategyTree`；挂载于 `PlaygroundClient.tsx`。
 - `src/lib/playground/add-next-key-variable.ts`：`createNextKeyVariable` / `generateRandomPubkey`，供左栏 `KeyVariableManager` 与 `BuilderPopover`（签名编辑「新建角色」）共用同一套「下一个角色」逻辑；浮层内一键创建后会 `updateSignatureRole` + `updateStrategyTree`。
+- **操作符切换**：`changeGroupOp(tree, nodeId, newOp, newThreshold?)` 允许 Group 节点在 AND / OR / threshold 之间自由切换；切换到 threshold 时 k 值重置为 `min(2, childCount)`。UI 入口为 Group 节点上的可点击操作符徽章（`OperatorSwitchPopover`）。
+- **节点包裹**：`wrapNodeInGroup(tree, nodeId, wrapperOp, wrapperThreshold?)` 将任意节点（签名、时间锁、Group）包裹进新的父级 Group，原节点成为第一个子节点，同时添加 placeholder 子槽。UI 入口为所有节点浮层底部的"包裹进新组"三按钮。
+- **嵌套深度检测**：`computeTreeDepth(tree)` 计算最大嵌套层数；包裹操作后若深度超过 5 层，`BuilderCanvas` 会显示 4 秒自动消失的警告 toast。
 - 专项设计与范围见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 
 ### 花费路径分析
@@ -286,6 +294,10 @@ src/
 
 10. **build 模式**（自己动手）已实现为 MVP：受约束策略树 + Policy 双向同步；并非任意拖线流程图。不支持的结构会进入 `text-led`，详见 `useBuilderSync` 与 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 
+11. **渐进式加载**：`playground/page.tsx` 是纯 Server Component，用 `dynamic({ ssr: false })` 加载 `PlaygroundClient`；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 也用 `dynamic({ ssr: false })` 懒加载。这是为了避免 SSR 阶段执行客户端代码（ReactFlow、lucide-react 图标等）导致崩溃。
+
+12. **首页新设计**：首页由 `HomepageHero`、`HomepageHowItWorks`、`HomepageFeatures`、`ScenarioGallery` 组成，并用 `requestIdleCallback` 在浏览器空闲时预热编译器。
+
 ## 11. 常见改动从哪里入手
 
 ### 新增或修改预设场景
@@ -324,10 +336,10 @@ src/
 
 ### 修改可视化构建（build 模式）
 
-- `src/lib/builder/tree-to-flow.ts`、`src/lib/builder/types.ts`、`src/lib/builder/serialize.ts`、`src/lib/builder/node-ops.ts`
+- `src/lib/builder/tree-to-flow.ts`、`src/lib/builder/types.ts`、`src/lib/builder/serialize.ts`、`src/lib/builder/node-ops.ts`（含 `changeGroupOp`、`wrapNodeInGroup`、`computeTreeDepth`）
 - `src/lib/playground/add-next-key-variable.ts`（角色「下一个」命名与公钥，与左栏共用）
-- `src/components/builder/BuilderCanvas.tsx`、`BuilderNodes.tsx`、`BuilderPopover.tsx`
-- `src/lib/hooks/useBuilderSync.ts`、`src/lib/stores/playground-store.ts`（`enterBuildMode`、`updateStrategyTree` 等）
+- `src/components/builder/BuilderCanvas.tsx`（主画布 + 深度警告 toast）、`BuilderNodes.tsx`（操作符徽章）、`BuilderPopover.tsx`（包裹按钮）、`OperatorSwitchPopover.tsx`（操作符切换浮层）
+- `src/lib/hooks/useBuilderSync.ts`、`src/lib/stores/playground-store.ts`（`enterBuildMode`、`updateStrategyTree`、`switchNodeOperator`、`wrapNode`、`clearDepthWarning` 等）
 
 ### 修改 Policy 编辑器
 
