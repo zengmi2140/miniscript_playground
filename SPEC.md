@@ -183,7 +183,7 @@ hover 态：Primary → `--orange-600`；Secondary → `--bg-overlay`
 ```
 ┌─────────────────────┐
 │ 🔑 Alice 签名        │  ← semantic-key 背景色 10% 透明度 + 左侧色条
-└────────────��────────┘
+└────────────���────────┘
 ┌─────────────────────┐
 │ ⏳ 等待 30 天         │  ← semantic-timelock 背景色 10% 透明度 + 左侧色条
 └─────────────────────┘
@@ -286,9 +286,77 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 
 "或者自己写" 区域：一个 Ghost 按钮 "打开空白 Playground →"，导航到 `/playground`。
 
+### 4.1 首页（`/`）
+
+这是产品的登陆入口，旨在快速传达 Miniscript Lab 的核心价值并吸引用户进入 Playground。
+
+#### 首页结构（从上到下）
+
+**Hero 区**
+
+- 标题：**"把 Bitcoin 的花费条件讲清楚"**
+- 副标题：用真实的花费场景理解 Miniscript，从多签到时间锁，从理论到可运行的脚本。
+- 核心描述：每一个 Bitcoin UTXO 背后，都有一套决定"谁能花、什么时候花"的规则。Miniscript Lab 帮你读懂这套规则。
+- 两个 CTA 按钮：
+  - 主按钮：**"从场景开始"** → 导航到 `/playground?scenario=<首个场景id>`
+  - 次按钮：**"打开 Playground"** → 导航到 `/playground`
+- 右侧展示一个真实策略的预览卡片：示例 Policy + 花费路径分析，让访问者秒懂"三步理解任意花费策略"的流程
+
+**"三步理解任意花费策略"区**
+
+四格卡片，从左到右依次为：
+1. **选择或描述场景** - 从真实使用场景出发
+2. **编写或搭建策略** - 用 Policy 或可视化构建
+3. **看懂所有花费路径** - 交互式路径分析
+4. **拿到链上可用脚本** - 完整输出
+
+每张卡片包含标题、描述和一行代码示例，展示从概念到输出的完整流程。
+
+**核心功能区**
+
+2×2 网格展示四大能力：
+- 实时编译反馈
+- 花费路径可视化
+- 可视化策略搭建
+- 一键分享
+
+每项配图标和简洁描述。
+
+**场景库区**
+
+展示 6+ 个真实场景的卡片网格（与 `/scenarios` 页面一致）：个人单签、2-of-3 多签、2FA + 超时恢复等。卡片点击导航到 `/playground?scenario=<id>`。
+
+**底部 CTA**
+
+"准备好自己设计了吗？" 区域，两个按钮：
+- **"打开空白 Playground"** → 导航到 `/playground`
+- **"用画布搭建策略"** → 导航到 `/playground?mode=build`
+
+#### 首页预加载策略（Layer 3）
+
+在首页组件 mount 后，用 `requestIdleCallback` 在浏览器空闲时预热编译器模块（`useCompiler`）和路径图组件（`PathMap`），确保用户点击进入 Playground 时这些代码已预加载。
+
+#### 首页设计实现
+
+- 文件：`src/app/page.tsx`（Server Component）、`src/components/home/HomepageHero.tsx`、`src/components/home/HomepageHowItWorks.tsx`、`src/components/home/HomepageFeatures.tsx`
+- 相关 i18n key：`home.hero.*`、`home.how.*`、`home.features.*`、`home.cta.*`
+- 复用 `ScenarioGallery` 组件展示场景卡片
+
 ### 4.2 Playground 页（`/playground`）
 
 这是产品的核心页面。
+
+#### 渐进式加载架构
+
+为了避免 SSR 阶段执行客户端代码（ReactFlow、lucide-react 图标等）导致模块加载崩溃，采用多层渐进式加载策略：
+
+- **Layer 1（修复 SSR 崩溃 + 懒加载）**：`playground/page.tsx` 是纯 Server Component，用 `dynamic({ ssr: false })` 加载客户端主组件 `PlaygroundClient.tsx`；`CenterPanel` 中的 `BuilderCanvas` 和 `PathMap` 也用 `dynamic({ ssr: false })` 懒加载，在组件下载期间显示灰色占位块（`CanvasSkeleton`）。
+
+- **Layer 2（后台预加载）**：用户进入 Playground 的 scenario 模式后，`CenterPanel` 中的 `useEffect` 在 2 秒后悄悄触发 Builder 相关代码（`BuilderCanvas`、`BuilderNodes`）的预加载，使得用户切换到"自己动手"模式时无需等待。
+
+- **Layer 3（首页预热）**：首页在 `requestIdleCallback` 中预加载编译器和路径图模块，用户从首页进入 Playground 时已初始化完成。
+
+这三层策略的组合确保：用户从首页进入 Playground 时最快，直接进入 Playground 的次之（有骨架屏），scenario 模式停留后切换 build 模式瞬间。
 
 #### 整体布局
 
@@ -323,7 +391,7 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 
 **区域 A: 场景选择器**
 
-- 场景列表（卡片形式，点击切换场景）
+- 场景列表（卡���形式，点击切换场景）
 - 第一个位置为 **「自己动手」** 入口卡片（可点击；`playgroundMode === 'build'` 时呈激活态）。点击后进入 **可视化构建（build）模式**（`playgroundMode: 'build'`）：清空当前场景-derived 状态，进入空白构建工作区（根占位节点 + 可选起手模板），**不继承**用户此前在场景模式下的 Policy / ��色变量 / 编译结果。从场景模式切换到普通预设场景仍通过下方场景卡片完成（`loadScenario` 会回到 `scenario` 模式）。
 - 通过分享链接 `?s=` 或本地会话恢复的 **build** 会话可携带已有 Policy，与「主动点自己动手」的清空规则不同；详见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 - 切换场景（非「自己动手」）时自动填充 Policy 和 Key 变量
@@ -986,7 +1054,7 @@ const policyLanguage = StreamLanguage.define({
 
 - 中栏路径图正常渲染语义树，但所有叶子节点显示为灰色（未满足）
 - 路径卡片区域显示提示："此 Policy 无可用花费路径。所有路径当前条件下不可满足。"
-- 状态横幅显示红色："❌ 当前条件下无法花费"
+- 状态横幅显示红色："❌ 当前条件下无法花��"
 
 **首次进入 Playground（无场景参数 ?scenario=…）：**
 
@@ -1006,7 +1074,7 @@ const policyLanguage = StreamLanguage.define({
 {
   id: 'single-key',
   icon: 'Key',
-  title: { zh: '个人单签', en: 'Single Key' },
+  title: { zh: '个人���签', en: 'Single Key' },
   description: {
     zh: '只有你一个人可以花这笔钱。最简单的情况。',
     en: 'Only you can spend. The simplest case.'
@@ -1180,7 +1248,7 @@ const GLOSSARY: Record<string, { zh: string; en: string; explain_zh: string; exp
   },
   'older': {
     zh: '相对时间锁', en: 'Relative Timelock',
-    explain_zh: '从 UTXO 被创建开始算，必须等待指定数量的区块后才能花费。常用于恢复路径、惩罚窗口等。不是固定日期——每次你重新花费到新地址，计时器就会重置。',
+    explain_zh: '从 UTXO 被创建开始算，必须等待指定数量的区块后才能花费。常用于恢复路径、惩罚窗口���。不是固定日期——每次你重新花费到新地址，计时器就会重置。',
     explain_en: 'Must wait a specified number of blocks after the UTXO is created before spending.'
   },
   'after': {
@@ -1460,7 +1528,7 @@ Miniscript Lab 在 MVP 阶段曾按照分阶段的方式实施（Phase 1–10：
 
 本 `SPEC.md` 继续作为**产品与体验层的唯一事实来源**，若与实施文档存在不一致，以本规格为准。
 
-**可视化构建（自己动手 / `build` 模式）MVP** 的专项设计与验收说明见：
+**可视化构建（自己动�� / `build` 模式）MVP** 的专项设计与验收说明见：
 
 - `docs/plans/2026-03-13-visual-builder-mvp-design.md`
 - `docs/plans/2026-03-13-visual-builder-mvp-implementation-plan.md`
