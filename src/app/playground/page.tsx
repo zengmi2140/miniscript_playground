@@ -1,20 +1,13 @@
-import dynamic from 'next/dynamic';
+import { PlaygroundClient } from './PlaygroundClient';
 
-// PlaygroundClient contains all hooks, ReactFlow, WASM, and lucide icons.
-// Importing it with ssr:false means the server never executes that code,
-// permanently fixing the "Users is not defined" SSR crash.
-// Force cache invalidation: refresh-20250402-v2
-const PlaygroundClient = dynamic(
-  () => import('./PlaygroundClient').then((m) => ({ default: m.PlaygroundClient })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex h-full w-full items-center justify-center bg-surface-base">
-        <div className="h-full w-full animate-pulse bg-surface-card/40" />
-      </div>
-    ),
-  }
-);
+// PlaygroundClient is a 'use client' component but CAN be SSR'd.
+// Next.js will render its static shell (three-column layout, left panel, right panel)
+// on the server, so users see the frame immediately.
+//
+// Only the heavy canvases (PathMap, BuilderCanvas) inside CenterPanel use
+// dynamic({ ssr: false }) — those show a skeleton while loading.
+//
+// This architecture ensures instant page transition from homepage to playground.
 
 export default function PlaygroundPage() {
   return <PlaygroundClient />;
