@@ -12,19 +12,29 @@ import { HomepageHowItWorks } from '@/components/home/HomepageHowItWorks';
 export default function ScenariosPage() {
   const { t } = useI18n();
 
-  // Layer 3: prefetch the compiler WASM and PathMap bundle while the user
-  // is browsing the homepage, so Playground loads faster when they click in.
+  // Prefetch all Playground modules while the user browses the homepage.
+  // Using requestIdleCallback so this never competes with homepage rendering.
+  // After the first download, the browser caches every chunk — subsequent
+  // visits to /playground are instant even after a normal refresh (HTTP cache).
   useEffect(() => {
+    const prefetch = () => {
+      // Core canvas components (heavy — ReactFlow, lucide icons)
+      import('@/components/flow/PathMap');
+      import('@/components/builder/BuilderCanvas');
+      import('@/components/builder/BuilderNodes');
+      // Three-column shell and panels (lightweight but must hydrate fast)
+      import('@/components/playground/ThreeColumnLayout');
+      import('@/components/playground/LeftPanel');
+      import('@/components/playground/RightPanel');
+      import('@/components/playground/CenterPanel');
+      // Compiler hook (initialises WASM)
+      import('@/lib/hooks/useCompiler');
+    };
+
     const id =
       typeof requestIdleCallback !== 'undefined'
-        ? requestIdleCallback(() => {
-            import('@/components/flow/PathMap');
-            import('@/lib/hooks/useCompiler');
-          })
-        : window.setTimeout(() => {
-            import('@/components/flow/PathMap');
-            import('@/lib/hooks/useCompiler');
-          }, 3000);
+        ? requestIdleCallback(prefetch)
+        : window.setTimeout(prefetch, 2000);
 
     return () => {
       if (typeof cancelIdleCallback !== 'undefined') {
