@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { motion } from 'framer-motion';
 import { Key, Clock, AlertTriangle, Plus, MoreHorizontal, ChevronDown, Users } from 'lucide-react';
@@ -8,8 +8,6 @@ import { cn } from '@/lib/utils/cn';
 import { useI18n } from '@/lib/i18n/context';
 import type { BuilderFlowNodeData } from '@/lib/builder/tree-to-flow';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
-import { OperatorSwitchPopover } from './OperatorSwitchPopover';
-
 const STATUS_COLORS = {
   satisfied: {
     border: 'border-green-500',
@@ -79,9 +77,8 @@ function NodeWrapper({
 export const BuilderRootNode = memo(function BuilderRootNode({ data }: NodeProps) {
   const { t } = useI18n();
   const setSelectedBuilderNodeId = usePlaygroundStore((s) => s.setSelectedBuilderNodeId);
-  const switchNodeOperator = usePlaygroundStore((s) => s.switchNodeOperator);
+  const setOperatorSwitchNodeId = usePlaygroundStore((s) => s.setOperatorSwitchNodeId);
   const colors = STATUS_COLORS[data.status];
-  const [showOpSwitch, setShowOpSwitch] = useState(false);
 
   const isGroup = data.kind === 'group';
 
@@ -101,9 +98,12 @@ export const BuilderRootNode = memo(function BuilderRootNode({ data }: NodeProps
   const handleBadgeClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     if (!data.isReadOnly) {
-      setShowOpSwitch((v) => !v);
+      const s = usePlaygroundStore.getState();
+      const next =
+        s.operatorSwitchNodeId === data.strategyNodeId ? null : data.strategyNodeId;
+      setOperatorSwitchNodeId(next);
     }
-  }, [data.isReadOnly]);
+  }, [data.isReadOnly, data.strategyNodeId, setOperatorSwitchNodeId]);
 
   return (
     <div className="relative">
@@ -124,18 +124,6 @@ export const BuilderRootNode = memo(function BuilderRootNode({ data }: NodeProps
         )}
         <Handle type="source" position={Position.Bottom} className="!h-1.5 !w-1.5 !border-0 !bg-border-subtle" />
       </NodeWrapper>
-
-      {showOpSwitch && isGroup && (
-        <OperatorSwitchPopover
-          currentOp={data.op as 'all' | 'any' | 'threshold'}
-          currentThreshold={data.threshold}
-          realChildCount={data.childCount ?? 0}
-          onSwitch={(newOp, newThreshold) => {
-            switchNodeOperator(data.strategyNodeId, newOp, newThreshold);
-          }}
-          onClose={() => setShowOpSwitch(false)}
-        />
-      )}
     </div>
   );
 });
@@ -143,9 +131,8 @@ export const BuilderRootNode = memo(function BuilderRootNode({ data }: NodeProps
 export const BuilderOperatorNode = memo(function BuilderOperatorNode({ data }: NodeProps) {
   const { t } = useI18n();
   const setSelectedBuilderNodeId = usePlaygroundStore((s) => s.setSelectedBuilderNodeId);
-  const switchNodeOperator = usePlaygroundStore((s) => s.switchNodeOperator);
+  const setOperatorSwitchNodeId = usePlaygroundStore((s) => s.setOperatorSwitchNodeId);
   const colors = STATUS_COLORS[data.status];
-  const [showOpSwitch, setShowOpSwitch] = useState(false);
 
   let label = data.label;
   if (data.kind === 'group') {
@@ -163,9 +150,12 @@ export const BuilderOperatorNode = memo(function BuilderOperatorNode({ data }: N
   const handleBadgeClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     if (!data.isReadOnly) {
-      setShowOpSwitch((v) => !v);
+      const s = usePlaygroundStore.getState();
+      const next =
+        s.operatorSwitchNodeId === data.strategyNodeId ? null : data.strategyNodeId;
+      setOperatorSwitchNodeId(next);
     }
-  }, [data.isReadOnly]);
+  }, [data.isReadOnly, data.strategyNodeId, setOperatorSwitchNodeId]);
 
   return (
     <div className="relative">
@@ -187,18 +177,6 @@ export const BuilderOperatorNode = memo(function BuilderOperatorNode({ data }: N
         )}
         <Handle type="source" position={Position.Bottom} className="!h-1.5 !w-1.5 !border-0 !bg-border-subtle" />
       </NodeWrapper>
-
-      {showOpSwitch && (
-        <OperatorSwitchPopover
-          currentOp={data.op as 'all' | 'any' | 'threshold'}
-          currentThreshold={data.threshold}
-          realChildCount={data.childCount ?? 0}
-          onSwitch={(newOp, newThreshold) => {
-            switchNodeOperator(data.strategyNodeId, newOp, newThreshold);
-          }}
-          onClose={() => setShowOpSwitch(false)}
-        />
-      )}
     </div>
   );
 });

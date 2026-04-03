@@ -469,8 +469,8 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 - 中栏 **不再** 单独展示与 scenario 相同的那张「花费路径图」；改为 **受约束的策略树编辑器**（`BuilderCanvas`，`src/components/builder/*`），在同一 React Flow 画布��编辑结构并叠加满足态（已满足 / 等待 / 缺失）。布局由 `src/lib/builder/tree-to-flow.ts` 负责：**自下而上计算子树宽度、自上而下放置**，父节点在**整行直接子节点（含虚拟「+ 添加条件」）**的水平包围盒上居中；**不**使用 Dagre，以避免仅平移父节点时与兄弟子树重叠等问题。
 - 领域模型为 `StrategyNode`（`src/lib/builder/types.ts`），与 `MiniscriptNode` 分离；MVP 支持签名、`all` / `any` / 阈值组、相对时间锁 `older()` 等；`after()` 与哈希锁在类型与未来扩展上预留，首版 UI 可不开放编辑。
 - 右栏花费路径列表与 scenario 一致；在 build 模式下点击路径卡片可 **高亮** 画布上与该路径相关的分支（`path-highlighting.ts`）。
-- 签名节点编辑浮层（`BuilderPopover`）中的「新建角色」与左栏 **角色变量** 的「添加」共用 `src/lib/playground/add-next-key-variable.ts` 中的「下一个角色」规则（优先 `Alice`…`Frank`，否则 `Key{n}`，测试公钥来自 `DEFAULT_TEST_KEYS` 或随机）；**一键**创建角色并将 **当前签名节点** 绑定到该角色（无需在浮层内输入名称）。
-- **操作符切换**：Group 节点（根节点和嵌套 Group）上的操作符标签（都需要 / 任选一 / k-of-n）可点击，弹出 `OperatorSwitchPopover`，允许在 AND / OR / threshold 之间自由切换；切换到 threshold 时 k 值重置为 `min(2, realChildCount)`。
+- 签名节点编辑浮层（`BuilderPopover`）固定在 **画布区域右上角**（`absolute right-4 top-4`）；其中的「新建角色」与左栏 **角色变量** 的「添加」共用 `src/lib/playground/add-next-key-variable.ts` 中的「下一个角色」规则（优先 `Alice`…`Frank`，否则 `Key{n}`，测试公钥来自 `DEFAULT_TEST_KEYS` 或随机）；**一键**创建角色并将 **当前签名节点** 绑定到该角色（无需在浮层内输入名称）。
+- **操作符切换**：Group 节点（根节点和嵌套 Group）上的操作符标签（都需要 / 任选一 / k-of-n）可点击，在 **画布区域右上角** 打开 `OperatorSwitchPopover`（与 `BuilderPopover` 同一定位槽位），允许在 AND / OR / threshold 之间自由切换；切换到 threshold 时 k 值重置为 `min(2, realChildCount)`。Store 用 `operatorSwitchNodeId` 与 `selectedBuilderNodeId` **互斥**，避免两块浮层同时遮挡画布。
 - **节点包裹**：所有叶子节点（签名、时间锁）和 Group 节点的编辑浮层底部有「包裹进新组」三按钮（都需要 / 任选一 / 门限），点击后当前节点被包裹进一个新的父级 Group，原节点成为第一个子节点，同时添加一个 placeholder 子槽。
 - **嵌套深度检测**：包裹操作后若嵌套深度超过 5 层，画布底部显示黄色警告 toast（4 秒自动消失，可手动关闭），提示用户保持在 5 层以内。
 - 更完整的产品约束与不在 MVP 范围内的条目见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
@@ -712,9 +712,10 @@ interface PlaygroundState {
 }
 
 // ===== 可视化构建（build 模式）：Zustand store 在 PlaygroundState 之上另含
-// strategyTree、builderSyncState、selectedBuilderNodeId、lastBuilderPolicySnapshot、builderDepthWarning。
+// strategyTree、builderSyncState、selectedBuilderNodeId、operatorSwitchNodeId、lastBuilderPolicySnapshot、builderDepthWarning。
+// operatorSwitchNodeId：当前在画布右上角展示「切换操作符」浮层所对应的 Group 节点 id；与 selectedBuilderNodeId 互斥。
 // StrategyNode、BuilderSyncState 等见 src/lib/builder/types.ts
-// 相关 actions：switchNodeOperator、wrapNode、clearDepthWarning =====
+// 相关 actions：setOperatorSwitchNodeId、switchNodeOperator、wrapNode、clearDepthWarning =====
 
 type ResultTab = 'policy' | 'miniscript' | 'script' | 'descriptor' | 'address' | 'paths' | 'warnings';
 
@@ -1444,7 +1445,7 @@ miniscript-lab/
 │   │   ├── builder/                         # Build 模式：可视化策略树画布
 │   │   │   ├── BuilderCanvas.tsx
 │   │   │   ├── BuilderNodes.tsx / BuilderEdge.tsx
-│   │   │   ├── BuilderPopover.tsx / BuilderSyncBanner.tsx
+│   │   │   ├── BuilderPopover.tsx / OperatorSwitchPopover.tsx / BuilderSyncBanner.tsx
 │   │   │   └── （布局：递归 TB，父相对子行居中）lib/builder/tree-to-flow.ts
 │   │   │
 │   │   ├── results/                         # 右栏技术 Tab 内容（由 RightPanel 组合）

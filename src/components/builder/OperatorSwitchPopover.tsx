@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils/cn';
 import { useI18n } from '@/lib/i18n/context';
 
 interface OperatorSwitchPopoverProps {
+  /** e.g. canvas: `absolute right-4 top-4 z-50` */
+  className?: string;
   currentOp: 'all' | 'any' | 'threshold';
   currentThreshold?: number;
   realChildCount: number;
@@ -13,6 +15,7 @@ interface OperatorSwitchPopoverProps {
 }
 
 export function OperatorSwitchPopover({
+  className,
   currentOp,
   currentThreshold,
   realChildCount,
@@ -26,6 +29,12 @@ export function OperatorSwitchPopover({
   const defaultK = Math.min(2, Math.max(1, realChildCount));
   const [pendingK, setPendingK] = useState<number>(currentThreshold ?? defaultK);
   const [pendingOp, setPendingOp] = useState<'all' | 'any' | 'threshold'>(currentOp);
+
+  useEffect(() => {
+    const dk = Math.min(2, Math.max(1, realChildCount));
+    setPendingK(currentThreshold ?? dk);
+    setPendingOp(currentOp);
+  }, [currentOp, currentThreshold, realChildCount]);
 
   // Close on outside click
   useEffect(() => {
@@ -83,8 +92,10 @@ export function OperatorSwitchPopover({
   return (
     <div
       ref={ref}
-      className="absolute z-50 w-56 rounded-xl border border-border-subtle bg-surface-card shadow-xl"
-      style={{ top: '110%', left: '50%', transform: 'translateX(-50%)' }}
+      className={cn(
+        'w-56 rounded-xl border border-border-subtle bg-surface-card shadow-xl',
+        className,
+      )}
     >
       <div className="p-3">
         <p className="mb-2 text-xs font-medium text-text-muted">{t('builder.op.switch.title')}</p>
