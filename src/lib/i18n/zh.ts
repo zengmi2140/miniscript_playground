@@ -23,6 +23,7 @@ export const zh: Record<string, string> = {
   'home.explainer.why.benefit2': '可组合可审计：子条件自由嵌套，工具自动分析所有花费路径和最小 Witness',
   'home.explainer.why.benefit3': '链上安全：编译结果经过形式化验证，满足 Bitcoin Script 的所有安全约束',
 
+  'home.explainer.mission.label': '我们的目标',
   'home.explainer.mission.title': '我们为什么做这个',
   'home.explainer.mission.desc': 'Miniscript 的工具链分散、文档晦涩，钱包开发者和高级用户之间存在巨大的学习门槛。Miniscript Lab 把编译、路径分析、可视化搭建整合到一个交互式平台，让任何人都能真正读懂 Bitcoin 花费条件。',
 
@@ -149,7 +150,7 @@ export const zh: Record<string, string> = {
   'scenarios.orWrite': '或者自己写',
   'scenarios.openBlank': '打开空白 Playground',
   'playground.editor.title': 'Policy 编辑器',
-  'playground.editor.placeholder': '在这里输入策略，例如：pk(Alice)',
+  'playground.editor.placeholder': '在���里输入策略，例如：pk(Alice)',
   'playground.editor.compile': '编译',
   'playground.editor.format': '格式化',
   'playground.editor.clear': '清空',

@@ -23,6 +23,7 @@ export const en: Record<string, string> = {
   'home.explainer.why.benefit2': 'Composable and auditable: conditions nest freely, tools auto-analyze all spending paths and minimal witnesses',
   'home.explainer.why.benefit3': 'On-chain safe: compiled output is formally verified against all Bitcoin Script safety constraints',
 
+  'home.explainer.mission.label': 'Our Mission',
   'home.explainer.mission.title': 'Why We Built This',
   'home.explainer.mission.desc': 'Miniscript tooling is scattered, documentation is dense, and there is a steep learning curve between wallet developers and advanced users. Miniscript Lab brings compilation, path analysis, and visual building into one interactive platform — so anyone can truly understand Bitcoin spending conditions.',
 
