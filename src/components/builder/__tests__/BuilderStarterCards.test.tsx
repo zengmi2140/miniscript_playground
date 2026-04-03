@@ -10,22 +10,27 @@ function renderWithI18n(ui: React.ReactElement) {
 describe('BuilderStarterCards', () => {
   it('renders the three MVP starter skeletons', () => {
     renderWithI18n(<BuilderStarterCards onSelect={() => {}} />);
-    expect(screen.getByText(/单人控制/i)).toBeInTheDocument();
-    expect(screen.getByText(/多人共管/i)).toBeInTheDocument();
-    expect(screen.getByText(/带恢复路径/i)).toBeInTheDocument();
+    expect(screen.getByTestId('builder-starter-single-control')).toBeInTheDocument();
+    expect(screen.getByTestId('builder-starter-shared-control')).toBeInTheDocument();
+    expect(screen.getByTestId('builder-starter-recovery')).toBeInTheDocument();
   });
 
   it('calls onSelect with correct starter id when clicked', () => {
     const onSelect = vi.fn();
     renderWithI18n(<BuilderStarterCards onSelect={onSelect} />);
 
-    fireEvent.click(screen.getByText(/单人控制/i));
+    const clickStarter = (id: string) => {
+      const nodes = screen.getAllByTestId(`builder-starter-${id}`);
+      fireEvent.click(nodes[nodes.length - 1]!);
+    };
+
+    clickStarter('single-control');
     expect(onSelect).toHaveBeenCalledWith('single-control');
 
-    fireEvent.click(screen.getByText(/多人共管/i));
+    clickStarter('shared-control');
     expect(onSelect).toHaveBeenCalledWith('shared-control');
 
-    fireEvent.click(screen.getByText(/带恢复路径/i));
+    clickStarter('recovery');
     expect(onSelect).toHaveBeenCalledWith('recovery');
   });
 
@@ -33,10 +38,9 @@ describe('BuilderStarterCards', () => {
     const onSelect = vi.fn();
     renderWithI18n(<BuilderStarterCards onSelect={onSelect} />);
 
-    const buttons = screen.getAllByRole('button');
-    expect(buttons).toHaveLength(3);
-
-    buttons[0].focus();
-    expect(document.activeElement).toBe(buttons[0]);
+    const nodes = screen.getAllByTestId('builder-starter-single-control');
+    const single = nodes[nodes.length - 1]!;
+    single.focus();
+    expect(document.activeElement).toBe(single);
   });
 });

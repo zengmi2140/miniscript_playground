@@ -1,5 +1,7 @@
 import type { KeyVariable, ScriptContext, Network, PlaygroundMode } from '@/lib/engine/types';
 
+const PLAYGROUND_MODES = new Set<PlaygroundMode>(['scenario', 'build']);
+
 export interface SharePayload {
   policy: string;
   keyVariables: KeyVariable[];
@@ -25,7 +27,22 @@ export function decodeSharePayload(encoded: string): SharePayload | null {
     ) {
       return null;
     }
-    return parsed as SharePayload;
+    let playgroundMode: PlaygroundMode | undefined;
+    if (parsed.playgroundMode !== undefined) {
+      if (
+        typeof parsed.playgroundMode === 'string' &&
+        PLAYGROUND_MODES.has(parsed.playgroundMode as PlaygroundMode)
+      ) {
+        playgroundMode = parsed.playgroundMode as PlaygroundMode;
+      }
+    }
+    return {
+      policy: parsed.policy,
+      keyVariables: parsed.keyVariables,
+      context: parsed.context,
+      network: parsed.network,
+      ...(playgroundMode !== undefined ? { playgroundMode } : {}),
+    };
   } catch {
     return null;
   }

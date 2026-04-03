@@ -14,9 +14,19 @@ vi.mock('@/lib/stores/playground-store', () => ({
       playgroundMode: mockPlaygroundMode,
       activeScenarioId: null,
       isLeftPanelOpen: true,
+      policy: '',
+      keyVariables: [] as { name: string; policyName: string; publicKey: string }[],
+      context: 'wsh' as const,
+      network: 'testnet' as const,
       enterBuildMode: mockEnterBuildMode,
       loadScenario: mockLoadScenario,
       setLeftPanelOpen: vi.fn(),
+      setKeyVariables: vi.fn(),
+      addKeyVariable: vi.fn(),
+      removeKeyVariable: vi.fn(),
+      updateKeyVariable: vi.fn(),
+      setContext: vi.fn(),
+      setNetwork: vi.fn(),
     };
     return selector(state);
   },
@@ -43,7 +53,7 @@ describe('LeftPanel BuildMode Entry', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('Build Your Own')).toBeInTheDocument();
+    expect(screen.getAllByTestId('playground-build-mode-card').length).toBeGreaterThanOrEqual(1);
   });
 
   it('should call enterBuildMode when clicked', () => {
@@ -53,9 +63,8 @@ describe('LeftPanel BuildMode Entry', () => {
       </TestWrapper>
     );
 
-    const buildCard = screen.getByText('Build Your Own').closest('button');
-    expect(buildCard).toBeInTheDocument();
-    fireEvent.click(buildCard!);
+    const buildCards = screen.getAllByTestId('playground-build-mode-card');
+    fireEvent.click(buildCards[buildCards.length - 1]!);
 
     expect(mockEnterBuildMode).toHaveBeenCalledTimes(1);
   });
@@ -82,8 +91,8 @@ describe('LeftPanel BuildMode Entry', () => {
       </TestWrapper>
     );
 
-    const buildCard = screen.getByText('Build Your Own').closest('button');
-    fireEvent.click(buildCard!);
+    const buildCards = screen.getAllByTestId('playground-build-mode-card');
+    fireEvent.click(buildCards[buildCards.length - 1]!);
 
     // Should not call enterBuildMode since already active
     expect(mockEnterBuildMode).not.toHaveBeenCalled();

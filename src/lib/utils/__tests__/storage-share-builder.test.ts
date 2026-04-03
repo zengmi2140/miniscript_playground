@@ -96,4 +96,20 @@ describe('share with playgroundMode', () => {
     // playgroundMode should be undefined (not forced to 'scenario' in share)
     expect(decoded!.playgroundMode).toBeUndefined();
   });
+
+  it('should drop invalid playgroundMode from share payload', () => {
+    const payload = {
+      policy: 'pk(Alice)',
+      keyVariables: [],
+      context: 'wsh',
+      network: 'testnet',
+      playgroundMode: 'invalid',
+    };
+
+    const encoded = encodeSharePayload(payload as SharePayload);
+    const decoded = decodeSharePayload(encoded);
+
+    expect(decoded).not.toBeNull();
+    expect(decoded!.playgroundMode).toBeUndefined();
+  });
 });

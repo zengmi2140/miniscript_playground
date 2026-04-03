@@ -36,7 +36,6 @@ export function BuilderPopover() {
   const updateStrategyTree = usePlaygroundStore((s) => s.updateStrategyTree);
   const addKeyVariable = usePlaygroundStore((s) => s.addKeyVariable);
   const setKeyVariables = usePlaygroundStore((s) => s.setKeyVariables);
-  const setStrategyTree = usePlaygroundStore((s) => s.setStrategyTree);
   const wrapNode = usePlaygroundStore((s) => s.wrapNode);
 
   const [confirmDeleteTarget, setConfirmDeleteTarget] = useState<string | null>(null);
@@ -114,7 +113,7 @@ export function BuilderPopover() {
               roleId: kv.name,
             })),
           };
-          setStrategyTree(newTree);
+          updateStrategyTree(newTree);
         } else {
           // For all/any, start with empty group
           const newTree = convertRootPlaceholder(strategyTree, 'group', { groupOp: op, initialChildCount: 0 });
@@ -123,7 +122,7 @@ export function BuilderPopover() {
       }
       handleClose();
     },
-    [strategyTree, updateStrategyTree, setKeyVariables, setStrategyTree, handleClose]
+    [strategyTree, updateStrategyTree, setKeyVariables, handleClose]
   );
 
   // ============ Add Child ============
@@ -248,10 +247,10 @@ export function BuilderPopover() {
       kind: 'placeholder',
       placeholderType: 'root',
     };
-    setStrategyTree(initialTree);
+    updateStrategyTree(initialTree);
     setKeyVariables([]);
     handleClose();
-  }, [setStrategyTree, setKeyVariables, handleClose]);
+  }, [updateStrategyTree, setKeyVariables, handleClose]);
 
   // Close on outside click
   useEffect(() => {
