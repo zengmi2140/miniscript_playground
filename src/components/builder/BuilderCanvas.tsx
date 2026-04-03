@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { ReactFlow, ReactFlowProvider } from '@xyflow/react';
+import { AlertTriangle } from 'lucide-react';
 import { NodeInternalsSync } from '@/components/flow/NodeInternalsSync';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
@@ -13,7 +14,7 @@ import { BuilderSyncBanner } from './BuilderSyncBanner';
 import { BuilderPopover } from './BuilderPopover';
 
 function BuilderCanvasInner() {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const strategyTree = usePlaygroundStore((s) => s.strategyTree);
   const builderSyncState = usePlaygroundStore((s) => s.builderSyncState);
   const availableKeys = usePlaygroundStore((s) => s.availableKeys);
@@ -22,6 +23,15 @@ function BuilderCanvasInner() {
   const selectedBuilderNodeId = usePlaygroundStore((s) => s.selectedBuilderNodeId);
   const spendingPaths = usePlaygroundStore((s) => s.spendingPaths);
   const selectedPathIndex = usePlaygroundStore((s) => s.selectedPathIndex);
+  const builderDepthWarning = usePlaygroundStore((s) => s.builderDepthWarning);
+  const clearDepthWarning = usePlaygroundStore((s) => s.clearDepthWarning);
+
+  // Auto-dismiss depth warning after 4 seconds
+  useEffect(() => {
+    if (!builderDepthWarning) return;
+    const timer = setTimeout(() => clearDepthWarning(), 4000);
+    return () => clearTimeout(timer);
+  }, [builderDepthWarning, clearDepthWarning]);
 
   const isReadOnly = builderSyncState !== 'synced';
   const definedRoles = useMemo(
@@ -63,6 +73,21 @@ function BuilderCanvasInner() {
   return (
     <div className="relative h-full w-full">
       <BuilderSyncBanner />
+
+      {/* Depth warning toast */}
+      {builderDepthWarning && (
+        <div className="absolute bottom-4 left-1/2 z-50 -translate-x-1/2 flex items-center gap-2 rounded-lg border border-yellow-500/40 bg-yellow-500/10 px-4 py-2.5 text-sm text-yellow-400 shadow-lg">
+          <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+          <span>{t('builder.wrap.depthWarning') || '嵌套较深，建议保持在 5 层以内'}</span>
+          <button
+            onClick={clearDepthWarning}
+            className="ml-2 text-yellow-500/60 hover:text-yellow-400"
+            aria-label="dismiss"
+          >
+            ×
+          </button>
+        </div>
+      )}
       <ReactFlow
         nodes={nodes}
         edges={edges}

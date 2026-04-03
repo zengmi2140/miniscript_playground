@@ -183,7 +183,7 @@ hover 态：Primary → `--orange-600`；Secondary → `--bg-overlay`
 ```
 ┌─────────────────────┐
 │ 🔑 Alice 签名        │  ← semantic-key 背景色 10% 透明度 + 左侧色条
-└─────────────────────┘
+└────────────�����────────┘
 ┌─────────────────────┐
 │ ⏳ 等待 30 天         │  ← semantic-timelock 背景色 10% 透明度 + 左侧色条
 └─────────────────────┘
@@ -286,9 +286,80 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 
 "或者自己写" 区域：一个 Ghost 按钮 "打开空白 Playground →"，导航到 `/playground`。
 
+### 4.1 首页（`/`）
+
+这是产品的登陆入口，旨在快速传达 Miniscript Lab 的核心价值并吸引用户进入 Playground。
+
+#### 首页结构（从上到下）
+
+**Hero 区**
+
+- 标题：**"把 Bitcoin 的花费条件讲清楚"**
+- 副标题：用真实的花费场景理解 Miniscript，从多签到时间锁，从理论到可运行的脚本。
+- 核心描述：每一个 Bitcoin UTXO 背后，都有一套决定"谁能花、什么时候花"的规则。Miniscript Lab 帮你读懂这套规则。
+- 两个 CTA 按钮：
+  - 主按钮：**"从场景开始"** → 导航到 `/playground?scenario=<首个场景id>`
+  - 次按钮：**"打开 Playground"** → 导航到 `/playground`
+- 右侧展示一个真实策略的预览卡片：示例 Policy + 花费路径分析
+
+**Miniscript 科普区**
+
+标题区合并了"什么是 Miniscript"的定义（单段副标题），下方三张垂直卡片依次为：
+- 传统 Bitcoin Script 的缺点（红色边框，左侧文点，右侧代码示例，`md:items-center` 对齐）
+- Miniscript Policy 的优势（绿色边框，同样布局）
+- 为什么需要 Miniscript（橙色边框，纯文本列表）
+
+**我们为什么做这个**
+
+独立居中模块，简洁阐述网站的目标和价值命题，无 CTA 按钮。
+
+**"三步理解任意花费策略"区**
+
+四格卡片从左到右（或纵向堆叠），从概念到输出的完整流程。
+
+**核心功能区**
+
+2×2 网格展示四大能力：实时编译反馈、花费路径可视化、可视化策略搭建、一键分享。
+
+**场景库区**
+
+展示 6+ 个真实场景的卡片网格，点击导航到 `/playground?scenario=<id>`。
+
+**底部 CTA**
+
+"准备好自己设计了吗？"区域，两个按钮导航到 Playground。
+
+#### 首页预加载策略
+
+在首页组件 mount 后，用 `requestIdleCallback` 在浏览器空闲时预热**所有** Playground 相关模块，包括：三栏组件、两个画布、编译器。这样用户点击进入 Playground 时所有代码已在浏览器内存中，切换体验接近 App 内页面切换。
+
+#### 首页设计实现
+
+- 文件：`src/app/page.tsx`（Server Component）
+- 组件：`HomepageHero`、`HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageFeatures`、`HomepageHowItWorks`、`ScenarioGallery`
+- i18n：`home.hero.*`、`home.explainer.*`、`home.how.*`、`home.features.*`、`home.cta.*`
+- `HomepageMiniscriptExplainer`：标题+副标题定义，三卡片纵向堆叠，代码块和左侧文本在 `md` 断点用 `items-center` 垂直居中
+- `HomepageMission`：纯居中文本，无按钮
+
 ### 4.2 Playground 页（`/playground`）
 
 这是产品的核心页面。
+
+#### 渐进式加载架构
+
+目标：页面切换像 App 内导航一样丝滑——三栏框架立即可见，只有画布区域异步加载。
+
+- **框架立即可见**：`playground/page.tsx` 直接 import `PlaygroundClient`（有 `'use client'`），Next.js 在服务端渲染完整三栏 HTML 框架；`PlaygroundContent` 不再在 `mode === 'loading'` 时返回 `null`，避免服务端输出空 HTML 导致白屏。
+
+- **画布懒加载**：`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载，下载期间显示带 spinner 的骨架屏（`CanvasSkeleton`），用户不会看到空白。
+
+- **后台预加载（scenario 模式）**：`CenterPanel` 在用户浏览 scenario 模式 2 秒后，后台触发 `BuilderCanvas`、`BuilderNodes` 的预加载，切换到"自己动手"模式时无需等待。
+
+- **首页全量预热**：首页用 `requestIdleCallback` 预热所有 Playground 模块（三栏组件 + 两画布 + 编译器），用户从首页导航进入 Playground 时所有代码已就绪。
+
+- **文档级预取**：`layout.tsx` 加 `<link rel="prefetch" href="/playground" as="document">`，让浏览器提前获取 Playground 页面 HTML，无论从哪个页面导航过来都更快。
+
+- **缓存行为**：同 Tab 内来回切换命中浏览器**模块内存缓存**，完全不触发网络请求；普通刷新命中 **HTTP 缓存**（Next.js JS 文件名含 hash），极快恢复；仅强制刷新才重新下载。
 
 #### 整体布局
 
@@ -323,8 +394,8 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 
 **区域 A: 场景选择器**
 
-- 场景列表（卡片形式，点击切换场景）
-- 第一个位置为 **「自己动手」** 入口卡片（可点击；`playgroundMode === 'build'` 时呈激活态）。点击后进入 **可视化构建（build）模式**（`playgroundMode: 'build'`）：清空当前场景-derived 状态，进入空白构建工作区（根占位节点 + 可选起手模板），**不继承**用户此前在场景模式下的 Policy / 角色变量 / 编译结果。从场景模式切换到普通预设场景仍通过下方场景卡片完成（`loadScenario` 会回到 `scenario` 模式）。
+- 场景列表（卡���形式，点击切换场景）
+- 第一个位置为 **「自己动手」** 入口卡片（可点击；`playgroundMode === 'build'` 时呈激活态）。点击后进入 **可视化构建（build）模式**（`playgroundMode: 'build'`）：清空当前场景-derived 状态，进入空白构建工作区（根占位节点 + 可选起手模板），**不继承**用户此前在场景模式下的 Policy / ��色变量 / 编译结果。从场景模式切换到普通预设场景仍通过下方场景卡片完成（`loadScenario` 会回到 `scenario` 模式）。
 - 通过分享链接 `?s=` 或本地会话恢复的 **build** 会话可携带已有 Policy，与「主动点自己动手」的清空规则不同；详见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 - 切换场景（非「自己动手」）时自动填充 Policy 和 Key 变量
 
@@ -352,7 +423,7 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 - 高度自适应（最小 80px，最大 300px）
 - 语法高亮（见 §6.5）
 - 编辑后 500ms 防抖自动编译
-- 编译错误在编辑器下方显示（红色文字 + 友好中文描述）
+- 编���错误在编辑器下方显示（红色文字 + 友好中文描述）
 - 工具栏：[格式化] [清空] [复制] [分享🔗]
 - **Build 模式**下编辑器与可视化画布双向同步：画布操作更新 Policy；用户编辑 Policy 时，若结构仍在构建器支持范围内则回写 `strategyTree`，否则进入「文本主导」状态（`builderSyncState: 'text-led'`），不强行破坏画布。同步逻辑见 `useBuilderSync`（`src/lib/hooks/useBuilderSync.ts`）。
 
@@ -395,10 +466,13 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 
 **Build 模式（`playgroundMode === 'build'`）：可视化策略树画布**
 
-- 中栏 **不再** 单独展示与 scenario 相同的那张「花费路径图」；改为 **受约束的策略树编辑器**（`BuilderCanvas`，`src/components/builder/*`），在同一 React Flow 画布上编辑结构并叠加满足态（已满足 / 等待 / 缺失）。布局由 `src/lib/builder/tree-to-flow.ts` 负责：**自下而上计算子树宽度、自上而下放置**，父节点在**整行直接子节点（含虚拟「+ 添加条件」）**的水平包围盒上居中；**不**使用 Dagre，以避免仅平移父节点时与兄弟子树重叠等问题。
+- 中栏 **不再** 单独展示与 scenario 相同的那张「花费路径图」；改为 **受约束的策略树编辑器**（`BuilderCanvas`，`src/components/builder/*`），在同一 React Flow 画布��编辑结构并叠加满足态（已满足 / 等待 / 缺失）。布局由 `src/lib/builder/tree-to-flow.ts` 负责：**自下而上计算子树宽度、自上而下放置**，父节点在**整行直接子节点（含虚拟「+ 添加条件」）**的水平包围盒上居中；**不**使用 Dagre，以避免仅平移父节点时与兄弟子树重叠等问题。
 - 领域模型为 `StrategyNode`（`src/lib/builder/types.ts`），与 `MiniscriptNode` 分离；MVP 支持签名、`all` / `any` / 阈值组、相对时间锁 `older()` 等；`after()` 与哈希锁在类型与未来扩展上预留，首版 UI 可不开放编辑。
 - 右栏花费路径列表与 scenario 一致；在 build 模式下点击路径卡片可 **高亮** 画布上与该路径相关的分支（`path-highlighting.ts`）。
 - 签名节点编辑浮层（`BuilderPopover`）中的「新建角色」与左栏 **角色变量** 的「添加」共用 `src/lib/playground/add-next-key-variable.ts` 中的「下一个角色」规则（优先 `Alice`…`Frank`，否则 `Key{n}`，测试公钥来自 `DEFAULT_TEST_KEYS` 或随机）；**一键**创建角色并将 **当前签名节点** 绑定到该角色（无需在浮层内输入名称）。
+- **操作符切换**：Group 节点（根节点和嵌套 Group）上的操作符标签（都需要 / 任选一 / k-of-n）可点击，弹出 `OperatorSwitchPopover`，允许在 AND / OR / threshold 之间自由切换；切换到 threshold 时 k 值重置为 `min(2, realChildCount)`。
+- **节点包裹**：所有叶子节点（签名、时间锁）和 Group 节点的编辑浮层底部有「包裹进新组」三按钮（都需要 / 任选一 / 门限），点击后当前节点被包裹进一个新的父级 Group，原节点成为第一个子节点，同时添加一个 placeholder 子槽。
+- **嵌套深度检测**：包裹操作后若嵌套深度超过 5 层，画布底部显示黄色警告 toast（4 秒自动消失，可手动关闭），提示用户保持在 5 层以内。
 - 更完整的产品约束与不在 MVP 范围内的条目见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 
 **节点尺寸规格（Scenario 路径图）：**
@@ -511,11 +585,11 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 │ ──────────────────────────────────── │
 │ [🔑 User] [🔑 Service]              │
 │ ──────────────────────────────────── │
-│ Witness 大小: ~110 vB  |  状态: ✅    │
+│ Witness 大小: ~110 vB  |  状���: ✅    │
 └──────────────────────────────────────┘
 ┌──────────────────────────────────────┐
 │ 路径 2: 超时恢复                       │
-│ ──────────────────────────────────── │
+│ ────────────────────────────��─────── │
 │ [🔑 User] [⏳ 等待 30 天]            │
 │ ──────────────────────────────────── │
 │ Witness 大小: ~95 vB   |  状态: ⏳    │
@@ -638,8 +712,9 @@ interface PlaygroundState {
 }
 
 // ===== 可视化构建（build 模式）：Zustand store 在 PlaygroundState 之上另含
-// strategyTree、builderSyncState、selectedBuilderNodeId、lastBuilderPolicySnapshot。
-// StrategyNode、BuilderSyncState 等见 src/lib/builder/types.ts =====
+// strategyTree、builderSyncState、selectedBuilderNodeId、lastBuilderPolicySnapshot、builderDepthWarning。
+// StrategyNode、BuilderSyncState 等见 src/lib/builder/types.ts
+// 相关 actions：switchNodeOperator、wrapNode、clearDepthWarning =====
 
 type ResultTab = 'policy' | 'miniscript' | 'script' | 'descriptor' | 'address' | 'paths' | 'warnings';
 
@@ -982,7 +1057,7 @@ const policyLanguage = StreamLanguage.define({
 
 - 中栏路径图正常渲染语义树，但所有叶子节点显示为灰色（未满足）
 - 路径卡片区域显示提示："此 Policy 无可用花费路径。所有路径当前条件下不可满足。"
-- 状态横幅显示红色："❌ 当前条件下无法花费"
+- 状态横幅显示红色："❌ 当前条件下无法花��"
 
 **首次进入 Playground（无场景参数 ?scenario=…）：**
 
@@ -1002,7 +1077,7 @@ const policyLanguage = StreamLanguage.define({
 {
   id: 'single-key',
   icon: 'Key',
-  title: { zh: '个人单签', en: 'Single Key' },
+  title: { zh: '个人���签', en: 'Single Key' },
   description: {
     zh: '只有你一个人可以花这笔钱。最简单的情况。',
     en: 'Only you can spend. The simplest case.'
@@ -1027,7 +1102,7 @@ const policyLanguage = StreamLanguage.define({
   icon: 'Users',
   title: { zh: '2-of-3 多签', en: '2-of-3 Multisig' },
   description: {
-    zh: '三把钥匙，任意两把就能花。适合团队或家庭共管。',
+    zh: '三把钥匙，任意两把就能花。适合团队或家庭共��。',
     en: 'Three keys, any two can spend. Great for teams or families.'
   },
   explanation: {
@@ -1100,7 +1175,7 @@ const policyLanguage = StreamLanguage.define({
   icon: 'Vault',
   title: { zh: '退化多签金库', en: 'Degrading Multisig Vault' },
   description: {
-    zh: '平时 3-of-3 全员签名；90 天后降级为 2-of-3。',
+    zh: '平时 3-of-3 全员签名；90 天后降��为 2-of-3。',
     en: '3-of-3 normally; degrades to 2-of-3 after 90 days.'
   },
   explanation: {
@@ -1129,7 +1204,7 @@ const policyLanguage = StreamLanguage.define({
     en: 'Hot + Cold dual-sign daily; recovery key kicks in after 120 days.'
   },
   explanation: {
-    zh: '双层安全设计：日常使用需要热钱包和冷钱包同时签名。如果冷钱包丢失或损坏，恢复密钥在 120 天（约 17,280 个区块）后可以独立花费。99@ 表示正常双签路径更常用。',
+    zh: '双层安全设计：日常使用需要热钱包和冷钱包同时签名。如果冷钱包丢失或损坏，恢复密钥�� 120 天（约 17,280 个区块）后可以独立花费。99@ 表示正常双签路径更常用。',
     en: '...'
   },
   policy: 'or(99@and(pk(Hot),pk(Cold)),and(pk(Recovery),older(17280)))',
@@ -1176,7 +1251,7 @@ const GLOSSARY: Record<string, { zh: string; en: string; explain_zh: string; exp
   },
   'older': {
     zh: '相对时间锁', en: 'Relative Timelock',
-    explain_zh: '从 UTXO 被创建开始算，必须等待指定数量的区块后才能花费。常用于恢复路径、惩罚窗口等。不是固定日期——每次你重新花费到新地址，计时器就会重置。',
+    explain_zh: '从 UTXO 被创建开始算，必须等待指定数量的区块后才能花费。常用于恢复路径、惩罚窗口���。不是固定日期——每次你重新花费到新地址，计时器就会重置。',
     explain_en: 'Must wait a specified number of blocks after the UTXO is created before spending.'
   },
   'after': {
@@ -1196,7 +1271,7 @@ const GLOSSARY: Record<string, { zh: string; en: string; explain_zh: string; exp
   },
   'thresh': {
     zh: '阈值条件', en: 'Threshold',
-    explain_zh: 'N 个条件中需要满足 K 个。多签是最常见的例子，但条件不限于签名——时间锁也可以作为其中一个条件。',
+    explain_zh: 'N 个条件中需要满足 K 个。多签是最常见的例子，但条件不限于签名——时间锁也可以作为其中一个��件。',
     explain_en: 'K out of N conditions must be met.'
   },
   'sha256': {
@@ -1254,7 +1329,7 @@ const GLOSSARY: Record<string, { zh: string; en: string; explain_zh: string; exp
   "scenarios.subtitle": "把 Bitcoin 的花费条件讲清楚",
   "scenarios.openBlank": "打开空白 Playground →",
   "playground.editor.title": "Policy 编辑器",
-  "playground.editor.placeholder": "在这里输入策略，例如：pk(Alice)",
+  "playground.editor.placeholder": "在这里输入策���，例如：pk(Alice)",
   "playground.editor.compile": "编译",
   "playground.editor.format": "格式化",
   "playground.editor.clear": "清空",
@@ -1456,7 +1531,7 @@ Miniscript Lab 在 MVP 阶段曾按照分阶段的方式实施（Phase 1–10：
 
 本 `SPEC.md` 继续作为**产品与体验层的唯一事实来源**，若与实施文档存在不一致，以本规格为准。
 
-**可视化构建（自己动手 / `build` 模式）MVP** 的专项设计与验收说明见：
+**可视化构建（自己动�� / `build` 模式）MVP** 的专项设计与验收说明见：
 
 - `docs/plans/2026-03-13-visual-builder-mvp-design.md`
 - `docs/plans/2026-03-13-visual-builder-mvp-implementation-plan.md`
@@ -1492,5 +1567,5 @@ Miniscript Lab 在 MVP 阶段曾按照分阶段的方式实施（Phase 1–10：
 7. **不要把"图"误当成"理解"** -- 理解来自状态变化和分支解释
 8. **不要默认进入「自己动手」构建模式** -- 新手仍应以场景与 Policy 编辑为主；`build` 模式是左栏明确的进阶入口，不应作为首次加载默认态
 9. **不要在任何功能中引入 AI/LLM** -- 编译/类型检查/sanity/satisfaction/解释文字全部确定性实现，无需网络请求
-10. **不要生成 mainnet 地址** -- 教育工具只用 testnet/signet
+10. **不要生成 mainnet 地址** -- 教育工具只�� testnet/signet
 
