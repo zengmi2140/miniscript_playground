@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckCircle2, XCircle, Lock, FileCode2 } from 'lucide-react';
+import { CheckCircle2, XCircle, Zap } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
 
 export function HomepageMiniscriptExplainer() {
@@ -8,130 +8,112 @@ export function HomepageMiniscriptExplainer() {
 
   return (
     <section className="border-b border-border-subtle bg-surface-base py-14 md:py-20">
-      <div className="mx-auto max-w-6xl px-4">
-        {/* Section header */}
+      <div className="mx-auto max-w-4xl px-4">
+
+        {/* Section header — "是什么"合并在这里 */}
         <div className="mb-10 text-center md:mb-14">
           <span className="mb-3 inline-block rounded-full border border-border-default px-3 py-1 text-xs font-medium text-text-muted">
             {t('home.explainer.label')}
           </span>
-          <h2 className="mb-3 text-2xl font-bold text-text-primary md:text-3xl">
+          <h2 className="mb-4 text-2xl font-bold text-text-primary md:text-3xl">
             {t('home.explainer.title')}
           </h2>
-          <p className="mx-auto max-w-2xl text-sm leading-relaxed text-text-secondary md:text-base">
+          {/* 把"是什么"的描述放在副标题里，用两段区分定义和背景 */}
+          <p className="mx-auto mb-3 max-w-2xl text-sm leading-relaxed text-text-secondary md:text-base">
+            {t('home.explainer.what.desc')}
+          </p>
+          <p className="mx-auto max-w-2xl text-sm leading-relaxed text-text-muted">
             {t('home.explainer.subtitle')}
           </p>
         </div>
 
-        {/* Two-column layout */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-          {/* Left: What & Why */}
-          <div className="space-y-5">
-            {/* What is Miniscript */}
-            <div className="rounded-lg border border-border-subtle bg-surface-card p-5">
-              <div className="mb-3 flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-btc-500/10">
-                  <FileCode2 className="h-4 w-4 text-btc-500" />
-                </div>
-                <h3 className="text-sm font-semibold text-text-primary">
-                  {t('home.explainer.what.title')}
-                </h3>
-              </div>
-              <p className="text-xs leading-relaxed text-text-secondary">
-                {t('home.explainer.what.desc')}
-              </p>
-            </div>
+        {/* Three cards: 缺点 / 优势 / 为什么需要 */}
+        <div className="flex flex-col gap-4">
 
-            {/* Why Miniscript */}
-            <div className="rounded-lg border border-border-subtle bg-surface-card p-5">
-              <div className="mb-3 flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
-                  <Lock className="h-4 w-4 text-emerald-400" />
-                </div>
-                <h3 className="text-sm font-semibold text-text-primary">
-                  {t('home.explainer.why.title')}
-                </h3>
+          {/* Card 1: 传统 Bitcoin Script 的缺点 */}
+          <div className="rounded-xl border border-red-500/20 bg-surface-card p-5">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-red-500/10">
+                <XCircle className="h-4 w-4 text-red-400" />
               </div>
+              <h3 className="text-sm font-semibold text-text-primary">
+                {t('home.explainer.comparison.old.title')}
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto]">
               <ul className="space-y-2">
-                <li className="flex items-start gap-2 text-xs text-text-secondary">
-                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-emerald-400" />
-                  <span>{t('home.explainer.why.benefit1')}</span>
+                <li className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
+                  <span className="mt-0.5 text-red-400">•</span>
+                  <span>{t('home.explainer.comparison.old.problem1')}</span>
                 </li>
-                <li className="flex items-start gap-2 text-xs text-text-secondary">
-                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-emerald-400" />
-                  <span>{t('home.explainer.why.benefit2')}</span>
-                </li>
-                <li className="flex items-start gap-2 text-xs text-text-secondary">
-                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-emerald-400" />
-                  <span>{t('home.explainer.why.benefit3')}</span>
+                <li className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
+                  <span className="mt-0.5 text-red-400">•</span>
+                  <span>{t('home.explainer.comparison.old.problem2')}</span>
                 </li>
               </ul>
-            </div>
-
-            {/* Our mission */}
-            <div className="rounded-lg border border-btc-500/30 bg-btc-500/5 p-5">
-              <h3 className="mb-2 text-sm font-semibold text-btc-500">
-                {t('home.explainer.mission.title')}
-              </h3>
-              <p className="text-xs leading-relaxed text-text-secondary">
-                {t('home.explainer.mission.desc')}
-              </p>
+              <div className="w-full rounded-lg border border-red-500/15 bg-red-500/5 px-4 py-3 md:w-64">
+                <pre className="whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-red-400">
+                  <code>{t('home.explainer.comparison.old.example')}</code>
+                </pre>
+              </div>
             </div>
           </div>
 
-          {/* Right: Comparison (Traditional Script vs Miniscript) */}
-          <div className="space-y-4">
-            <div className="rounded-lg border border-border-subtle bg-surface-card p-5">
-              <div className="mb-4 flex items-center gap-2">
-                <XCircle className="h-4 w-4 text-red-400" />
-                <h4 className="text-xs font-semibold text-text-primary">
-                  {t('home.explainer.comparison.old.title')}
-                </h4>
-              </div>
-              <div className="space-y-3">
-                <div className="rounded border border-red-500/20 bg-red-500/5 p-3">
-                  <pre className="overflow-x-auto text-[10px] leading-relaxed text-red-400">
-                    <code>{t('home.explainer.comparison.old.example')}</code>
-                  </pre>
-                </div>
-                <ul className="space-y-1.5">
-                  <li className="flex items-start gap-1.5 text-[11px] text-text-muted">
-                    <span className="text-red-400">•</span>
-                    <span>{t('home.explainer.comparison.old.problem1')}</span>
-                  </li>
-                  <li className="flex items-start gap-1.5 text-[11px] text-text-muted">
-                    <span className="text-red-400">•</span>
-                    <span>{t('home.explainer.comparison.old.problem2')}</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-border-subtle bg-surface-card p-5">
-              <div className="mb-4 flex items-center gap-2">
+          {/* Card 2: Miniscript 的优势 */}
+          <div className="rounded-xl border border-emerald-500/20 bg-surface-card p-5">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
                 <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                <h4 className="text-xs font-semibold text-text-primary">
-                  {t('home.explainer.comparison.new.title')}
-                </h4>
               </div>
-              <div className="space-y-3">
-                <div className="rounded border border-emerald-500/20 bg-emerald-500/5 p-3">
-                  <pre className="overflow-x-auto text-[10px] leading-relaxed text-emerald-400">
-                    <code>{t('home.explainer.comparison.new.example')}</code>
-                  </pre>
-                </div>
-                <ul className="space-y-1.5">
-                  <li className="flex items-start gap-1.5 text-[11px] text-text-muted">
-                    <span className="text-emerald-400">•</span>
-                    <span>{t('home.explainer.comparison.new.advantage1')}</span>
-                  </li>
-                  <li className="flex items-start gap-1.5 text-[11px] text-text-muted">
-                    <span className="text-emerald-400">•</span>
-                    <span>{t('home.explainer.comparison.new.advantage2')}</span>
-                  </li>
-                </ul>
+              <h3 className="text-sm font-semibold text-text-primary">
+                {t('home.explainer.comparison.new.title')}
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto]">
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
+                  <span className="mt-0.5 text-emerald-400">•</span>
+                  <span>{t('home.explainer.comparison.new.advantage1')}</span>
+                </li>
+                <li className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
+                  <span className="mt-0.5 text-emerald-400">•</span>
+                  <span>{t('home.explainer.comparison.new.advantage2')}</span>
+                </li>
+              </ul>
+              <div className="w-full rounded-lg border border-emerald-500/15 bg-emerald-500/5 px-4 py-3 md:w-64">
+                <pre className="whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-emerald-400">
+                  <code>{t('home.explainer.comparison.new.example')}</code>
+                </pre>
               </div>
             </div>
           </div>
+
+          {/* Card 3: 为什么需要它 */}
+          <div className="rounded-xl border border-btc-500/20 bg-surface-card p-5">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-btc-500/10">
+                <Zap className="h-4 w-4 text-btc-500" />
+              </div>
+              <h3 className="text-sm font-semibold text-text-primary">
+                {t('home.explainer.why.title')}
+              </h3>
+            </div>
+            <ul className="space-y-2">
+              <li className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
+                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-btc-500" />
+                <span>{t('home.explainer.why.benefit1')}</span>
+              </li>
+              <li className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
+                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-btc-500" />
+                <span>{t('home.explainer.why.benefit2')}</span>
+              </li>
+              <li className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
+                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-btc-500" />
+                <span>{t('home.explainer.why.benefit3')}</span>
+              </li>
+            </ul>
+          </div>
+
         </div>
       </div>
     </section>
