@@ -183,7 +183,7 @@ hover 态：Primary → `--orange-600`；Secondary → `--bg-overlay`
 ```
 ┌─────────────────────┐
 │ 🔑 Alice 签名        │  ← semantic-key 背景色 10% 透明度 + 左侧色条
-└────────────����────────┘
+└────────────�����────────┘
 ┌─────────────────────┐
 │ ⏳ 等待 30 天         │  ← semantic-timelock 背景色 10% 透明度 + 左侧色条
 └─────────────────────┘
@@ -300,47 +300,46 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 - 两个 CTA 按钮：
   - 主按钮：**"从场景开始"** → 导航到 `/playground?scenario=<首个场景id>`
   - 次按钮：**"打开 Playground"** → 导航到 `/playground`
-- 右侧展示一个真实策略的预览卡片：示例 Policy + 花费路径分析，让访问者秒懂"三步理解任意花费策略"的流程
+- 右侧展示一个真实策略的预览卡片：示例 Policy + 花费路径分析
+
+**Miniscript 科普区**
+
+标题区合并了"什么是 Miniscript"的定义（单段副标题），下方三张垂直卡片依次为：
+- 传统 Bitcoin Script 的缺点（红色边框，左侧文点，右侧代码示例，`md:items-center` 对齐）
+- Miniscript Policy 的优势（绿色边框，同样布局）
+- 为什么需要 Miniscript（橙色边框，纯文本列表）
+
+**我们为什么做这个**
+
+独立居中模块，简洁阐述网站的目标和价值命题，无 CTA 按钮。
 
 **"三步理解任意花费策略"区**
 
-四格卡片，从左到右依次为：
-1. **选择或描述场景** - 从真实使用场景出发
-2. **编写或搭建策略** - 用 Policy 或可视化构建
-3. **看懂所有花费路径** - 交互式路径分析
-4. **拿到链上可用脚本** - 完整输出
-
-每张卡片包含标题、描述和一行代码示例，展示从概念到输出的完整流程。
+四格卡片从左到右（或纵向堆叠），从概念到输出的完整流程。
 
 **核心功能区**
 
-2×2 网格展示四大能力：
-- 实时编译反馈
-- 花费路径可视化
-- 可视化策略搭建
-- 一键分享
-
-每项配图标和简洁描述。
+2×2 网格展示四大能力：实时编译反馈、花费路径可视化、可视化策略搭建、一键分享。
 
 **场景库区**
 
-展示 6+ 个真实场景的卡片网格（与 `/scenarios` 页面一致）：个人单签、2-of-3 多签、2FA + 超时恢复等。卡片点击导航到 `/playground?scenario=<id>`。
+展示 6+ 个真实场景的卡片网格，点击导航到 `/playground?scenario=<id>`。
 
 **底部 CTA**
 
-"准备好自己设计了吗？" 区域，两个按钮：
-- **"打开空白 Playground"** → 导航到 `/playground`
-- **"用画布搭建策略"** → 导航到 `/playground?mode=build`
+"准备好自己设计了吗？"区域，两个按钮导航到 Playground。
 
 #### 首页预加载策略
 
-在首页组件 mount 后，用 `requestIdleCallback` 在浏览器空闲时预热**所有** Playground 相关模块，包括：三栏组件（`ThreeColumnLayout`、`LeftPanel`、`RightPanel`、`CenterPanel`）、两个画布（`PathMap`、`BuilderCanvas`、`BuilderNodes`）、编译器（`useCompiler`）。这样用户点击进入 Playground 时，所有代码已在浏览器内存中，切换体验接近 App 内页面切换。
+在首页组件 mount 后，用 `requestIdleCallback` 在浏览器空闲时预热**所有** Playground 相关模块，包括：三栏组件、两个画布、编译器。这样用户点击进入 Playground 时所有代码已在浏览器内存中，切换体验接近 App 内页面切换。
 
 #### 首页设计实现
 
-- 文件：`src/app/page.tsx`（Server Component）、`src/components/home/HomepageHero.tsx`、`src/components/home/HomepageHowItWorks.tsx`、`src/components/home/HomepageFeatures.tsx`
-- 相关 i18n key：`home.hero.*`、`home.how.*`、`home.features.*`、`home.cta.*`
-- 复用 `ScenarioGallery` 组件展示场景卡片
+- 文件：`src/app/page.tsx`（Server Component）
+- 组件：`HomepageHero`、`HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageFeatures`、`HomepageHowItWorks`、`ScenarioGallery`
+- i18n：`home.hero.*`、`home.explainer.*`、`home.how.*`、`home.features.*`、`home.cta.*`
+- `HomepageMiniscriptExplainer`：标题+副标题定义，三卡片纵向堆叠，代码块和左侧文本在 `md` 断点用 `items-center` 垂直居中
+- `HomepageMission`：纯居中文本，无按钮
 
 ### 4.2 Playground 页（`/playground`）
 
@@ -360,7 +359,7 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 
 - **文档级预取**：`layout.tsx` 加 `<link rel="prefetch" href="/playground" as="document">`，让浏览器提前获取 Playground 页面 HTML，无论从哪个页面导航过来都更快。
 
-- **缓存行为**：同 Tab 内来回切换命中浏览器**模块内存缓存**，完全不触发网络请求；普通刷新命中 **HTTP 缓存**（Next.js JS 文件名含 hash，`Cache-Control` 设置较长有效期），极快恢复；仅强制刷新（Ctrl+Shift+R）才重新下载。
+- **缓存行为**：同 Tab 内来回切换命中浏览器**模块内存缓存**，完全不触发网络请求；普通刷新命中 **HTTP 缓存**（Next.js JS 文件名含 hash），极快恢复；仅强制刷新才重新下载。
 
 #### 整体布局
 
@@ -586,11 +585,11 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 │ ──────────────────────────────────── │
 │ [🔑 User] [🔑 Service]              │
 │ ──────────────────────────────────── │
-│ Witness 大小: ~110 vB  |  状态: ✅    │
+│ Witness 大小: ~110 vB  |  状���: ✅    │
 └──────────────────────────────────────┘
 ┌──────────────────────────────────────┐
 │ 路径 2: 超时恢复                       │
-│ ──────────────────────────────────── │
+│ ────────────────────────────��─────── │
 │ [🔑 User] [⏳ 等待 30 天]            │
 │ ──────────────────────────────────── │
 │ Witness 大小: ~95 vB   |  状态: ⏳    │
@@ -1272,7 +1271,7 @@ const GLOSSARY: Record<string, { zh: string; en: string; explain_zh: string; exp
   },
   'thresh': {
     zh: '阈值条件', en: 'Threshold',
-    explain_zh: 'N 个条件中需要满足 K 个。多签是最常见的例子，但条件不限于签名——时间锁也可以作为其中一个条件。',
+    explain_zh: 'N 个条件中需要满足 K 个。多签是最常见的例子，但条件不限于签名——时间锁也可以作为其中一个��件。',
     explain_en: 'K out of N conditions must be met.'
   },
   'sha256': {
@@ -1330,7 +1329,7 @@ const GLOSSARY: Record<string, { zh: string; en: string; explain_zh: string; exp
   "scenarios.subtitle": "把 Bitcoin 的花费条件讲清楚",
   "scenarios.openBlank": "打开空白 Playground →",
   "playground.editor.title": "Policy 编辑器",
-  "playground.editor.placeholder": "在这里输入策略，例如：pk(Alice)",
+  "playground.editor.placeholder": "在这里输入策���，例如：pk(Alice)",
   "playground.editor.compile": "编译",
   "playground.editor.format": "格式化",
   "playground.editor.clear": "清空",
