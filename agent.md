@@ -58,11 +58,17 @@ npx vitest run
   - 入口组件：`src/app/page.tsx`
   - 核心组件：`src/components/scenarios/*`
 
+- `/`
+  - 首页，产品登陆入口。
+  - 入口组件：`src/app/page.tsx`（Server Component）
+  - 子组件：`HomepageHero`（Hero 区）、`HomepageMiniscriptExplainer`（科普区，标题合并定义，下方三卡片纵向堆叠对比传统 Script vs Miniscript）、`HomepageMission`（我们为什么做这个，纯居中文本）、`HomepageFeatures`（核心能力）、`HomepageHowItWorks`（使用流程）、`ScenarioGallery`（场景卡片）
+  - **首页预加载**：用 `requestIdleCallback` 在浏览器空闲时预热所有 Playground 模块，确保用户从首页进入 Playground 时体验丝滑
+
 - `/playground`
   - 三栏 Playground，是项目主界面。
-  - 入口组件：`src/app/playground/page.tsx`（纯 Server Component，用 `dynamic({ ssr: false })` 加载 `PlaygroundClient`）
+  - 入口组件：`src/app/playground/page.tsx`（直接 import `PlaygroundClient`）
   - 客户端组件：`src/app/playground/PlaygroundClient.tsx`（含 `'use client'`，负责读取 URL 分享参数 `?s=`、场景参数 `?scenario=`、本地缓存会话；并挂载 `useCompiler`、`useAutoSave`、`useBuilderSync`）
-  - **渐进式加载架构**：`page.tsx` 直接 import `PlaygroundClient`（有 `'use client'`，服务端渲染三栏 HTML 框架，用户立即看到完整框架）；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载，期间显示带 spinner 的骨架屏；`PlaygroundContent` 移除了 `mode === 'loading'` 时返回 `null` 的逻辑，避免服务端输出空 HTML；`layout.tsx` 加 `<link rel="prefetch" href="/playground">` 让浏览器提前获取页面文档；首页用 `requestIdleCallback` 预热所有 Playground 模块（三栏组件、画布、编译器）；scenario 模式停留 2 秒后后台预加载 Builder 代码。
+  - **渐进式加载架构**：服务端渲染三栏框架 HTML 用户立即看到完整框架；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载显示 spinner 骨架屏；`layout.tsx` 加 `<link rel="prefetch">` 让浏览器提前获取文档；scenario 模式停留 2 秒后后台预加载 Builder 代码。
 
 - `/compare`
   - 当前只是 Coming Soon 占位页。
@@ -294,9 +300,9 @@ src/
 
 10. **build 模式**（自己动手）已实现为 MVP：受约束策略树 + Policy 双向同步；并非任意拖线流程图。不支持的结构会进入 `text-led`，详见 `useBuilderSync` 与 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 
-11. **渐进式加载**：`playground/page.tsx` 直接 import `PlaygroundClient`（服务端渲染三栏框架 HTML，用户进入页面立即看到完整框架）；`PlaygroundContent` 移除了 `mode === 'loading' → null` 逻辑；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载，期间显示带 spinner 骨架屏；`layout.tsx` 加 `<link rel="prefetch">` 提前获取 Playground 页面；首页 `requestIdleCallback` 预热所有 Playground 模块（三栏组件、两个画布、编译器），同 Tab 内来回切换命中浏览器模块缓存无需重新加载，刷新后命中 HTTP 缓存（Next.js 文件名含 hash）极快恢复。
+11. **渐进式加载**：`playground/page.tsx` 直接 import `PlaygroundClient`（服务端渲染三栏框架 HTML，用户进入页面立即看到完整框架）；`PlaygroundContent` 移除了 `mode === 'loading' → null` 逻辑；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载，期间显示带 spinner 骨架屏；`layout.tsx` 加 `<link rel="prefetch">` 提前获取 Playground 页面；��页 `requestIdleCallback` 预热所有 Playground 模块（三栏组件、两个画布、编译器），同 Tab 内来回切换命中浏览器模块缓存无需重新加载，刷新后命中 HTTP 缓存（Next.js 文件名含 hash）极快恢复。
 
-12. **首页新设计**：首页由 `HomepageHero`、`HomepageHowItWorks`、`HomepageFeatures`、`ScenarioGallery` 组成，并用 `requestIdleCallback` 在浏览器空闲时预热所有 Playground 相关模块。
+12. **首页设计**：新增 `HomepageMiniscriptExplainer`（标题区定义"什么是 Miniscript"，下方三卡片纵向堆叠对比传统 Script vs Miniscript，代码块与左侧文本在 `md` 断点用 `items-center` 对齐）、`HomepageMission`（纯居中文本说明"我们为什么做这个"，无 CTA 按钮）。首页完整流程：Hero → 科普区 → 使命区 → 使用流程 → 核心功能 → 场景库 → 底部 CTA。
 
 ## 11. 常见改动从哪里入手
 
