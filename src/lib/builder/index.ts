@@ -17,6 +17,8 @@ export {
   removeNode,
   addChildNode,
   wrapNodeInGroup,
+  changeGroupOp,
+  computeTreeDepth,
   updateThreshold,
   updateTimelockValue,
   updateSignatureRole,

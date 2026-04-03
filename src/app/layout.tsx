@@ -67,6 +67,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN" className="dark" suppressHydrationWarning>
+      <head>
+        {/* Prefetch the Playground page document so navigation feels instant */}
+        <link rel="prefetch" href="/playground" as="document" />
+      </head>
       <body className={`${plusJakartaSans.variable} ${ibmPlexMono.variable} font-sans`}>
         <Providers>
           <div className="flex min-h-screen flex-col bg-surface-base">

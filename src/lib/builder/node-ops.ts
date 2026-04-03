@@ -118,30 +118,79 @@ export function removeNode(tree: StrategyNode, nodeId: string): StrategyNode | n
 }
 
 /**
- * Wrap a node in a new group
+ * Wrap a node in a new group.
+ * The original node becomes the first child of the new group.
+ * A placeholder child is added as the second slot.
+ * Supports all, any, and threshold ops.
  */
 export function wrapNodeInGroup(
   tree: StrategyNode,
   nodeId: string,
-  op: 'all' | 'any'
+  op: 'all' | 'any' | 'threshold',
+  threshold?: number
 ): StrategyNode {
   const node = findNode(tree, nodeId);
   if (!node) return tree;
+
+  const placeholder: StrategyNode = {
+    id: generateNodeId(),
+    kind: 'placeholder',
+    placeholderType: 'child',
+  };
 
   const newGroup: StrategyNode = {
     id: generateNodeId(),
     kind: 'group',
     op,
-    children: [node],
+    threshold: op === 'threshold' ? (threshold ?? 2) : undefined,
+    children: [node, placeholder],
   };
 
-  // If wrapping the root node
+  // If wrapping the root node, the new group becomes the new root
   if (tree.id === nodeId) {
     return newGroup;
   }
 
-  // Find parent and replace the node with the new group
+  // Replace the node in-place within its parent
   return updateNode(tree, nodeId, () => newGroup);
+}
+
+/**
+ * Change the operator of a group node.
+ * - When switching TO threshold: k = min(2, realChildCount), or use provided value
+ * - When switching FROM threshold: threshold field is removed
+ * - Children are always preserved unchanged
+ */
+export function changeGroupOp(
+  tree: StrategyNode,
+  nodeId: string,
+  newOp: 'all' | 'any' | 'threshold',
+  newThreshold?: number
+): StrategyNode {
+  return updateNode(tree, nodeId, (node) => {
+    if (node.kind !== 'group') return node;
+
+    // Count real (non-placeholder) children to compute default k
+    const realChildCount = node.children.filter((c) => c.kind !== 'placeholder').length;
+
+    if (newOp === 'threshold') {
+      const k = newThreshold ?? Math.min(2, Math.max(1, realChildCount));
+      return { ...node, op: 'threshold', threshold: k };
+    }
+
+    // Switching to all or any — drop threshold field
+    const { threshold: _dropped, ...rest } = node as StrategyNode & { threshold?: number };
+    return { ...rest, op: newOp } as StrategyNode;
+  });
+}
+
+/**
+ * Compute the maximum nesting depth of a tree
+ */
+export function computeTreeDepth(tree: StrategyNode): number {
+  if (tree.kind !== 'group') return 1;
+  if (tree.children.length === 0) return 1;
+  return 1 + Math.max(...tree.children.map(computeTreeDepth));
 }
 
 /**

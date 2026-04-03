@@ -16,6 +16,7 @@ import { SCENARIOS } from '@/lib/scenarios/data';
 import type { BuilderSyncState, BuildStarterId, StrategyNode, StrategyPlaceholderNode } from '@/lib/builder/types';
 import { getTemplate } from '@/lib/builder/templates';
 import { serializeStrategyTree } from '@/lib/builder/serialize';
+import { changeGroupOp, wrapNodeInGroup, computeTreeDepth } from '@/lib/builder/node-ops';
 
 interface PlaygroundActions {
   setPlaygroundMode: (mode: PlaygroundMode) => void;
@@ -55,6 +56,9 @@ interface PlaygroundActions {
   enterBuildMode: () => void;
   applyBuildStarter: (starterId: BuildStarterId) => void;
   updateStrategyTree: (tree: StrategyNode) => void;
+  switchNodeOperator: (nodeId: string, newOp: 'all' | 'any' | 'threshold', newThreshold?: number) => void;
+  wrapNode: (nodeId: string, wrapperOp: 'all' | 'any' | 'threshold', wrapperThreshold?: number) => void;
+  clearDepthWarning: () => void;
 }
 
 interface BuilderState {
@@ -62,6 +66,7 @@ interface BuilderState {
   builderSyncState: BuilderSyncState;
   selectedBuilderNodeId: string | null;
   lastBuilderPolicySnapshot: string | null;
+  builderDepthWarning: boolean;
 }
 
 export type PlaygroundStore = PlaygroundState & BuilderState & PlaygroundActions;
@@ -71,6 +76,7 @@ const initialBuilderState: BuilderState = {
   builderSyncState: 'synced',
   selectedBuilderNodeId: null,
   lastBuilderPolicySnapshot: null,
+  builderDepthWarning: false,
 };
 
 const initialState: PlaygroundState & BuilderState = {
@@ -270,4 +276,36 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
       lastBuilderPolicySnapshot: policy,
     });
   },
+
+  switchNodeOperator: (nodeId, newOp, newThreshold) => {
+    set((state) => {
+      if (!state.strategyTree) return {};
+      const newTree = changeGroupOp(state.strategyTree, nodeId, newOp, newThreshold);
+      const policy = serializeStrategyTree(newTree);
+      return {
+        strategyTree: newTree,
+        policy,
+        lastBuilderPolicySnapshot: policy,
+        selectedBuilderNodeId: null,
+      };
+    });
+  },
+
+  wrapNode: (nodeId, wrapperOp, wrapperThreshold) => {
+    set((state) => {
+      if (!state.strategyTree) return {};
+      const newTree = wrapNodeInGroup(state.strategyTree, nodeId, wrapperOp, wrapperThreshold);
+      const depth = computeTreeDepth(newTree);
+      const policy = serializeStrategyTree(newTree);
+      return {
+        strategyTree: newTree,
+        policy,
+        lastBuilderPolicySnapshot: policy,
+        selectedBuilderNodeId: null,
+        builderDepthWarning: depth > 5,
+      };
+    });
+  },
+
+  clearDepthWarning: () => set({ builderDepthWarning: false }),
 }));
