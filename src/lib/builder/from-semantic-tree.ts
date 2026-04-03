@@ -65,6 +65,40 @@ class UnsupportedError extends Error {
   }
 }
 
+/**
+ * Builder canvas allows at most two direct children per AND/OR group.
+ * Fold N converted children into a right-deep binary tree of groups.
+ */
+function foldBinaryGroupChildren(children: StrategyNode[], op: 'all' | 'any'): StrategyNode {
+  if (children.length === 0) {
+    return { id: generateImportNodeId(), kind: 'group', op, children: [] };
+  }
+  if (children.length === 1) {
+    return {
+      id: generateImportNodeId(),
+      kind: 'group',
+      op,
+      children: [children[0]],
+    };
+  }
+  if (children.length === 2) {
+    return {
+      id: generateImportNodeId(),
+      kind: 'group',
+      op,
+      children,
+    };
+  }
+  const [first, ...rest] = children;
+  const right = foldBinaryGroupChildren(rest, op);
+  return {
+    id: generateImportNodeId(),
+    kind: 'group',
+    op,
+    children: [first, right],
+  };
+}
+
 function convertNode(node: MiniscriptNode): StrategyNode {
   switch (node.type) {
     case 'key':
@@ -103,20 +137,16 @@ function convertNode(node: MiniscriptNode): StrategyNode {
       );
 
     case 'and':
-      return {
-        id: generateImportNodeId(),
-        kind: 'group',
-        op: 'all',
-        children: node.children.map(convertNode),
-      };
+      return foldBinaryGroupChildren(
+        node.children.map(convertNode),
+        'all',
+      );
 
     case 'or':
-      return {
-        id: generateImportNodeId(),
-        kind: 'group',
-        op: 'any',
-        children: node.children.map(convertNode),
-      };
+      return foldBinaryGroupChildren(
+        node.children.map(convertNode),
+        'any',
+      );
 
     case 'threshold':
       return {

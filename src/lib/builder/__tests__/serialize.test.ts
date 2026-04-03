@@ -53,7 +53,7 @@ describe('serializeStrategyTree', () => {
     expect(serializeStrategyTree(node)).toBe('after(800000)');
   });
 
-  it('serializes and-group with multiple children', () => {
+  it('serializes and-group with multiple children as nested binary and', () => {
     const node: StrategyNode = {
       id: 'root',
       kind: 'group',
@@ -64,10 +64,10 @@ describe('serializeStrategyTree', () => {
         { id: '3', kind: 'signature', roleId: 'C' },
       ],
     };
-    expect(serializeStrategyTree(node)).toBe('and(pk(A),pk(B),pk(C))');
+    expect(serializeStrategyTree(node)).toBe('and(pk(A),and(pk(B),pk(C)))');
   });
 
-  it('serializes or-group with multiple children', () => {
+  it('serializes or-group with two children', () => {
     const node: StrategyNode = {
       id: 'root',
       kind: 'group',
@@ -78,6 +78,20 @@ describe('serializeStrategyTree', () => {
       ],
     };
     expect(serializeStrategyTree(node)).toBe('or(pk(A),pk(B))');
+  });
+
+  it('serializes or-group with three children as nested binary or', () => {
+    const node: StrategyNode = {
+      id: 'root',
+      kind: 'group',
+      op: 'any',
+      children: [
+        { id: '1', kind: 'signature', roleId: 'A' },
+        { id: '2', kind: 'signature', roleId: 'B' },
+        { id: '3', kind: 'signature', roleId: 'C' },
+      ],
+    };
+    expect(serializeStrategyTree(node)).toBe('or(pk(A),or(pk(B),pk(C)))');
   });
 
   it('serializes mixed threshold as thresh()', () => {

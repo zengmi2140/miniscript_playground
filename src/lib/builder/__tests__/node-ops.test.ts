@@ -116,6 +116,38 @@ describe('addChildNode', () => {
     expect((result as any).children.length).toBe(2);
     expect((result as any).children[1].id).toBe('sig-2');
   });
+
+  it('does not add a third child to all/any groups', () => {
+    const tree: StrategyNode = {
+      id: 'root',
+      kind: 'group',
+      op: 'any',
+      children: [
+        { id: 'sig-1', kind: 'signature', roleId: 'Alice' },
+        { id: 'sig-2', kind: 'signature', roleId: 'Bob' },
+      ],
+    };
+    const newChild: StrategyNode = { id: 'sig-3', kind: 'signature', roleId: 'Charlie' };
+    const result = addChildNode(tree, 'root', newChild);
+    expect((result as any).children.length).toBe(2);
+    expect((result as any).children.map((c: StrategyNode) => c.id).join(',')).toBe('sig-1,sig-2');
+  });
+
+  it('still adds beyond two children for threshold groups', () => {
+    const tree: StrategyNode = {
+      id: 'root',
+      kind: 'group',
+      op: 'threshold',
+      threshold: 2,
+      children: [
+        { id: 'sig-1', kind: 'signature', roleId: 'Alice' },
+        { id: 'sig-2', kind: 'signature', roleId: 'Bob' },
+      ],
+    };
+    const newChild: StrategyNode = { id: 'sig-3', kind: 'signature', roleId: 'Charlie' };
+    const result = addChildNode(tree, 'root', newChild);
+    expect((result as any).children.length).toBe(3);
+  });
 });
 
 // ──────────────────────────────────────────────
@@ -196,11 +228,12 @@ describe('changeGroupOp', () => {
     ],
   };
 
-  it('switches AND to OR, children unchanged', () => {
+  it('switches AND to OR and trims to two children when group had more than two', () => {
     const result = changeGroupOp(tree, 'root', 'any');
     expect((result as any).op).toBe('any');
-    expect((result as any).children.length).toBe(3);
-    // No threshold field on OR
+    expect((result as any).children.length).toBe(2);
+    expect((result as any).children[0].id).toBe('sig-1');
+    expect((result as any).children[1].id).toBe('sig-2');
     expect((result as any).threshold).toBeUndefined();
   });
 
@@ -229,6 +262,24 @@ describe('changeGroupOp', () => {
     const result = changeGroupOp(thresholdTree, 'root', 'all');
     expect((result as any).op).toBe('all');
     expect((result as any).threshold).toBeUndefined();
+  });
+
+  it('switches threshold with three children to AND, keeps only first two children', () => {
+    const thresholdTree: StrategyNode = {
+      id: 'root',
+      kind: 'group',
+      op: 'threshold',
+      threshold: 2,
+      children: [
+        { id: 'sig-1', kind: 'signature', roleId: 'Alice' },
+        { id: 'sig-2', kind: 'signature', roleId: 'Bob' },
+        { id: 'sig-3', kind: 'signature', roleId: 'Charlie' },
+      ],
+    };
+    const result = changeGroupOp(thresholdTree, 'root', 'all');
+    expect((result as any).children.length).toBe(2);
+    expect((result as any).children[0].id).toBe('sig-1');
+    expect((result as any).children[1].id).toBe('sig-2');
   });
 
   it('returns tree unchanged if nodeId targets a non-group', () => {

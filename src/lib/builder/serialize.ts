@@ -7,11 +7,29 @@
 import type { StrategyNode } from './types';
 
 /**
+ * Policy `and` / `or` are binary only. Fold N sub-policies into right-nested form:
+ * [a,b,c] -> and(a,and(b,c)); [a,b] -> and(a,b).
+ */
+function foldBinaryAnd(childPolicies: string[]): string {
+  if (childPolicies.length === 0) return '';
+  if (childPolicies.length === 1) return childPolicies[0];
+  const [first, ...rest] = childPolicies;
+  return `and(${first},${foldBinaryAnd(rest)})`;
+}
+
+function foldBinaryOr(childPolicies: string[]): string {
+  if (childPolicies.length === 0) return '';
+  if (childPolicies.length === 1) return childPolicies[0];
+  const [first, ...rest] = childPolicies;
+  return `or(${first},${foldBinaryOr(rest)})`;
+}
+
+/**
  * Serialize a StrategyNode tree to a Policy string.
  *
  * Rules:
- * - group(all) -> and(...) or nested canonical and(...)
- * - group(any) -> canonical or(...)
+ * - group(all) -> nested binary and(...) (Policy requires binary and)
+ * - group(any) -> nested binary or(...)
  * - group(threshold) -> thresh(k,...)
  * - signature -> pk(RoleName)
  * - timelock(relative) -> older(n)
@@ -51,12 +69,12 @@ export function serializeStrategyTree(node: StrategyNode): string {
         case 'all':
           if (childPolicies.length === 0) return '';
           if (childPolicies.length === 1) return childPolicies[0];
-          return `and(${childPolicies.join(',')})`;
+          return foldBinaryAnd(childPolicies);
 
         case 'any':
           if (childPolicies.length === 0) return '';
           if (childPolicies.length === 1) return childPolicies[0];
-          return `or(${childPolicies.join(',')})`;
+          return foldBinaryOr(childPolicies);
 
         case 'threshold': {
           const k = node.threshold ?? 1;

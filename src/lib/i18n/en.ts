@@ -104,6 +104,8 @@ export const en: Record<string, string> = {
   'builder.op.threshold.desc': 'k-of-n: satisfy any k conditions',
   'builder.op.threshold.k.label': 'Number required',
   'builder.op.threshold.confirm': 'Confirm',
+  'builder.op.binaryTrimNotice':
+    'Switched to AND/OR: only the first two child conditions were kept.',
 
   // Wrap
   'builder.wrap.title': 'Wrap in New Group',

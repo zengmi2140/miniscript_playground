@@ -14,6 +14,7 @@ import {
   addSignatureChild,
   addTimelockChild,
   addChildNode,
+  canAddChildToBinaryGroup,
   convertRootPlaceholder,
   convertChildPlaceholder,
   createDefaultKeyVariables,
@@ -129,6 +130,15 @@ export function BuilderPopover() {
   const handleAddChildType = useCallback(
     (type: 'signature' | 'timelock' | 'group', groupOp?: 'all' | 'any' | 'threshold') => {
       if (!strategyTree || !parentIdForAdd) return;
+
+      const parentForAdd = findNode(strategyTree, parentIdForAdd);
+      if (
+        parentForAdd?.kind === 'group' &&
+        !canAddChildToBinaryGroup(parentForAdd)
+      ) {
+        handleClose();
+        return;
+      }
 
       let newTree: StrategyNode;
       if (type === 'signature') {

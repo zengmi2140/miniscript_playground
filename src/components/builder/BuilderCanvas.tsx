@@ -30,6 +30,8 @@ function BuilderCanvasInner() {
   const selectedPathIndex = usePlaygroundStore((s) => s.selectedPathIndex);
   const builderDepthWarning = usePlaygroundStore((s) => s.builderDepthWarning);
   const clearDepthWarning = usePlaygroundStore((s) => s.clearDepthWarning);
+  const builderBinaryTrimNotice = usePlaygroundStore((s) => s.builderBinaryTrimNotice);
+  const clearBinaryTrimNotice = usePlaygroundStore((s) => s.clearBinaryTrimNotice);
 
   // Auto-dismiss depth warning after 4 seconds
   useEffect(() => {
@@ -37,6 +39,12 @@ function BuilderCanvasInner() {
     const timer = setTimeout(() => clearDepthWarning(), 4000);
     return () => clearTimeout(timer);
   }, [builderDepthWarning, clearDepthWarning]);
+
+  useEffect(() => {
+    if (!builderBinaryTrimNotice) return;
+    const timer = setTimeout(() => clearBinaryTrimNotice(), 4000);
+    return () => clearTimeout(timer);
+  }, [builderBinaryTrimNotice, clearBinaryTrimNotice]);
 
   const isReadOnly = builderSyncState !== 'synced';
   const definedRoles = useMemo(
@@ -102,6 +110,19 @@ function BuilderCanvasInner() {
           <button
             onClick={clearDepthWarning}
             className="ml-2 text-yellow-500/60 hover:text-yellow-400"
+            aria-label="dismiss"
+          >
+            ×
+          </button>
+        </div>
+      )}
+      {builderBinaryTrimNotice && (
+        <div className="absolute bottom-16 left-1/2 z-50 -translate-x-1/2 flex max-w-md items-center gap-2 rounded-lg border border-btc-500/40 bg-btc-500/10 px-4 py-2.5 text-sm text-btc-400 shadow-lg">
+          <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+          <span>{t('builder.op.binaryTrimNotice')}</span>
+          <button
+            onClick={clearBinaryTrimNotice}
+            className="ml-2 text-btc-500/60 hover:text-btc-400"
             aria-label="dismiss"
           >
             ×
