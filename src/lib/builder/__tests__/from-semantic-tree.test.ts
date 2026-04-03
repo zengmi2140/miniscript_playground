@@ -1,6 +1,16 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { importFromSemanticTree, resetImportNodeIdCounter } from '../from-semantic-tree';
 import type { MiniscriptNode } from '@/lib/engine/types';
+import type { StrategyNode } from '../types';
+
+function assertBinaryAndOrGroups(node: StrategyNode): void {
+  if (node.kind === 'group' && (node.op === 'all' || node.op === 'any')) {
+    expect(node.children.length).toBeLessThanOrEqual(2);
+  }
+  if (node.kind === 'group') {
+    node.children.forEach(assertBinaryAndOrGroups);
+  }
+}
 
 describe('importFromSemanticTree', () => {
   beforeEach(() => {
@@ -119,6 +129,55 @@ describe('importFromSemanticTree', () => {
           expect(result.tree.threshold).toBe(2);
           expect(result.tree.children).toHaveLength(3);
           expect(result.tree.children.every((c) => c.kind === 'signature')).toBe(true);
+        }
+      }
+    });
+
+    it('folds 3-way and into nested binary all groups', () => {
+      const semantic: MiniscriptNode = {
+        type: 'and',
+        children: [
+          { type: 'key', name: 'A' },
+          { type: 'key', name: 'B' },
+          { type: 'key', name: 'C' },
+        ],
+      };
+      const result = importFromSemanticTree(semantic);
+      expect(result.status).toBe('supported');
+      if (result.status === 'supported') {
+        assertBinaryAndOrGroups(result.tree);
+        expect(result.tree.kind).toBe('group');
+        if (result.tree.kind === 'group') {
+          expect(result.tree.op).toBe('all');
+          expect(result.tree.children).toHaveLength(2);
+          expect(result.tree.children[0].kind).toBe('signature');
+          const right = result.tree.children[1];
+          expect(right.kind).toBe('group');
+          if (right.kind === 'group') {
+            expect(right.op).toBe('all');
+            expect(right.children).toHaveLength(2);
+          }
+        }
+      }
+    });
+
+    it('folds 3-way or into nested binary any groups', () => {
+      const semantic: MiniscriptNode = {
+        type: 'or',
+        children: [
+          { type: 'key', name: 'A' },
+          { type: 'key', name: 'B' },
+          { type: 'key', name: 'C' },
+        ],
+      };
+      const result = importFromSemanticTree(semantic);
+      expect(result.status).toBe('supported');
+      if (result.status === 'supported') {
+        assertBinaryAndOrGroups(result.tree);
+        expect(result.tree.kind).toBe('group');
+        if (result.tree.kind === 'group') {
+          expect(result.tree.op).toBe('any');
+          expect(result.tree.children).toHaveLength(2);
         }
       }
     });

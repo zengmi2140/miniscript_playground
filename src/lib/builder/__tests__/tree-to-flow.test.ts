@@ -47,9 +47,9 @@ describe('builderTreeToFlow', () => {
       const template = recoveryTemplate();
       const { nodes, edges } = builderTreeToFlow(template.tree, defaultOptions);
 
-      // Root + User + OR + add; OR + Service + timelock + add
-      expect(nodes).toHaveLength(7);
-      expect(edges).toHaveLength(6);
+      // Root + User + OR; OR + Service + timelock (binary AND/OR full: no virtual add-child)
+      expect(nodes).toHaveLength(5);
+      expect(edges).toHaveLength(4);
 
       const root = nodes.find((n) => n.type === 'builderRoot');
       expect(root?.data.op).toBe('all');
@@ -60,6 +60,22 @@ describe('builderTreeToFlow', () => {
 
       const conditions = nodes.filter((n) => n.type === 'builderCondition');
       expect(conditions).toHaveLength(3); // User, Service, timelock
+
+      const addButtons = nodes.filter((n) => n.data.isAddButton === true);
+      expect(addButtons).toHaveLength(0);
+    });
+
+    it('shows virtual add-child for binary all/any with fewer than two children', () => {
+      const tree = {
+        id: 'root',
+        kind: 'group' as const,
+        op: 'all' as const,
+        children: [{ id: 'sig-1', kind: 'signature' as const, roleId: 'Alice' }],
+      };
+      resetFlowNodeIdCounter();
+      const { nodes } = builderTreeToFlow(tree, defaultOptions);
+      const addButtons = nodes.filter((n) => n.data.isAddButton === true);
+      expect(addButtons.length).toBeGreaterThanOrEqual(1);
     });
   });
 

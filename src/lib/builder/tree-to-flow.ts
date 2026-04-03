@@ -278,8 +278,11 @@ function buildFlowGraph(
       buildFlowGraph(child, ctx, flowId, strategyNode.op);
     }
     
-    // Add a virtual "add child" placeholder if not in read-only mode
-    if (!ctx.isReadOnly) {
+    // Add a virtual "add child" placeholder if not in read-only mode and binary AND/OR is not full (max 2 children)
+    const binaryGroupFull =
+      (strategyNode.op === 'all' || strategyNode.op === 'any') &&
+      strategyNode.children.length >= 2;
+    if (!ctx.isReadOnly && !binaryGroupFull) {
       const addChildId = nextFlowId();
       const addChildLabel = ctx.locale === 'zh' ? '+ 添加条件' : '+ Add Condition';
       const addChildSize = NODE_SIZES.builderAddChild;

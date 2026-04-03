@@ -104,6 +104,8 @@ export const zh: Record<string, string> = {
   'builder.op.threshold.desc': 'k-of-n，满足 k 个条件即可',
   'builder.op.threshold.k.label': '所需满足数量',
   'builder.op.threshold.confirm': '确认',
+  'builder.op.binaryTrimNotice':
+    '已切换为「都需要 / 任选一」，仅保留前两个子条件。',
 
   // Wrap
   'builder.wrap.title': '包裹进新组',

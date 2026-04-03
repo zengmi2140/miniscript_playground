@@ -21,6 +21,14 @@ export function resetNodeOpsIdCounter(): void {
 }
 
 /**
+ * Policy / canvas rule: `all` and `any` groups have at most 2 direct children (placeholders count).
+ */
+export function canAddChildToBinaryGroup(node: StrategyGroupNode): boolean {
+  if (node.op === 'threshold') return true;
+  return node.children.length < 2;
+}
+
+/**
  * Find a node by ID in the tree
  */
 export function findNode(tree: StrategyNode, nodeId: string): StrategyNode | null {
@@ -83,6 +91,7 @@ export function addChildNode(
 ): StrategyNode {
   return updateNode(tree, parentId, (node) => {
     if (node.kind !== 'group') return node;
+    if (!canAddChildToBinaryGroup(node)) return node;
     return {
       ...node,
       children: [...node.children, child],
@@ -178,9 +187,13 @@ export function changeGroupOp(
       return { ...node, op: 'threshold', threshold: k };
     }
 
-    // Switching to all or any — drop threshold field
+    // Switching to all or any — drop threshold field; keep at most 2 children (binary groups)
     const { threshold: _dropped, ...rest } = node as StrategyNode & { threshold?: number };
-    return { ...rest, op: newOp } as StrategyNode;
+    let children = node.children;
+    if ((newOp === 'all' || newOp === 'any') && children.length > 2) {
+      children = children.slice(0, 2);
+    }
+    return { ...rest, op: newOp, children } as StrategyNode;
   });
 }
 

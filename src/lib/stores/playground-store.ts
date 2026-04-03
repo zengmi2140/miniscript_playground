@@ -16,7 +16,7 @@ import { SCENARIOS } from '@/lib/scenarios/data';
 import type { BuilderSyncState, BuildStarterId, StrategyNode, StrategyPlaceholderNode } from '@/lib/builder/types';
 import { getTemplate } from '@/lib/builder/templates';
 import { serializeStrategyTree } from '@/lib/builder/serialize';
-import { changeGroupOp, wrapNodeInGroup, computeTreeDepth } from '@/lib/builder/node-ops';
+import { changeGroupOp, wrapNodeInGroup, computeTreeDepth, findNode } from '@/lib/builder/node-ops';
 
 interface PlaygroundActions {
   setPlaygroundMode: (mode: PlaygroundMode) => void;
@@ -60,6 +60,7 @@ interface PlaygroundActions {
   switchNodeOperator: (nodeId: string, newOp: 'all' | 'any' | 'threshold', newThreshold?: number) => void;
   wrapNode: (nodeId: string, wrapperOp: 'all' | 'any' | 'threshold', wrapperThreshold?: number) => void;
   clearDepthWarning: () => void;
+  clearBinaryTrimNotice: () => void;
 }
 
 interface BuilderState {
@@ -70,6 +71,8 @@ interface BuilderState {
   operatorSwitchNodeId: string | null;
   lastBuilderPolicySnapshot: string | null;
   builderDepthWarning: boolean;
+  /** Shown when switching to AND/OR dropped children beyond the binary limit. */
+  builderBinaryTrimNotice: boolean;
 }
 
 export type PlaygroundStore = PlaygroundState & BuilderState & PlaygroundActions;
@@ -81,6 +84,7 @@ const initialBuilderState: BuilderState = {
   operatorSwitchNodeId: null,
   lastBuilderPolicySnapshot: null,
   builderDepthWarning: false,
+  builderBinaryTrimNotice: false,
 };
 
 const initialState: PlaygroundState & BuilderState = {
@@ -268,6 +272,7 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
       operatorSwitchNodeId: null,
       builderSyncState: 'synced',
       lastBuilderPolicySnapshot: null,
+      builderBinaryTrimNotice: false,
     });
   },
 
@@ -283,6 +288,7 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
       lastBuilderPolicySnapshot: policy,
       selectedBuilderNodeId: null,
       operatorSwitchNodeId: null,
+      builderBinaryTrimNotice: false,
     });
   },
 
@@ -298,14 +304,20 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
   switchNodeOperator: (nodeId, newOp, newThreshold) => {
     set((state) => {
       if (!state.strategyTree) return {};
+      const before = findNode(state.strategyTree, nodeId);
       const newTree = changeGroupOp(state.strategyTree, nodeId, newOp, newThreshold);
       const policy = serializeStrategyTree(newTree);
+      const trimmed =
+        before?.kind === 'group' &&
+        before.children.length > 2 &&
+        (newOp === 'all' || newOp === 'any');
       return {
         strategyTree: newTree,
         policy,
         lastBuilderPolicySnapshot: policy,
         selectedBuilderNodeId: null,
         operatorSwitchNodeId: null,
+        builderBinaryTrimNotice: trimmed,
       };
     });
   },
@@ -328,4 +340,5 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
   },
 
   clearDepthWarning: () => set({ builderDepthWarning: false }),
+  clearBinaryTrimNotice: () => set({ builderBinaryTrimNotice: false }),
 }));

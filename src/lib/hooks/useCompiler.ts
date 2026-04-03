@@ -66,6 +66,11 @@ export function useCompiler() {
           } catch {
             setSemanticTree(null);
           }
+        } else {
+          // Avoid stale semantic tree / paths / results when compile fails (matches no successful output).
+          setCompilationResult(null);
+          setSemanticTree(null);
+          setSpendingPaths([]);
         }
       } catch {
         if (abortRef.current !== generation) return;
