@@ -203,4 +203,66 @@ describe('Playground Store - Builder', () => {
       expect(usePlaygroundStore.getState().lastBuilderPolicySnapshot).toBe('pk(Charlie)');
     });
   });
+
+  describe('operatorSwitchNodeId', () => {
+    it('clears selectedBuilderNodeId when set to a group node id', () => {
+      const store = usePlaygroundStore.getState();
+      store.enterBuildMode();
+      store.applyBuildStarter('shared-control');
+      const tree = usePlaygroundStore.getState().strategyTree;
+      expect(tree?.kind).toBe('group');
+      if (tree?.kind !== 'group') return;
+
+      store.setSelectedBuilderNodeId('some-node');
+      store.setOperatorSwitchNodeId(tree.id);
+
+      const state = usePlaygroundStore.getState();
+      expect(state.selectedBuilderNodeId).toBeNull();
+      expect(state.operatorSwitchNodeId).toBe(tree.id);
+    });
+
+    it('clears operatorSwitchNodeId when selecting another builder node', () => {
+      const store = usePlaygroundStore.getState();
+      store.enterBuildMode();
+      store.applyBuildStarter('shared-control');
+      const tree = usePlaygroundStore.getState().strategyTree;
+      expect(tree?.kind).toBe('group');
+      if (tree?.kind !== 'group') return;
+
+      store.setOperatorSwitchNodeId(tree.id);
+      store.setSelectedBuilderNodeId('sig-1');
+
+      const state = usePlaygroundStore.getState();
+      expect(state.operatorSwitchNodeId).toBeNull();
+      expect(state.selectedBuilderNodeId).toBe('sig-1');
+    });
+
+    it('clears operatorSwitchNodeId after switchNodeOperator', () => {
+      const store = usePlaygroundStore.getState();
+      store.enterBuildMode();
+      store.applyBuildStarter('shared-control');
+      const tree = usePlaygroundStore.getState().strategyTree;
+      expect(tree?.kind).toBe('group');
+      if (tree?.kind !== 'group') return;
+
+      store.setOperatorSwitchNodeId(tree.id);
+      store.switchNodeOperator(tree.id, 'all');
+
+      expect(usePlaygroundStore.getState().operatorSwitchNodeId).toBeNull();
+    });
+
+    it('clears operatorSwitchNodeId when entering build mode', () => {
+      const store = usePlaygroundStore.getState();
+      store.enterBuildMode();
+      store.applyBuildStarter('shared-control');
+      const tree = usePlaygroundStore.getState().strategyTree;
+      expect(tree?.kind).toBe('group');
+      if (tree?.kind !== 'group') return;
+
+      store.setOperatorSwitchNodeId(tree.id);
+      store.enterBuildMode();
+
+      expect(usePlaygroundStore.getState().operatorSwitchNodeId).toBeNull();
+    });
+  });
 });

@@ -52,6 +52,7 @@ interface PlaygroundActions {
   setStrategyTree: (tree: StrategyNode | null) => void;
   setBuilderSyncState: (state: BuilderSyncState) => void;
   setSelectedBuilderNodeId: (id: string | null) => void;
+  setOperatorSwitchNodeId: (id: string | null) => void;
   setLastBuilderPolicySnapshot: (policy: string | null) => void;
   enterBuildMode: () => void;
   applyBuildStarter: (starterId: BuildStarterId) => void;
@@ -65,6 +66,8 @@ interface BuilderState {
   strategyTree: StrategyNode | null;
   builderSyncState: BuilderSyncState;
   selectedBuilderNodeId: string | null;
+  /** Group node id whose operator switch panel is open (top-right of canvas). */
+  operatorSwitchNodeId: string | null;
   lastBuilderPolicySnapshot: string | null;
   builderDepthWarning: boolean;
 }
@@ -75,6 +78,7 @@ const initialBuilderState: BuilderState = {
   strategyTree: null,
   builderSyncState: 'synced',
   selectedBuilderNodeId: null,
+  operatorSwitchNodeId: null,
   lastBuilderPolicySnapshot: null,
   builderDepthWarning: false,
 };
@@ -190,6 +194,7 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
       strategyTree: null,
       builderSyncState: 'synced',
       selectedBuilderNodeId: null,
+      operatorSwitchNodeId: null,
       lastBuilderPolicySnapshot: null,
     });
   },
@@ -215,6 +220,7 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
       strategyTree: null,
       builderSyncState: 'synced',
       selectedBuilderNodeId: null,
+      operatorSwitchNodeId: null,
       lastBuilderPolicySnapshot: null,
     });
   },
@@ -224,7 +230,16 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
   // Builder actions
   setStrategyTree: (strategyTree) => set({ strategyTree }),
   setBuilderSyncState: (builderSyncState) => set({ builderSyncState }),
-  setSelectedBuilderNodeId: (selectedBuilderNodeId) => set({ selectedBuilderNodeId }),
+  setSelectedBuilderNodeId: (selectedBuilderNodeId) =>
+    set({
+      selectedBuilderNodeId,
+      ...(selectedBuilderNodeId !== null ? { operatorSwitchNodeId: null } : {}),
+    }),
+  setOperatorSwitchNodeId: (operatorSwitchNodeId) =>
+    set({
+      operatorSwitchNodeId,
+      ...(operatorSwitchNodeId !== null ? { selectedBuilderNodeId: null } : {}),
+    }),
   setLastBuilderPolicySnapshot: (lastBuilderPolicySnapshot) => set({ lastBuilderPolicySnapshot }),
 
   enterBuildMode: () => {
@@ -250,6 +265,7 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
       currentTimeBlocks: 0,
       selectedPathIndex: null,
       selectedBuilderNodeId: null,
+      operatorSwitchNodeId: null,
       builderSyncState: 'synced',
       lastBuilderPolicySnapshot: null,
     });
@@ -265,6 +281,8 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
       keyVariables: template.keyVariables,
       builderSyncState: 'synced',
       lastBuilderPolicySnapshot: policy,
+      selectedBuilderNodeId: null,
+      operatorSwitchNodeId: null,
     });
   },
 
@@ -287,6 +305,7 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
         policy,
         lastBuilderPolicySnapshot: policy,
         selectedBuilderNodeId: null,
+        operatorSwitchNodeId: null,
       };
     });
   },
@@ -302,6 +321,7 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
         policy,
         lastBuilderPolicySnapshot: policy,
         selectedBuilderNodeId: null,
+        operatorSwitchNodeId: null,
         builderDepthWarning: depth > 5,
       };
     });
