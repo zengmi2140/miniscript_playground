@@ -7,6 +7,7 @@ import { useI18n } from '@/lib/i18n/context';
 import { ScenarioGallery } from '@/components/scenarios/ScenarioGallery';
 import { HomepageHero } from '@/components/home/HomepageHero';
 import { HomepageMiniscriptExplainer } from '@/components/home/HomepageMiniscriptExplainer';
+import { HomepageMission } from '@/components/home/HomepageMission';
 import { HomepageFeatures } from '@/components/home/HomepageFeatures';
 import { HomepageHowItWorks } from '@/components/home/HomepageHowItWorks';
 
@@ -50,6 +51,7 @@ export default function ScenariosPage() {
     <div className="w-full">
       <HomepageHero />
       <HomepageMiniscriptExplainer />
+      <HomepageMission />
       <HomepageHowItWorks />
       <HomepageFeatures />
 
