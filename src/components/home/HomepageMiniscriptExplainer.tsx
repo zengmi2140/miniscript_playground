@@ -29,25 +29,29 @@ export function HomepageMiniscriptExplainer() {
 
           {/* Card 1: 传统 Bitcoin Script 的缺点 */}
           <div className="rounded-xl border border-red-500/20 bg-surface-card p-5">
-            <div className="mb-4 flex items-center gap-2.5">
-              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-red-500/10">
-                <XCircle className="h-4 w-4 text-red-400" />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto] md:items-start">
+              {/* Left: icon + title + bullets */}
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-red-500/10">
+                    <XCircle className="h-4 w-4 text-red-400" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-text-primary">
+                    {t('home.explainer.comparison.old.title')}
+                  </h3>
+                </div>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
+                    <span className="mt-0.5 text-red-400">•</span>
+                    <span>{t('home.explainer.comparison.old.problem1')}</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
+                    <span className="mt-0.5 text-red-400">•</span>
+                    <span>{t('home.explainer.comparison.old.problem2')}</span>
+                  </li>
+                </ul>
               </div>
-              <h3 className="text-sm font-semibold text-text-primary">
-                {t('home.explainer.comparison.old.title')}
-              </h3>
-            </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto] md:items-center">
-              <ul className="space-y-2">
-                <li className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
-                  <span className="mt-0.5 text-red-400">•</span>
-                  <span>{t('home.explainer.comparison.old.problem1')}</span>
-                </li>
-                <li className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
-                  <span className="mt-0.5 text-red-400">•</span>
-                  <span>{t('home.explainer.comparison.old.problem2')}</span>
-                </li>
-              </ul>
+              {/* Right: code block */}
               <div className="w-full rounded-lg border border-red-500/15 bg-red-500/5 px-4 py-3 md:w-64">
                 <pre className="whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-red-400">
                   <code>{t('home.explainer.comparison.old.example')}</code>
@@ -58,25 +62,29 @@ export function HomepageMiniscriptExplainer() {
 
           {/* Card 2: Miniscript 的优势 */}
           <div className="rounded-xl border border-emerald-500/20 bg-surface-card p-5">
-            <div className="mb-4 flex items-center gap-2.5">
-              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto] md:items-start">
+              {/* Left: icon + title + bullets */}
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-text-primary">
+                    {t('home.explainer.comparison.new.title')}
+                  </h3>
+                </div>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
+                    <span className="mt-0.5 text-emerald-400">•</span>
+                    <span>{t('home.explainer.comparison.new.advantage1')}</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
+                    <span className="mt-0.5 text-emerald-400">•</span>
+                    <span>{t('home.explainer.comparison.new.advantage2')}</span>
+                  </li>
+                </ul>
               </div>
-              <h3 className="text-sm font-semibold text-text-primary">
-                {t('home.explainer.comparison.new.title')}
-              </h3>
-            </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto] md:items-center">
-              <ul className="space-y-2">
-                <li className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
-                  <span className="mt-0.5 text-emerald-400">•</span>
-                  <span>{t('home.explainer.comparison.new.advantage1')}</span>
-                </li>
-                <li className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
-                  <span className="mt-0.5 text-emerald-400">•</span>
-                  <span>{t('home.explainer.comparison.new.advantage2')}</span>
-                </li>
-              </ul>
+              {/* Right: code block */}
               <div className="w-full rounded-lg border border-emerald-500/15 bg-emerald-500/5 px-4 py-3 md:w-64">
                 <pre className="whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-emerald-400">
                   <code>{t('home.explainer.comparison.new.example')}</code>
