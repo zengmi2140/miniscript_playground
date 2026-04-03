@@ -16,6 +16,7 @@ export {
   updateNode,
   removeNode,
   addChildNode,
+  canAddChildToBinaryGroup,
   wrapNodeInGroup,
   changeGroupOp,
   computeTreeDepth,

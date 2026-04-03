@@ -41,6 +41,24 @@ describe('compiler', () => {
     expect(paths.length).toBeGreaterThanOrEqual(2);
   });
 
+  it('compiles nested binary and from builder serialize (3-way all group)', async () => {
+    const policy = 'and(pk(Alice),and(pk(Bob),pk(Charlie)))';
+    const { result, error } = await compile(
+      policy,
+      [
+        { name: 'Alice', policyName: 'Alice', publicKey: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798' },
+        { name: 'Bob', policyName: 'Bob', publicKey: '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5' },
+        { name: 'Charlie', policyName: 'Charlie', publicKey: '02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9' },
+      ],
+      'wsh',
+    );
+
+    expect(error).toBeNull();
+    expect(result).not.toBeNull();
+    expect(result!.policy).toBe(policy);
+    expect(result!.address).toBeTruthy();
+  });
+
   it('returns friendly error for invalid policy', async () => {
     const { result, error } = await compile(
       'invalid_garbage!!!()',
