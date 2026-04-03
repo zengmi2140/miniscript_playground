@@ -168,7 +168,7 @@ export function wrapNodeInGroup(
  * Change the operator of a group node.
  * - When switching TO threshold: k = min(2, realChildCount), or use provided value
  * - When switching FROM threshold: threshold field is removed
- * - Children are always preserved unchanged
+ * - When switching TO all or any: at most two direct children are kept (binary groups)
  */
 export function changeGroupOp(
   tree: StrategyNode,
@@ -245,25 +245,6 @@ export function updateThreshold(
   return updateNode(tree, nodeId, (node) => {
     if (node.kind !== 'group' || node.op !== 'threshold') return node;
     return { ...node, threshold: newK };
-  });
-}
-
-/**
- * Convert a group to a different operation type
- */
-export function convertGroupOp(
-  tree: StrategyNode,
-  nodeId: string,
-  newOp: 'all' | 'any' | 'threshold',
-  threshold?: number
-): StrategyNode {
-  return updateNode(tree, nodeId, (node) => {
-    if (node.kind !== 'group') return node;
-    return {
-      ...node,
-      op: newOp,
-      threshold: newOp === 'threshold' ? (threshold ?? 1) : undefined,
-    };
   });
 }
 

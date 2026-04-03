@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { useBuilderSync } from '../useBuilderSync';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 
@@ -15,6 +15,7 @@ vi.mock('@/lib/builder/from-semantic-tree', () => ({
 
 describe('useBuilderSync', () => {
   const mockSetStrategyTree = vi.fn();
+  const mockUpdateStrategyTree = vi.fn();
   const mockSetBuilderSyncState = vi.fn();
   const mockSetLastBuilderPolicySnapshot = vi.fn();
 
@@ -33,6 +34,7 @@ describe('useBuilderSync', () => {
         lastBuilderPolicySnapshot: null,
         builderSyncState: 'synced',
         setStrategyTree: mockSetStrategyTree,
+        updateStrategyTree: mockUpdateStrategyTree,
         setBuilderSyncState: mockSetBuilderSyncState,
         setLastBuilderPolicySnapshot: mockSetLastBuilderPolicySnapshot,
       };
@@ -45,7 +47,7 @@ describe('useBuilderSync', () => {
     expect(mockSetBuilderSyncState).not.toHaveBeenCalled();
   });
 
-  it('keeps synced state when policy is empty in build mode', () => {
+  it('clears strategy tree and snapshot when policy is empty in build mode', () => {
     const mockUsePlaygroundStore = usePlaygroundStore as unknown as ReturnType<typeof vi.fn>;
     mockUsePlaygroundStore.mockImplementation((selector: (state: Record<string, unknown>) => unknown) => {
       const state = {
@@ -56,6 +58,7 @@ describe('useBuilderSync', () => {
         lastBuilderPolicySnapshot: null,
         builderSyncState: 'synced',
         setStrategyTree: mockSetStrategyTree,
+        updateStrategyTree: mockUpdateStrategyTree,
         setBuilderSyncState: mockSetBuilderSyncState,
         setLastBuilderPolicySnapshot: mockSetLastBuilderPolicySnapshot,
       };
@@ -64,7 +67,8 @@ describe('useBuilderSync', () => {
 
     renderHook(() => useBuilderSync());
 
-    // Should not change state when already synced
+    expect(mockSetStrategyTree).toHaveBeenCalledWith(null);
+    expect(mockSetLastBuilderPolicySnapshot).toHaveBeenCalledWith(null);
     expect(mockSetBuilderSyncState).not.toHaveBeenCalled();
   });
 
@@ -79,6 +83,7 @@ describe('useBuilderSync', () => {
         lastBuilderPolicySnapshot: 'pk(Bob)',
         builderSyncState: 'synced',
         setStrategyTree: mockSetStrategyTree,
+        updateStrategyTree: mockUpdateStrategyTree,
         setBuilderSyncState: mockSetBuilderSyncState,
         setLastBuilderPolicySnapshot: mockSetLastBuilderPolicySnapshot,
       };
@@ -101,6 +106,7 @@ describe('useBuilderSync', () => {
         lastBuilderPolicySnapshot: 'pk(Alice)',
         builderSyncState: 'synced',
         setStrategyTree: mockSetStrategyTree,
+        updateStrategyTree: mockUpdateStrategyTree,
         setBuilderSyncState: mockSetBuilderSyncState,
         setLastBuilderPolicySnapshot: mockSetLastBuilderPolicySnapshot,
       };
@@ -111,5 +117,6 @@ describe('useBuilderSync', () => {
 
     // Should not attempt import when policy matches snapshot
     expect(mockSetStrategyTree).not.toHaveBeenCalled();
+    expect(mockUpdateStrategyTree).not.toHaveBeenCalled();
   });
 });

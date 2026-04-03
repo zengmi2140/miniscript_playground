@@ -55,6 +55,8 @@ export function BuilderStarterCards({ onSelect }: BuilderStarterCardsProps) {
           return (
             <button
               key={starter.id}
+              type="button"
+              data-testid={`builder-starter-${starter.id}`}
               onClick={() => onSelect(starter.id)}
               className={cn(
                 'group flex flex-col items-center gap-3 rounded-lg border border-border-subtle bg-surface-card p-6 text-center transition-all',

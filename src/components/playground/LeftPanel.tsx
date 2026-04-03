@@ -51,6 +51,8 @@ function BuildModeCard() {
 
   return (
     <button
+      type="button"
+      data-testid="playground-build-mode-card"
       onClick={handleClick}
       className={cn(
         'w-full rounded-button border px-3 py-2.5 text-left transition-all',

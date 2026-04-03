@@ -426,6 +426,8 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 - 编���错误在编辑器下方显示（红色文字 + 友好中文描述）
 - 工具栏：[格式化] [清空] [复制] [分享🔗]
 - **Build 模式**下编辑器与可视化画布双向同步：画布操作更新 Policy；用户编辑 Policy 时，若结构仍在构建器支持范围内则回写 `strategyTree`，否则进入「文本主导」状态（`builderSyncState: 'text-led'`），不强行破坏画布。同步逻辑见 `useBuilderSync`（`src/lib/hooks/useBuilderSync.ts`）。
+  - 成功从语义树回写时通过 `updateStrategyTree` 写入，编辑器中的 Policy 与 `serializeStrategyTree(strategyTree)` 对齐为规范串。
+  - Policy 为空（或仅空白）时：`useCompiler` 清空编译结果与语义树/路径；`useBuilderSync` 将 `strategyTree` 与 `lastBuilderPolicySnapshot` 置空，回到起手卡片态。
 
 **主画布（按 `playgroundMode` 二选一）**
 

@@ -31,6 +31,9 @@ export function useCompiler() {
 
     if (!policy.trim()) {
       setCompilationError(null);
+      setCompilationResult(null);
+      setSemanticTree(null);
+      setSpendingPaths([]);
       return;
     }
 
@@ -74,6 +77,9 @@ export function useCompiler() {
         }
       } catch {
         if (abortRef.current !== generation) return;
+        setCompilationResult(null);
+        setSemanticTree(null);
+        setSpendingPaths([]);
       }
     }, DEBOUNCE_MS);
 

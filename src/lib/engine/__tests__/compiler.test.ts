@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect } from 'vitest';
 import { compile } from '../compiler';
 import { SCENARIOS } from '@/lib/scenarios/data';
