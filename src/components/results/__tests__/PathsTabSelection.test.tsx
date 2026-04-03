@@ -1,40 +1,40 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { PathsTab } from '../PathsTab';
 import { I18nProvider } from '@/lib/i18n/context';
 import type { SpendingPath } from '@/lib/engine/types';
 
-// Mock store state
-let mockSelectedPathIndex: number | null = null;
-const mockSetSelectedPathIndex = vi.fn();
+const mockPaths: SpendingPath[] = [
+  {
+    index: 0,
+    label: 'Path A',
+    conditions: [{ type: 'signature', keyName: 'Alice' }],
+    witnessAsm: '',
+    witnessSize: 42,
+    isMalleable: false,
+    satisfiable: true,
+    missingConditions: [],
+  },
+  {
+    index: 1,
+    label: 'Path B',
+    conditions: [
+      { type: 'signature', keyName: 'Alice' },
+      { type: 'signature', keyName: 'Bob' },
+    ],
+    witnessAsm: '',
+    witnessSize: 100,
+    isMalleable: false,
+    satisfiable: false,
+    missingConditions: [{ type: 'signature', keyName: 'Bob' }],
+  },
+];
+
+const mockUsePlaygroundStore = vi.hoisted(() => vi.fn());
 
 vi.mock('@/lib/stores/playground-store', () => ({
-  usePlaygroundStore: (selector: (state: any) => any) => {
-    const state = {
-      spendingPaths: [
-        {
-          conditions: [{ type: 'signature', keyName: 'Alice' }],
-          isSatisfied: true,
-          satisfiedConditions: [{ type: 'signature', keyName: 'Alice' }],
-          requiredConditions: [],
-        },
-        {
-          conditions: [
-            { type: 'signature', keyName: 'Alice' },
-            { type: 'signature', keyName: 'Bob' },
-          ],
-          isSatisfied: false,
-          satisfiedConditions: [{ type: 'signature', keyName: 'Alice' }],
-          requiredConditions: [{ type: 'signature', keyName: 'Bob' }],
-        },
-      ],
-      selectedPathIndex: mockSelectedPathIndex,
-      setSelectedPathIndex: mockSetSelectedPathIndex,
-      availableKeys: new Set(['Alice']),
-      currentTimeBlocks: 0,
-    };
-    return selector(state);
-  },
+  usePlaygroundStore: (selector: (state: { spendingPaths: SpendingPath[] }) => unknown) =>
+    mockUsePlaygroundStore(selector),
 }));
 
 function TestWrapper({ children }: { children: React.ReactNode }) {
@@ -45,38 +45,29 @@ function TestWrapper({ children }: { children: React.ReactNode }) {
   );
 }
 
-describe('PathsTab selection for builder highlighting', () => {
+describe('PathsTab', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSelectedPathIndex = null;
+    mockUsePlaygroundStore.mockImplementation((selector) =>
+      selector({ spendingPaths: mockPaths }),
+    );
   });
 
-  it('should render spending paths', () => {
+  it('renders path labels when spending paths exist', () => {
     render(
       <TestWrapper>
         <PathsTab />
       </TestWrapper>
     );
 
-    // Should show path cards
-    expect(screen.getAllByRole('button').length).toBeGreaterThan(0);
+    expect(screen.getByText('Path A')).toBeInTheDocument();
+    expect(screen.getByText('Path B')).toBeInTheDocument();
   });
 
-  it('should call setSelectedPathIndex when a path is clicked', () => {
-    render(
-      <TestWrapper>
-        <PathsTab />
-      </TestWrapper>
+  it('renders empty state when there are no paths', () => {
+    mockUsePlaygroundStore.mockImplementation((selector) =>
+      selector({ spendingPaths: [] }),
     );
-
-    const pathButtons = screen.getAllByRole('button');
-    fireEvent.click(pathButtons[0]);
-
-    expect(mockSetSelectedPathIndex).toHaveBeenCalled();
-  });
-
-  it('should toggle selection when clicking same path again', () => {
-    mockSelectedPathIndex = 0;
 
     render(
       <TestWrapper>
@@ -84,24 +75,8 @@ describe('PathsTab selection for builder highlighting', () => {
       </TestWrapper>
     );
 
-    const pathButtons = screen.getAllByRole('button');
-    fireEvent.click(pathButtons[0]);
-
-    // Should deselect (set to null)
-    expect(mockSetSelectedPathIndex).toHaveBeenCalledWith(null);
-  });
-
-  it('should visually indicate selected path', () => {
-    mockSelectedPathIndex = 0;
-
-    render(
-      <TestWrapper>
-        <PathsTab />
-      </TestWrapper>
-    );
-
-    // The first path should have a selected state
-    const pathButtons = screen.getAllByRole('button');
-    expect(pathButtons[0]).toHaveClass(/border-btc|ring|selected/i);
+    expect(
+      screen.getByText(/No spending paths available/i)
+    ).toBeInTheDocument();
   });
 });

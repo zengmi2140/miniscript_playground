@@ -10,8 +10,6 @@ const mockUpdateStrategyTree = vi.fn();
 const mockAddKeyVariable = vi.fn();
 const mockSetSelectedBuilderNodeId = vi.fn();
 const mockSetKeyVariables = vi.fn();
-const mockSetStrategyTree = vi.fn();
-
 const mockStore = vi.hoisted(() => ({
   strategyTree: {
     id: 'root',
@@ -36,7 +34,6 @@ vi.mock('@/lib/stores/playground-store', () => ({
       addKeyVariable: mockAddKeyVariable,
       setSelectedBuilderNodeId: mockSetSelectedBuilderNodeId,
       setKeyVariables: mockSetKeyVariables,
-      setStrategyTree: mockSetStrategyTree,
     }),
 }));
 

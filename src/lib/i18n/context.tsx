@@ -16,8 +16,15 @@ const translations: Record<Locale, Record<string, string>> = { zh, en };
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('zh');
+export function I18nProvider({
+  children,
+  initialLocale = 'zh',
+}: {
+  children: ReactNode;
+  /** For tests or SSR; default is zh. */
+  initialLocale?: Locale;
+}) {
+  const [locale, setLocaleState] = useState<Locale>(initialLocale);
 
   useEffect(() => {
     try {

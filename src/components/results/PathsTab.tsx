@@ -11,10 +11,11 @@ function PathStatusIcon({ path }: { path: SpendingPath }) {
   if (path.satisfiable) {
     return <CheckCircle2 className="h-4 w-4 text-semantic-satisfied" />;
   }
-  const hasTimelockMissing = path.missingConditions.some(
+  const missing = path.missingConditions ?? [];
+  const hasTimelockMissing = missing.some(
     (c) => c.type === 'timelock_relative' || c.type === 'timelock_absolute',
   );
-  if (hasTimelockMissing && path.missingConditions.length === 1) {
+  if (hasTimelockMissing && missing.length === 1) {
     return <Clock className="h-4 w-4 text-semantic-timelock" />;
   }
   return <XCircle className="h-4 w-4 text-semantic-locked" />;

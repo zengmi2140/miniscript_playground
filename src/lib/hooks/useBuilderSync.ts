@@ -22,6 +22,7 @@ export function useBuilderSync() {
   const builderSyncState = usePlaygroundStore((s) => s.builderSyncState);
 
   const setStrategyTree = usePlaygroundStore((s) => s.setStrategyTree);
+  const updateStrategyTree = usePlaygroundStore((s) => s.updateStrategyTree);
   const setBuilderSyncState = usePlaygroundStore((s) => s.setBuilderSyncState);
   const setLastBuilderPolicySnapshot = usePlaygroundStore((s) => s.setLastBuilderPolicySnapshot);
 
@@ -35,8 +36,10 @@ export function useBuilderSync() {
       return;
     }
 
-    // If policy is empty, keep starter card state
+    // Empty policy: clear canvas and snapshot so we don't show a stale tree with empty editor
     if (!policy.trim()) {
+      setStrategyTree(null);
+      setLastBuilderPolicySnapshot(null);
       if (builderSyncState !== 'synced') {
         setBuilderSyncState('synced');
       }
@@ -64,10 +67,9 @@ export function useBuilderSync() {
     const result = importFromSemanticTree(semanticTree);
 
     if (result.status === 'supported') {
-      // Successfully imported - update tree and sync state
-      setStrategyTree(result.tree);
+      // Canonical policy + tree + snapshot in one write (matches builder-driven edits)
+      updateStrategyTree(result.tree);
       setBuilderSyncState('synced');
-      setLastBuilderPolicySnapshot(policy);
     } else {
       // Unsupported construct - enter text-led mode but keep last tree visible
       setBuilderSyncState('text-led');
@@ -80,6 +82,7 @@ export function useBuilderSync() {
     lastBuilderPolicySnapshot,
     builderSyncState,
     setStrategyTree,
+    updateStrategyTree,
     setBuilderSyncState,
     setLastBuilderPolicySnapshot,
   ]);

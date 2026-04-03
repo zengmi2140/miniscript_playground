@@ -141,6 +141,7 @@ src/
   - 监听 policy、keyVariables、network、模拟条件变化。
   - 500ms debounce 后调用 `compile(...)`。
   - 用 generation counter 丢弃过期异步结果。
+  - Policy 为空或仅空白时同步清空 `compilationResult`、`semanticTree`、`spendingPaths`（避免右栏仍显示上一份策略）；`compile` 抛错时同样清空上述派生结果。
 
 ### 编译管线
 
@@ -178,7 +179,7 @@ src/
 
 - `src/lib/builder/tree-to-flow.ts`：将 `StrategyNode` 转为 React Flow 图；**递归 TB 布局**（子树宽度自下而上、节点自上而下，父在直接子行含未满员时的「+ 添加条件」上水平居中）；**`all`/`any` 分组满两个子节点后不渲染虚拟加号**。节点上叠加满足态；与 `src/lib/builder/types.ts`、`serialize.ts`、`node-ops.ts`、`path-highlighting.ts`、`status.ts` 等配合。
 - `src/components/builder/BuilderCanvas.tsx`：build 模式主画布；在画布容器内右上角挂载 `BuilderPopover`（选中节点编辑）与 `OperatorSwitchPopover`（`operatorSwitchNodeId` 对应的 Group 操作符切换），二者互斥；只读态由 `builderSyncState !== 'synced'` 控制；嵌套超过 5 层时显示黄色警告 toast；从 threshold 切到 AND/OR 且子节点被裁剪为两个时显示底部提示 toast。
-- `src/lib/hooks/useBuilderSync.ts`：在 `playgroundMode === 'build'` 时双向同步 Policy 文本与 `strategyTree`；挂载于 `PlaygroundClient.tsx`。
+- `src/lib/hooks/useBuilderSync.ts`：在 `playgroundMode === 'build'` 时双向同步 Policy 文本与 `strategyTree`；挂载于 `PlaygroundClient.tsx`。成功导入时用 `updateStrategyTree` 统一树与 Policy 字符串；Policy 为空时清空 `strategyTree` 与 `lastBuilderPolicySnapshot`。
 - `src/lib/playground/add-next-key-variable.ts`：`createNextKeyVariable` / `generateRandomPubkey`，供左栏 `KeyVariableManager` 与 `BuilderPopover`（签名编辑「新建角色」）共用同一套「下一个角色」逻辑；浮层内一键创建后会 `updateSignatureRole` + `updateStrategyTree`。
 - **操作符切换**：`changeGroupOp(tree, nodeId, newOp, newThreshold?)` 允许 Group 节点在 AND / OR / threshold 之间自由切换；切换到 threshold 时 k 值重置为 `min(2, childCount)`；切换到 AND/OR 且子节点多于 2 个时**裁剪为前两个子条件**。UI 入口为 Group 节点上的可点击操作符徽章；`OperatorSwitchPopover` 在 **画布右上角** 渲染（非节点下方），由 `operatorSwitchNodeId` 驱动，避免遮挡子树。
 - **二元 AND/OR 与 Policy**：`addChildNode` 对已满员的 `all`/`any` 父节点不再追加子节点；`serializeStrategyTree` 将 `all`/`any` 序列化为嵌套二元 `and`/`or`；`importFromSemanticTree` 将 N 叉语义 `and`/`or` 折叠为嵌套二叉 `StrategyNode`。
@@ -200,7 +201,7 @@ src/
 - `src/lib/utils/storage.ts`
   - localStorage key: `miniscript-lab-session`（会话含 `playgroundMode`）
 - `src/lib/utils/share.ts`
-  - 分享链接把 payload 编码进 `?s=`（`SharePayload` 可含 `playgroundMode`）。
+  - 分享链接把 payload 编码进 `?s=`（`SharePayload` 可含 `playgroundMode`）；`decodeSharePayload` 仅接受 `playgroundMode` 为 `scenario` 或 `build`，否则忽略该字段。
 
 ## 8. 关键 UI 结构
 
@@ -385,7 +386,7 @@ src/
 
 - `src/lib/stores/__tests__/playground-store-builder.test.ts`
 - `src/lib/builder/__tests__/`（含 `serialize`、`templates`、`from-semantic-tree` 等）
-- `src/lib/hooks/__tests__/useBuilderSync.test.ts`
+- `src/lib/hooks/__tests__/useBuilderSync.test.ts`、`src/lib/hooks/__tests__/useCompiler.test.ts`
 - `src/lib/utils/__tests__/storage-share-builder.test.ts`
 - `src/components/playground/__tests__/LeftPanelBuildEntry.test.tsx`
 - `src/components/builder/__tests__/`（如 `BuilderPopover`、`BuilderStarterCards`）
