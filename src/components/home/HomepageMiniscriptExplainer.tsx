@@ -19,11 +19,8 @@ export function HomepageMiniscriptExplainer() {
             {t('home.explainer.title')}
           </h2>
           {/* 把"是什么"的描述放在副标题里，用两段区分定义和背景 */}
-          <p className="mx-auto mb-3 max-w-2xl text-sm leading-relaxed text-text-secondary md:text-base">
+          <p className="mx-auto max-w-2xl text-sm leading-relaxed text-text-secondary md:text-base">
             {t('home.explainer.what.desc')}
-          </p>
-          <p className="mx-auto max-w-2xl text-sm leading-relaxed text-text-muted">
-            {t('home.explainer.subtitle')}
           </p>
         </div>
 
@@ -40,7 +37,7 @@ export function HomepageMiniscriptExplainer() {
                 {t('home.explainer.comparison.old.title')}
               </h3>
             </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto]">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto] md:items-center">
               <ul className="space-y-2">
                 <li className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
                   <span className="mt-0.5 text-red-400">•</span>
@@ -69,7 +66,7 @@ export function HomepageMiniscriptExplainer() {
                 {t('home.explainer.comparison.new.title')}
               </h3>
             </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto]">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto] md:items-center">
               <ul className="space-y-2">
                 <li className="flex items-start gap-2 text-xs leading-relaxed text-text-secondary">
                   <span className="mt-0.5 text-emerald-400">•</span>
