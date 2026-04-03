@@ -1,16 +1,37 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { FileCode2, AlertTriangle, ChevronDown, ChevronRight } from 'lucide-react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils/cn';
-import { PathMap } from '@/components/flow/PathMap';
-import { BuilderCanvas } from '@/components/builder/BuilderCanvas';
 import { PolicyEditor } from './PolicyEditor';
 import { ConditionToggles } from './ConditionToggles';
 import { TimeSlider } from './TimeSlider';
 import { StatusBanner } from './StatusBanner';
+
+// Skeleton shown while the heavy canvas chunks are downloading
+function CanvasSkeleton() {
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center bg-surface-base">
+      <div className="mb-3 h-8 w-8 animate-spin rounded-full border-2 border-border-subtle border-t-btc-500" />
+      <p className="text-sm text-text-muted">Loading...</p>
+    </div>
+  );
+}
+
+// Both canvases are client-only (ReactFlow, WASM, lucide icons all break SSR).
+// ssr: false is the definitive fix for the "Users is not defined" crash.
+const PathMap = dynamic(
+  () => import('@/components/flow/PathMap').then((m) => ({ default: m.PathMap })),
+  { ssr: false, loading: () => <CanvasSkeleton /> }
+);
+
+const BuilderCanvas = dynamic(
+  () => import('@/components/builder/BuilderCanvas').then((m) => ({ default: m.BuilderCanvas })),
+  { ssr: false, loading: () => <CanvasSkeleton /> }
+);
 
 function EditorSection() {
   const { t } = useI18n();
@@ -47,6 +68,18 @@ export function CenterPanel() {
   const semanticTree = usePlaygroundStore((s) => s.semanticTree);
   const playgroundMode = usePlaygroundStore((s) => s.playgroundMode);
   const strategyTree = usePlaygroundStore((s) => s.strategyTree);
+
+  // Layer 2: while the user browses scenario mode, silently prefetch
+  // the BuilderCanvas bundle so switching to build mode feels instant.
+  useEffect(() => {
+    if (playgroundMode !== 'build') {
+      const timer = setTimeout(() => {
+        import('@/components/builder/BuilderCanvas');
+        import('@/components/builder/BuilderNodes');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [playgroundMode]);
 
   // Build mode: show BuilderCanvas
   if (playgroundMode === 'build') {

@@ -1,4 +1,79 @@
 export const en: Record<string, string> = {
+  // Homepage
+  'home.hero.title': 'Bitcoin Spending Conditions, Made Clear',
+  'home.hero.subtitle': 'Understand Miniscript through real spending scenarios — from multisig to timelocks, from concepts to working scripts.',
+  'home.hero.desc': 'Behind every Bitcoin UTXO is a set of rules that determines who can spend it and when. Miniscript Lab helps you understand those rules.',
+  'home.hero.cta.primary': 'Browse Scenarios',
+  'home.hero.cta.secondary': 'Open Playground',
+  'home.hero.card.label': 'Spending Path Analysis',
+  'home.hero.card.path1': 'Alice + Bob sign',
+  'home.hero.card.path2': 'Alice + wait 30 days',
+  'home.hero.card.path3': 'Bob + wait 30 days',
+
+  // Miniscript Explainer section
+  'home.explainer.label': 'The Basics',
+  'home.explainer.title': 'What is Miniscript?',
+  'home.explainer.subtitle': 'Every Bitcoin UTXO is governed by a script that defines who can spend it and when. Miniscript is a structured language that makes those rules readable, composable, and formally verifiable.',
+
+  'home.explainer.what.title': 'What Miniscript Is',
+  'home.explainer.what.desc': 'Bitcoin Script is a low-level stack language that is hard to write correctly and even harder to audit. Miniscript is a structured subset of Bitcoin Script — it expresses spending conditions as composable policy trees, which tools automatically compile into on-chain scripts, eliminating hand-crafting errors.',
+
+  'home.explainer.why.title': 'Why It Matters',
+  'home.explainer.why.benefit1': 'Human-readable semantics: and(), or(), thresh() map directly to business logic anyone can understand',
+  'home.explainer.why.benefit2': 'Composable and auditable: conditions nest freely, tools auto-analyze all spending paths and minimal witnesses',
+  'home.explainer.why.benefit3': 'On-chain safe: compiled output is formally verified against all Bitcoin Script safety constraints',
+
+  'home.explainer.mission.label': 'Our Mission',
+  'home.explainer.mission.title': 'Why We Built This',
+  'home.explainer.mission.desc': 'Miniscript tooling is scattered, documentation is dense, and there is a steep learning curve between wallet developers and advanced users. Miniscript Lab brings compilation, path analysis, and visual building into one interactive platform — so anyone can truly understand Bitcoin spending conditions.',
+
+  'home.explainer.comparison.old.title': 'Raw Bitcoin Script (hard to read)',
+  'home.explainer.comparison.old.example': `OP_2\n<Alice> <Bob> <Carol>\nOP_3 OP_CHECKMULTISIG`,
+  'home.explainer.comparison.old.problem1': 'Opcode stacks are non-intuitive — experts must trace every byte to understand intent',
+  'home.explainer.comparison.old.problem2': 'Even slightly complex conditions are nearly impossible to hand-write correctly — one wrong byte locks funds forever',
+
+  'home.explainer.comparison.new.title': 'Miniscript Policy (readable at a glance)',
+  'home.explainer.comparison.new.example': `or(\n  thresh(2, pk(Alice), pk(Bob), pk(Carol)),\n  and(pk(Alice), older(52560))\n)`,
+  'home.explainer.comparison.new.advantage1': 'Structure is semantics: or / and / thresh map directly to intent',
+  'home.explainer.comparison.new.advantage2': 'Compiles to an optimal script automatically — tools verify safety, no low-level code needed',
+
+  'home.how.label': 'How It Works',
+  'home.how.title': 'Three Steps to Any Spending Policy',
+  'home.how.subtitle': 'From scenario selection to a complete on-chain script — with visual feedback every step of the way.',
+  'home.how.step1.title': 'Choose a Scenario',
+  'home.how.step1.desc': 'Start from a real use case: single key, team multisig, inheritance, 2FA backup recovery...',
+  'home.how.step1.example': '2-of-3 Multisig · Inheritance · 2FA',
+  'home.how.step2.title': 'Write or Build a Policy',
+  'home.how.step2.desc': 'Describe the rules in Policy language, or drag and drop condition nodes in the visual builder.',
+  'home.how.step2.example': 'thresh(2,pk(A),pk(B),older(4320))',
+  'home.how.step3.title': 'See All Spending Paths',
+  'home.how.step3.desc': 'Every valid spending path is listed. Toggle signatures, slide the time — watch paths light up.',
+  'home.how.step3.example': 'Path 1: Alice + Bob · Path 2: Timeout',
+  'home.how.step4.title': 'Get the On-Chain Script',
+  'home.how.step4.desc': 'Full output: Script, Descriptor, and P2WSH address ready for testnet deployment.',
+  'home.how.step4.example': 'OP_2 <Alice> <Bob> ... OP_CHECKMULTISIG',
+
+  'home.features.label': 'Core Features',
+  'home.features.title': 'More Than a Compiler',
+  'home.features.subtitle': 'Designed for genuine understanding, not just script generation.',
+  'home.features.f1.title': 'Real-Time Compilation',
+  'home.features.f1.desc': 'Type a Policy and instantly see the Miniscript, Script, Descriptor, and address. Syntax errors are pinpointed precisely.',
+  'home.features.f2.title': 'Visual Path Explorer',
+  'home.features.f2.desc': 'Every valid spending combination is shown as an interactive tree. Simulate signatures and timelocks to see which paths open.',
+  'home.features.f3.title': 'Visual Policy Builder',
+  'home.features.f3.desc': 'No code required. Click to add condition nodes, combine them on a canvas, and the system generates the Policy for you.',
+  'home.features.f4.title': 'One-Click Sharing',
+  'home.features.f4.desc': 'Bundle your current policy, key variables, and simulation state into a shareable link for easy collaboration.',
+
+  'home.scenarios.label': 'Scenario Library',
+  'home.scenarios.title': 'Start with a Real-World Scenario',
+  'home.scenarios.subtitle': 'Each scenario comes with an explanation, a complete Policy, and an interactive spending path diagram.',
+
+  'home.cta.title': 'Ready to Design Your Own?',
+  'home.cta.subtitle': 'Open the Playground to write any Policy freely, or use the visual builder to compose from scratch.',
+  'home.cta.playground': 'Open Blank Playground',
+  'home.cta.build': 'Build with Canvas',
+
   // Builder
   'builder.starter.title': 'Choose a Starting Template',
   'builder.starter.subtitle': 'Start with a common pattern, then customize your policy',
@@ -18,6 +93,21 @@ export const en: Record<string, string> = {
   'builder.node.any': 'Any One',
   'builder.node.addChild': 'Add Condition',
   'builder.node.delete': 'Delete',
+
+  // Operator switch
+  'builder.op.switch.title': 'Switch Operator',
+  'builder.op.all': 'All Required',
+  'builder.op.all.desc': 'All conditions must be satisfied (AND)',
+  'builder.op.any': 'Any One',
+  'builder.op.any.desc': 'Any one condition is enough (OR)',
+  'builder.op.threshold': 'Threshold',
+  'builder.op.threshold.desc': 'k-of-n: satisfy any k conditions',
+  'builder.op.threshold.k.label': 'Number required',
+  'builder.op.threshold.confirm': 'Confirm',
+
+  // Wrap
+  'builder.wrap.title': 'Wrap in New Group',
+  'builder.wrap.depthWarning': 'Deep nesting detected — consider keeping within 5 levels',
   'builder.node.wrap': 'Wrap as',
   'builder.node.undefinedRole': 'Undefined role',
   'builder.popover.selectRole': 'Select Role',

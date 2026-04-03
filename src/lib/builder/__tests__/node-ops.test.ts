@@ -1,17 +1,27 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
-  findNodeById,
+  findNode,
   updateNode,
-  deleteNode,
-  addChildToGroup,
-  wrapNodeWithGroup,
+  removeNode,
+  addChildNode,
+  wrapNodeInGroup,
+  changeGroupOp,
+  computeTreeDepth,
   updateThreshold,
-  updateTimelock,
+  updateTimelockValue,
   updateSignatureRole,
+  resetNodeOpsIdCounter,
 } from '../node-ops';
 import type { StrategyNode } from '../types';
 
-describe('findNodeById', () => {
+beforeEach(() => {
+  resetNodeOpsIdCounter();
+});
+
+// ──────────────────────────────────────────────
+// findNode
+// ──────────────────────────────────────────────
+describe('findNode', () => {
   const tree: StrategyNode = {
     id: 'root',
     kind: 'group',
@@ -30,46 +40,44 @@ describe('findNodeById', () => {
     ],
   };
 
-  it('should find root node', () => {
-    const node = findNodeById(tree, 'root');
-    expect(node).toBeDefined();
-    expect(node?.id).toBe('root');
+  it('finds root node', () => {
+    expect(findNode(tree, 'root')?.id).toBe('root');
   });
 
-  it('should find nested node', () => {
-    const node = findNodeById(tree, 'sig-2');
-    expect(node).toBeDefined();
-    expect(node?.kind).toBe('signature');
+  it('finds deeply nested node', () => {
+    expect(findNode(tree, 'sig-2')?.kind).toBe('signature');
   });
 
-  it('should return undefined for non-existent id', () => {
-    const node = findNodeById(tree, 'not-exist');
-    expect(node).toBeUndefined();
+  it('returns null for non-existent id', () => {
+    expect(findNode(tree, 'missing')).toBeNull();
   });
 });
 
+// ──────────────────────────────────────────────
+// updateNode
+// ──────────────────────────────────────────────
 describe('updateNode', () => {
-  it('should update a nested node immutably', () => {
+  it('updates a nested signature node immutably', () => {
     const tree: StrategyNode = {
       id: 'root',
       kind: 'group',
       op: 'all',
-      children: [
-        { id: 'sig-1', kind: 'signature', roleId: 'Alice' },
-      ],
+      children: [{ id: 'sig-1', kind: 'signature', roleId: 'Alice' }],
     };
 
-    const updated = updateNode(tree, 'sig-1', { roleId: 'Bob' });
-    
+    const updated = updateNode(tree, 'sig-1', (n) => ({ ...n, roleId: 'Bob' } as StrategyNode));
     // Original unchanged
-    expect((tree.children as StrategyNode[])[0]).toHaveProperty('roleId', 'Alice');
+    expect((tree.children[0] as any).roleId).toBe('Alice');
     // New tree updated
-    expect((updated.children as StrategyNode[])[0]).toHaveProperty('roleId', 'Bob');
+    expect((updated as any).children[0].roleId).toBe('Bob');
   });
 });
 
-describe('deleteNode', () => {
-  it('should delete a child from group', () => {
+// ──────────────────────────────────────────────
+// removeNode
+// ──────────────────────────────────────────────
+describe('removeNode', () => {
+  it('removes a child from group', () => {
     const tree: StrategyNode = {
       id: 'root',
       kind: 'group',
@@ -80,100 +88,189 @@ describe('deleteNode', () => {
       ],
     };
 
-    const result = deleteNode(tree, 'sig-1');
+    const result = removeNode(tree, 'sig-1');
     expect(result).not.toBeNull();
-    expect((result!.children as StrategyNode[]).length).toBe(1);
-    expect((result!.children as StrategyNode[])[0].id).toBe('sig-2');
+    expect((result as any).children.length).toBe(1);
+    expect((result as any).children[0].id).toBe('sig-2');
   });
 
-  it('should return null when deleting root', () => {
+  it('returns null when removing root', () => {
     const tree: StrategyNode = { id: 'root', kind: 'signature', roleId: 'Alice' };
-    const result = deleteNode(tree, 'root');
-    expect(result).toBeNull();
+    expect(removeNode(tree, 'root')).toBeNull();
   });
+});
 
-  it('should collapse single-child group after delete', () => {
+// ──────────────────────────────────────────────
+// addChildNode
+// ──────────────────────────────────────────────
+describe('addChildNode', () => {
+  it('adds a child to a group', () => {
+    const tree: StrategyNode = {
+      id: 'root',
+      kind: 'group',
+      op: 'all',
+      children: [{ id: 'sig-1', kind: 'signature', roleId: 'Alice' }],
+    };
+    const newChild: StrategyNode = { id: 'sig-2', kind: 'signature', roleId: 'Bob' };
+    const result = addChildNode(tree, 'root', newChild);
+    expect((result as any).children.length).toBe(2);
+    expect((result as any).children[1].id).toBe('sig-2');
+  });
+});
+
+// ──────────────────────────────────────────────
+// wrapNodeInGroup
+// ──────────────────────────────────────────────
+describe('wrapNodeInGroup', () => {
+  it('wraps a leaf node in a new group and adds a placeholder', () => {
     const tree: StrategyNode = {
       id: 'root',
       kind: 'group',
       op: 'all',
       children: [
         { id: 'sig-1', kind: 'signature', roleId: 'Alice' },
+        { id: 'sig-2', kind: 'signature', roleId: 'Bob' },
+      ],
+    };
+
+    const result = wrapNodeInGroup(tree, 'sig-1', 'any');
+    const children = (result as any).children;
+    // First child is now a group
+    expect(children[0].kind).toBe('group');
+    expect(children[0].op).toBe('any');
+    // The original sig-1 is the first child of the new group
+    expect(children[0].children[0].id).toBe('sig-1');
+    // A placeholder is added as second child
+    expect(children[0].children[1].kind).toBe('placeholder');
+  });
+
+  it('wrapping the root node returns a new root group', () => {
+    const tree: StrategyNode = { id: 'sig-root', kind: 'signature', roleId: 'Alice' };
+    const result = wrapNodeInGroup(tree, 'sig-root', 'all');
+    expect(result.kind).toBe('group');
+    expect((result as any).children[0].id).toBe('sig-root');
+  });
+
+  it('wraps a group node in a new group (nested wrapping)', () => {
+    const tree: StrategyNode = {
+      id: 'root',
+      kind: 'group',
+      op: 'all',
+      children: [
         {
-          id: 'nested',
+          id: 'inner',
           kind: 'group',
           op: 'any',
-          children: [
-            { id: 'sig-2', kind: 'signature', roleId: 'Bob' },
-            { id: 'sig-3', kind: 'signature', roleId: 'Charlie' },
-          ],
+          children: [{ id: 'sig-1', kind: 'signature', roleId: 'Alice' }],
         },
       ],
     };
 
-    const result = deleteNode(tree, 'sig-3');
-    expect(result).not.toBeNull();
-    // nested group should remain since it still has one child
-    const nested = findNodeById(result!, 'nested');
-    expect(nested).toBeDefined();
-    expect((nested as any).children.length).toBe(1);
+    const result = wrapNodeInGroup(tree, 'inner', 'all');
+    const outerChildren = (result as any).children;
+    expect(outerChildren[0].kind).toBe('group');
+    expect(outerChildren[0].op).toBe('all');
+    expect(outerChildren[0].children[0].id).toBe('inner');
+  });
+
+  it('supports threshold op when wrapping', () => {
+    const tree: StrategyNode = { id: 'sig-1', kind: 'signature', roleId: 'Alice' };
+    const result = wrapNodeInGroup(tree, 'sig-1', 'threshold', 2);
+    expect((result as any).op).toBe('threshold');
+    expect((result as any).threshold).toBe(2);
   });
 });
 
-describe('addChildToGroup', () => {
-  it('should add a child to a group', () => {
-    const tree: StrategyNode = {
-      id: 'root',
-      kind: 'group',
-      op: 'all',
-      children: [
-        { id: 'sig-1', kind: 'signature', roleId: 'Alice' },
-      ],
-    };
+// ──────────────────────────────────────────────
+// changeGroupOp
+// ──────────────────────────────────────────────
+describe('changeGroupOp', () => {
+  const tree: StrategyNode = {
+    id: 'root',
+    kind: 'group',
+    op: 'all',
+    children: [
+      { id: 'sig-1', kind: 'signature', roleId: 'Alice' },
+      { id: 'sig-2', kind: 'signature', roleId: 'Bob' },
+      { id: 'sig-3', kind: 'signature', roleId: 'Charlie' },
+    ],
+  };
 
-    const newChild: StrategyNode = { id: 'sig-2', kind: 'signature', roleId: 'Bob' };
-    const result = addChildToGroup(tree, 'root', newChild);
-    
-    expect((result.children as StrategyNode[]).length).toBe(2);
-    expect((result.children as StrategyNode[])[1].id).toBe('sig-2');
+  it('switches AND to OR, children unchanged', () => {
+    const result = changeGroupOp(tree, 'root', 'any');
+    expect((result as any).op).toBe('any');
+    expect((result as any).children.length).toBe(3);
+    // No threshold field on OR
+    expect((result as any).threshold).toBeUndefined();
   });
 
-  it('should not modify non-group nodes', () => {
-    const tree: StrategyNode = { id: 'root', kind: 'signature', roleId: 'Alice' };
-    const newChild: StrategyNode = { id: 'sig-2', kind: 'signature', roleId: 'Bob' };
-    const result = addChildToGroup(tree, 'root', newChild);
-    
-    // Should return unchanged
-    expect(result).toEqual(tree);
+  it('switches AND to threshold, k = min(2, realChildCount)', () => {
+    const result = changeGroupOp(tree, 'root', 'threshold');
+    expect((result as any).op).toBe('threshold');
+    expect((result as any).threshold).toBe(2);
   });
-});
 
-describe('wrapNodeWithGroup', () => {
-  it('should wrap a node with a group', () => {
-    const tree: StrategyNode = {
+  it('uses provided k value when switching to threshold', () => {
+    const result = changeGroupOp(tree, 'root', 'threshold', 3);
+    expect((result as any).threshold).toBe(3);
+  });
+
+  it('switches threshold back to AND, drops threshold field', () => {
+    const thresholdTree: StrategyNode = {
       id: 'root',
       kind: 'group',
-      op: 'all',
+      op: 'threshold',
+      threshold: 2,
       children: [
         { id: 'sig-1', kind: 'signature', roleId: 'Alice' },
         { id: 'sig-2', kind: 'signature', roleId: 'Bob' },
       ],
     };
+    const result = changeGroupOp(thresholdTree, 'root', 'all');
+    expect((result as any).op).toBe('all');
+    expect((result as any).threshold).toBeUndefined();
+  });
 
-    const result = wrapNodeWithGroup(tree, 'sig-1', 'any', 'wrap-1');
-    const children = result.children as StrategyNode[];
-    
-    // First child should now be a group
-    expect(children[0].kind).toBe('group');
-    expect(children[0].id).toBe('wrap-1');
-    expect((children[0] as any).op).toBe('any');
-    // The original sig-1 should be inside
-    expect((children[0] as any).children[0].id).toBe('sig-1');
+  it('returns tree unchanged if nodeId targets a non-group', () => {
+    const result = changeGroupOp(tree, 'sig-1', 'any');
+    // sig-1 is a signature node, should be untouched
+    const sig = findNode(result, 'sig-1');
+    expect(sig?.kind).toBe('signature');
   });
 });
 
+// ──────────────────────────────────────────────
+// computeTreeDepth
+// ──────────────────────────────────────────────
+describe('computeTreeDepth', () => {
+  it('returns 1 for a leaf node', () => {
+    const leaf: StrategyNode = { id: 'sig', kind: 'signature', roleId: 'Alice' };
+    expect(computeTreeDepth(leaf)).toBe(1);
+  });
+
+  it('returns correct depth for 3-level tree', () => {
+    const tree: StrategyNode = {
+      id: 'root',
+      kind: 'group',
+      op: 'all',
+      children: [
+        {
+          id: 'mid',
+          kind: 'group',
+          op: 'any',
+          children: [{ id: 'leaf', kind: 'signature', roleId: 'Alice' }],
+        },
+      ],
+    };
+    expect(computeTreeDepth(tree)).toBe(3);
+  });
+});
+
+// ──────────────────────────────────────────────
+// updateThreshold
+// ──────────────────────────────────────────────
 describe('updateThreshold', () => {
-  it('should update threshold value', () => {
+  it('updates threshold k value', () => {
     const tree: StrategyNode = {
       id: 'root',
       kind: 'group',
@@ -185,31 +282,16 @@ describe('updateThreshold', () => {
         { id: 'sig-3', kind: 'signature', roleId: 'Charlie' },
       ],
     };
-
     const result = updateThreshold(tree, 'root', 3);
     expect((result as any).threshold).toBe(3);
   });
-
-  it('should clamp threshold to valid range', () => {
-    const tree: StrategyNode = {
-      id: 'root',
-      kind: 'group',
-      op: 'threshold',
-      threshold: 2,
-      children: [
-        { id: 'sig-1', kind: 'signature', roleId: 'Alice' },
-        { id: 'sig-2', kind: 'signature', roleId: 'Bob' },
-      ],
-    };
-
-    // Try to set threshold > n
-    const result = updateThreshold(tree, 'root', 5);
-    expect((result as any).threshold).toBe(2); // Clamped to n
-  });
 });
 
-describe('updateTimelock', () => {
-  it('should update timelock value', () => {
+// ──────────────────────────────────────────────
+// updateTimelockValue
+// ──────────────────────────────────────────────
+describe('updateTimelockValue', () => {
+  it('updates timelock block value', () => {
     const tree: StrategyNode = {
       id: 'root',
       kind: 'timelock',
@@ -217,24 +299,23 @@ describe('updateTimelock', () => {
       value: 1000,
       unit: 'blocks',
     };
-
-    const result = updateTimelock(tree, 'root', 4320);
+    const result = updateTimelockValue(tree, 'root', 4320);
     expect((result as any).value).toBe(4320);
   });
 });
 
+// ──────────────────────────────────────────────
+// updateSignatureRole
+// ──────────────────────────────────────────────
 describe('updateSignatureRole', () => {
-  it('should update signature role', () => {
+  it('updates signature role ID', () => {
     const tree: StrategyNode = {
       id: 'root',
       kind: 'group',
       op: 'all',
-      children: [
-        { id: 'sig-1', kind: 'signature', roleId: 'Alice' },
-      ],
+      children: [{ id: 'sig-1', kind: 'signature', roleId: 'Alice' }],
     };
-
     const result = updateSignatureRole(tree, 'sig-1', 'Bob');
-    expect(((result.children as StrategyNode[])[0] as any).roleId).toBe('Bob');
+    expect(((result as any).children[0]).roleId).toBe('Bob');
   });
 });

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useEffect, useState } from 'react';
-import { X, Plus, Trash2, Key, Clock, Users, AlertTriangle } from 'lucide-react';
+import { X, Plus, Trash2, Key, Clock, Users, AlertTriangle, Layers } from 'lucide-react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils/cn';
@@ -36,6 +36,7 @@ export function BuilderPopover() {
   const addKeyVariable = usePlaygroundStore((s) => s.addKeyVariable);
   const setKeyVariables = usePlaygroundStore((s) => s.setKeyVariables);
   const setStrategyTree = usePlaygroundStore((s) => s.setStrategyTree);
+  const wrapNode = usePlaygroundStore((s) => s.wrapNode);
 
   const [confirmDeleteTarget, setConfirmDeleteTarget] = useState<string | null>(null);
 
@@ -204,6 +205,16 @@ export function BuilderPopover() {
     [strategyTree, targetNodeId, updateStrategyTree]
   );
 
+  // ============ Wrap ============
+  const handleWrap = useCallback(
+    (wrapperOp: 'all' | 'any' | 'threshold') => {
+      if (!targetNodeId) return;
+      wrapNode(targetNodeId, wrapperOp);
+      handleClose();
+    },
+    [targetNodeId, wrapNode, handleClose]
+  );
+
   // ============ Delete ============
   const handleDeleteRequest = useCallback((nodeId: string) => {
     // Check if this is the root node
@@ -254,6 +265,40 @@ export function BuilderPopover() {
   }, [selectedBuilderNodeId, handleClose]);
 
   if (!mode) return null;
+
+  // Reusable wrap section rendered at bottom of leaf and group popovers
+  function WrapSection() {
+    return (
+      <div className="mt-3 pt-3 border-t border-border-subtle">
+        <div className="flex items-center gap-1.5 mb-2">
+          <Layers className="h-3.5 w-3.5 text-text-muted" />
+          <span className="text-xs font-medium text-text-muted">
+            {t('builder.wrap.title') || '组合成组'}
+          </span>
+        </div>
+        <div className="flex gap-1.5">
+          <button
+            onClick={() => handleWrap('all')}
+            className="flex-1 rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-xs text-text-secondary hover:border-btc-500 hover:text-btc-500 transition-colors"
+          >
+            {t('builder.op.all') || '都需要'}
+          </button>
+          <button
+            onClick={() => handleWrap('any')}
+            className="flex-1 rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-xs text-text-secondary hover:border-btc-500 hover:text-btc-500 transition-colors"
+          >
+            {t('builder.op.any') || '任选一'}
+          </button>
+          <button
+            onClick={() => handleWrap('threshold')}
+            className="flex-1 rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-xs text-text-secondary hover:border-btc-500 hover:text-btc-500 transition-colors"
+          >
+            {t('builder.op.threshold') || '门限'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -408,7 +453,9 @@ export function BuilderPopover() {
             {t('builder.popover.addRole')}
           </button>
 
-          <div className="mt-4 pt-3 border-t border-border-subtle">
+          <WrapSection />
+
+          <div className="mt-3 pt-3 border-t border-border-subtle">
             <button
               onClick={() => handleDeleteRequest(targetNodeId!)}
               className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-400"
@@ -461,7 +508,9 @@ export function BuilderPopover() {
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-border-subtle">
+          <WrapSection />
+
+          <div className="mt-3 pt-3 border-t border-border-subtle">
             <button
               onClick={() => handleDeleteRequest(targetNodeId!)}
               className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-400"
@@ -495,7 +544,9 @@ export function BuilderPopover() {
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-border-subtle">
+          <WrapSection />
+
+          <div className="mt-3 pt-3 border-t border-border-subtle">
             <button
               onClick={() => handleDeleteRequest(targetNodeId!)}
               className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-400"
@@ -513,8 +564,10 @@ export function BuilderPopover() {
           <p className="text-xs text-text-muted">
             {selectedNode.op === 'all' ? '所有子条件都必须满足' : '只需满足其中一个子条件'}
           </p>
-          
-          <div className="mt-4 pt-3 border-t border-border-subtle">
+
+          <WrapSection />
+
+          <div className="mt-3 pt-3 border-t border-border-subtle">
             <button
               onClick={() => handleDeleteRequest(targetNodeId!)}
               className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-400"
