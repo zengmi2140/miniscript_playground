@@ -86,7 +86,11 @@ export const BuilderRootNode = memo(function BuilderRootNode({ data }: NodeProps
   if (isGroup) {
     if (data.op === 'all') label = t('builder.node.all');
     else if (data.op === 'any') label = t('builder.node.any');
-    else if (data.op === 'threshold') label = `${data.threshold}-of-${data.childCount}`;
+    else if (data.op === 'threshold') {
+      const n = data.childCount ?? 0;
+      const k = Math.min(Math.max(1, data.threshold ?? 1), Math.max(1, n));
+      label = `${k}-of-${n}`;
+    }
   }
 
   const handleNodeClick = useCallback(() => {
@@ -138,7 +142,11 @@ export const BuilderOperatorNode = memo(function BuilderOperatorNode({ data }: N
   if (data.kind === 'group') {
     if (data.op === 'all') label = t('builder.node.all');
     else if (data.op === 'any') label = t('builder.node.any');
-    else if (data.op === 'threshold') label = `${data.threshold}-of-${data.childCount}`;
+    else if (data.op === 'threshold') {
+      const n = data.childCount ?? 0;
+      const k = Math.min(Math.max(1, data.threshold ?? 1), Math.max(1, n));
+      label = `${k}-of-${n}`;
+    }
   }
 
   const handleNodeClick = useCallback(() => {
@@ -247,11 +255,14 @@ export const BuilderAddChildNode = memo(function BuilderAddChildNode({ data }: N
   const setSelectedBuilderNodeId = usePlaygroundStore((s) => s.setSelectedBuilderNodeId);
 
   const handleClick = useCallback(() => {
-    if (!data.isReadOnly) {
-      // For add child nodes, we pass the parent group ID
+    if (data.isReadOnly) return;
+    const slot = data.addChildSlotKind;
+    if (slot === 'virtual') {
       setSelectedBuilderNodeId(`add_child:${data.strategyNodeId}`);
+    } else if (slot === 'treePlaceholder') {
+      setSelectedBuilderNodeId(data.strategyNodeId);
     }
-  }, [data.isReadOnly, data.strategyNodeId, setSelectedBuilderNodeId]);
+  }, [data.isReadOnly, data.strategyNodeId, data.addChildSlotKind, setSelectedBuilderNodeId]);
 
   return (
     <motion.div

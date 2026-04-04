@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { importFromSemanticTree } from '@/lib/builder/from-semantic-tree';
+import { createRootPlaceholderTree } from '@/lib/builder/root-placeholder';
 
 /**
  * useBuilderSync
@@ -36,18 +37,20 @@ export function useBuilderSync() {
       return;
     }
 
-    // Empty policy: clear canvas and snapshot so we don't show a stale tree with empty editor
+    // Builder-driven updates set policy === lastBuilderPolicySnapshot (including both '' when the
+    // tree is an empty and/or group — serializeStrategyTree returns ''). Must run before the empty
+    // policy reset below, otherwise we'd clobber the tree back to the root placeholder.
+    if (policy === lastBuilderPolicySnapshot) {
+      return;
+    }
+
+    // Empty policy: reset to root placeholder (same as enterBuildMode scratch), not a stale tree
     if (!policy.trim()) {
-      setStrategyTree(null);
+      setStrategyTree(createRootPlaceholderTree());
       setLastBuilderPolicySnapshot(null);
       if (builderSyncState !== 'synced') {
         setBuilderSyncState('synced');
       }
-      return;
-    }
-
-    // If policy matches our last snapshot, we're the source - no reverse sync needed
-    if (policy === lastBuilderPolicySnapshot) {
       return;
     }
 

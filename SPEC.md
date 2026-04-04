@@ -395,7 +395,7 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 **区域 A: 场景选择器**
 
 - 场景列表（卡���形式，点击切换场景）
-- 第一个位置为 **「自己动手」** 入口卡片（可点击；`playgroundMode === 'build'` 时呈激活态）。点击后进入 **可视化构建（build）模式**（`playgroundMode: 'build'`）：清空当前场景-derived 状态，进入空白构建工作区（根占位节点 + 可选起手模板），**不继承**用户此前在场景模式下的 Policy / ��色变量 / 编译结果。从场景模式切换到普通预设场景仍通过下方场景卡片完成（`loadScenario` 会回到 `scenario` 模式）。
+- 第一个位置为 **「自己动手」** 入口卡片（可点击；`playgroundMode === 'build'` 时呈激活态）。点击后进入 **可视化构建（build）模式**（`playgroundMode: 'build'`）：清空当前场景-derived 状态，中央画布以根占位节点（虚线「选择策略类型」）为首屏；用户点击根占位后在右侧浮窗选择策略类型（单签、门限、AND、OR），**不继承**用户此前在场景模式下的 Policy / 角色变量 / 编译结果。从场景模式切换到普通预设场景仍通过下方场景卡片完成（`loadScenario` 会回到 `scenario` 模式）。
 - 通过分享链接 `?s=` 或本地会话恢复的 **build** 会话可携带已有 Policy，与「主动点自己动手」的清空规则不同；详见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 - 切换场景（非「自己动手」）时自动填充 Policy 和 Key 变量
 
@@ -424,10 +424,10 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 - 语法高亮（见 §6.5）
 - 编辑后 500ms 防抖自动编译
 - 编���错误在编辑器下方显示（红色文字 + 友好中文描述）
-- 工具栏：[格式化] [清空] [复制] [分享🔗]
+- 工具栏：[格式化] [清空] [复制] [分享🔗]（Build 模式与 Scenario 模式一致，无额外按钮）
 - **Build 模式**下编辑器与可视化画布双向同步：画布操作更新 Policy；用户编辑 Policy 时，若结构仍在构建器支持范围内则回写 `strategyTree`，否则进入「文本主导」状态（`builderSyncState: 'text-led'`），不强行破坏画布。同步逻辑见 `useBuilderSync`（`src/lib/hooks/useBuilderSync.ts`）。
   - 成功从语义树回写时通过 `updateStrategyTree` 写入，编辑器中的 Policy 与 `serializeStrategyTree(strategyTree)` 对齐为规范串。
-  - Policy 为空（或仅空白）时：`useCompiler` 清空编译结果与语义树/路径；`useBuilderSync` 将 `strategyTree` 与 `lastBuilderPolicySnapshot` 置空，回到起手卡片态。
+  - Policy 为空（或仅空白）时：`useCompiler` 清空编译结果与语义树/路径；`useBuilderSync` 将 `strategyTree` 重置为根占位节点，并将 `lastBuilderPolicySnapshot` 置空，与「主动进入 build」的空白 scratch 一致。
 
 **主画布（按 `playgroundMode` 二选一）**
 
@@ -475,6 +475,13 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 - 签名节点编辑浮层（`BuilderPopover`）固定在 **画布区域右上角**（`absolute right-4 top-4`）；其中的「新建角色」与左栏 **角色变量** 的「添加」共用 `src/lib/playground/add-next-key-variable.ts` 中的「下一个角色」规则（优先 `Alice`…`Frank`，否则 `Key{n}`，测试公钥来自 `DEFAULT_TEST_KEYS` 或随机）；**一键**创建角色并将 **当前签名节点** 绑定到该角色（无需在浮层内输入名称）。
 - **操作符切换**：Group 节点（根节点和嵌套 Group）上的操作符标签（都需要 / 任选一 / k-of-n）可点击，在 **画布区域右上角** 打开 `OperatorSwitchPopover`（与 `BuilderPopover` 同一定位槽位），允许在 AND / OR / threshold 之间自由切换；切换到 threshold 时 k 值重置为 `min(2, realChildCount)`。若当前子节点多于 2 个且目标为 AND/OR，`changeGroupOp` 会裁剪为前两个子条件（见上条）。Store 用 `operatorSwitchNodeId` 与 `selectedBuilderNodeId` **互斥**，避免两块浮层同时遮挡画布。
 - **节点包裹**：所有叶子节点（签名、时间锁）和 Group 节点的编辑浮层底部有「包裹进新组」三按钮（都需要 / 任选一 / 门限），点击后当前节点被包裹进一个新的父级 Group，原节点成为第一个子节点，同时添加一个 placeholder 子槽。
+- **门限 k、序列化与子占位（实现约定）**：
+  - `node-ops.ts` 提供 `countRealChildren`、`defaultThresholdK`、`clampThresholdK`：`changeGroupOp` 切到 threshold 时默认 k 为 `min(2, max(1, realChildCount))`，显式传入的 k 会钳制到不超过当前非占位直接子节点数；`wrapNodeInGroup` 包裹为门限时按「包裹后仅 1 个真实子节点」设定默认 k（通常为 1），避免树状态出现 k 大于可序列化子策略数。
+  - `serializeStrategyTree` 输出 `thresh(k,…)` 前将 k 钳制到非占位子策略个数（防御性；正常路径由上述树操作保证合法）。
+  - **追加**与 **填写占位**：向父 Group 末尾追加子节点使用 `addChildNode` / `addSignatureChild` 等；**替换**树内 `placeholderType: 'child'` 的槽位使用 `convertChildPlaceholder`；根占位「选择策略类型」仍使用 `convertRootPlaceholder`。
+  - 画布 Flow 数据用 `addChildSlotKind` 区分槽位：`virtual` 表示虚拟「+ 添加条件」（选中后 `selectedBuilderNodeId = add_child:{父 Group id}`）；`treePlaceholder` 表示树内子占位（选中后为占位节点自身 id）。**门限分组**若已存在子 placeholder 槽，则**不再**渲染额外的虚拟「+」，避免与「填写子槽」重复。
+  - 「添加条件」面板 UI 抽为 `AddChildOptions`（`src/components/builder/AddChildOptions.tsx`），与虚拟添加、子占位填写共用同一套按钮；`BuilderPopover` 内 `handleAddChildType` 根据是否选中子占位在 `convertChildPlaceholder` 与 `addChildNode` 系之间分支。
+  - `OperatorSwitchPopover` 的「真实子节点数」与 `countRealChildren` 一致（不含 placeholder）。`BuilderCanvas` 调用 `builderTreeToFlow` 时传入 `labels.addConditionLine`（例如 `+` 与 `builder.node.addChild` 译文拼接），使画布上虚拟加号与子占位标签与 i18n 一致。
 - **嵌套深度检测**：包裹操作后若嵌套深度超过 5 层，画布底部显示黄色警告 toast（4 秒自动消失，可手动关闭），提示用户保持在 5 层以内。
 - 更完整的产品约束与不在 MVP 范围内的条目见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 
@@ -1382,7 +1389,7 @@ const GLOSSARY: Record<string, { zh: string; en: string; explain_zh: string; exp
 | UI 组件      | shadcn/ui                         | latest               | 按需引入，不是完整库                                                  |
 | 编辑器        | CodeMirror 6                      | latest               | @codemirror/state + @codemirror/view + @codemirror/language |
 | 路径图        | @xyflow/react (React Flow v12)    | latest               | 节点/边交互                                                      |
-| 图布局        | dagre + 自实现递归 TB             | latest / 内置        | **scenario** 路径图：`src/lib/flow/tree-to-flow.ts` 用 Dagre TB；**build** 策略树：`src/lib/builder/tree-to-flow.ts` 用递归 TB（父相对子行居中，含 add-child 占位） |
+| 图布局        | dagre + 自实现递归 TB             | latest / 内置        | **scenario** 路径图：`src/lib/flow/tree-to-flow.ts` 用 Dagre TB；**build** 策略树：`src/lib/builder/tree-to-flow.ts` 用递归 TB（父相对子行居中；`all`/`any` 未满员时有虚拟「+」；门限且已有子 placeholder 时不重复虚拟「+」；`addChildSlotKind` + 可选 `labels`） |
 | 动画         | framer-motion                     | latest               | 状态过渡动画                                                      |
 | 状态管理       | zustand                           | latest               | 轻量 store                                                    |
 | 图标         | lucide-react                      | latest               | 统一图标库                                                       |
@@ -1448,7 +1455,7 @@ miniscript-lab/
 │   │   ├── builder/                         # Build 模式：可视化策略树画布
 │   │   │   ├── BuilderCanvas.tsx
 │   │   │   ├── BuilderNodes.tsx / BuilderEdge.tsx
-│   │   │   ├── BuilderPopover.tsx / OperatorSwitchPopover.tsx / BuilderSyncBanner.tsx
+│   │   │   ├── BuilderPopover.tsx / AddChildOptions.tsx / OperatorSwitchPopover.tsx / BuilderSyncBanner.tsx
 │   │   │   └── （布局：递归 TB，父相对子行居中）lib/builder/tree-to-flow.ts
 │   │   │
 │   │   ├── results/                         # 右栏技术 Tab 内容（由 RightPanel 组合）

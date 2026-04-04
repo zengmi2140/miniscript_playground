@@ -10,6 +10,7 @@ const mockUpdateStrategyTree = vi.fn();
 const mockAddKeyVariable = vi.fn();
 const mockSetSelectedBuilderNodeId = vi.fn();
 const mockSetKeyVariables = vi.fn();
+const mockWrapNode = vi.fn();
 const mockStore = vi.hoisted(() => ({
   strategyTree: {
     id: 'root',
@@ -34,6 +35,7 @@ vi.mock('@/lib/stores/playground-store', () => ({
       addKeyVariable: mockAddKeyVariable,
       setSelectedBuilderNodeId: mockSetSelectedBuilderNodeId,
       setKeyVariables: mockSetKeyVariables,
+      wrapNode: mockWrapNode,
     }),
 }));
 
@@ -93,6 +95,40 @@ describe('BuilderPopover', () => {
         expect(sig?.kind).toBe('signature');
         if (sig?.kind === 'signature') expect(sig.roleId).toBe('Charlie');
       }
+    });
+  });
+
+  describe('child placeholder (replace, not append)', () => {
+    it('replaces placeholder with signature via convertChildPlaceholder — still two direct children', async () => {
+      const user = userEvent.setup();
+      mockStore.strategyTree = {
+        id: 'root',
+        kind: 'group',
+        op: 'threshold',
+        threshold: 1,
+        children: [
+          { id: 'sig-1', kind: 'signature', roleId: 'Alice' },
+          { id: 'ph-1', kind: 'placeholder', placeholderType: 'child' },
+        ],
+      };
+      mockStore.selectedBuilderNodeId = 'ph-1';
+
+      render(
+        <TestWrapper>
+          <BuilderPopover />
+        </TestWrapper>
+      );
+
+      await user.click(screen.getByRole('button', { name: '添加签名' }));
+
+      expect(mockUpdateStrategyTree).toHaveBeenCalledTimes(1);
+      const updated = mockUpdateStrategyTree.mock.calls[0]![0] as StrategyNode;
+      expect(updated.kind).toBe('group');
+      if (updated.kind !== 'group') return;
+      expect(updated.children).toHaveLength(2);
+      expect(updated.children.some((c) => c.id === 'ph-1')).toBe(false);
+      expect(updated.children.every((c) => c.kind !== 'placeholder')).toBe(true);
+      expect(updated.children.filter((c) => c.kind === 'signature')).toHaveLength(2);
     });
   });
 

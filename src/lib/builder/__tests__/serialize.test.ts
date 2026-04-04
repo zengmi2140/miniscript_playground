@@ -3,7 +3,7 @@ import { serializeStrategyTree } from '../serialize';
 import {
   singleSigTemplate,
   sharedControlTemplate,
-  recoveryTemplate,
+  nestedRecoveryLikeTree,
   resetNodeIdCounter,
 } from '../templates';
 import type { StrategyNode } from '../types';
@@ -24,11 +24,9 @@ describe('serializeStrategyTree', () => {
     expect(serializeStrategyTree(template.tree)).toBe('thresh(2,pk(Alice),pk(Bob),pk(Charlie))');
   });
 
-  it('serializes recovery template', () => {
-    const template = recoveryTemplate();
-    expect(serializeStrategyTree(template.tree)).toBe(
-      'and(pk(User),or(pk(Service),older(4320)))'
-    );
+  it('serializes nested and/or/timelock fixture', () => {
+    const tree = nestedRecoveryLikeTree();
+    expect(serializeStrategyTree(tree)).toBe('and(pk(User),or(pk(Service),older(4320)))');
   });
 
   it('serializes relative timelock', () => {
@@ -144,6 +142,18 @@ describe('serializeStrategyTree', () => {
       children: [{ id: '1', kind: 'signature', roleId: 'Solo' }],
     };
     expect(serializeStrategyTree(node)).toBe('pk(Solo)');
+  });
+
+
+  it('clamps threshold k when it exceeds serialized child count', () => {
+    const node: StrategyNode = {
+      id: 'root',
+      kind: 'group',
+      op: 'threshold',
+      threshold: 2,
+      children: [{ id: '1', kind: 'signature', roleId: 'A' }],
+    };
+    expect(serializeStrategyTree(node)).toBe('thresh(1,pk(A))');
   });
 
   it('handles empty groups', () => {
