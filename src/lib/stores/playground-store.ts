@@ -13,10 +13,10 @@ import type {
 } from '@/lib/engine/types';
 import type { Scenario } from '@/lib/engine/types';
 import { SCENARIOS } from '@/lib/scenarios/data';
-import type { BuilderSyncState, BuildStarterId, StrategyNode, StrategyPlaceholderNode } from '@/lib/builder/types';
-import { getTemplate } from '@/lib/builder/templates';
+import type { BuilderSyncState, StrategyNode, StrategyPlaceholderNode } from '@/lib/builder/types';
 import { serializeStrategyTree } from '@/lib/builder/serialize';
 import { changeGroupOp, wrapNodeInGroup, computeTreeDepth, findNode } from '@/lib/builder/node-ops';
+import { createRootPlaceholderTree } from '@/lib/builder/root-placeholder';
 
 interface PlaygroundActions {
   setPlaygroundMode: (mode: PlaygroundMode) => void;
@@ -55,7 +55,6 @@ interface PlaygroundActions {
   setOperatorSwitchNodeId: (id: string | null) => void;
   setLastBuilderPolicySnapshot: (policy: string | null) => void;
   enterBuildMode: () => void;
-  applyBuildStarter: (starterId: BuildStarterId) => void;
   updateStrategyTree: (tree: StrategyNode) => void;
   switchNodeOperator: (nodeId: string, newOp: 'all' | 'any' | 'threshold', newThreshold?: number) => void;
   wrapNode: (nodeId: string, wrapperOp: 'all' | 'any' | 'threshold', wrapperThreshold?: number) => void;
@@ -247,18 +246,11 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
   setLastBuilderPolicySnapshot: (lastBuilderPolicySnapshot) => set({ lastBuilderPolicySnapshot }),
 
   enterBuildMode: () => {
-    // Create initial placeholder root node
-    const initialTree: StrategyNode = {
-      id: 'root_placeholder',
-      kind: 'placeholder',
-      placeholderType: 'root',
-    };
-
     set({
       playgroundMode: 'build',
       activeScenarioId: null,
       policy: '',
-      strategyTree: initialTree,
+      strategyTree: createRootPlaceholderTree(),
       keyVariables: [],
       compilationResult: null,
       compilationError: null,
@@ -272,22 +264,6 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
       operatorSwitchNodeId: null,
       builderSyncState: 'synced',
       lastBuilderPolicySnapshot: null,
-      builderBinaryTrimNotice: false,
-    });
-  },
-
-  applyBuildStarter: (starterId) => {
-    const template = getTemplate(starterId);
-    const policy = serializeStrategyTree(template.tree);
-
-    set({
-      strategyTree: template.tree,
-      policy,
-      keyVariables: template.keyVariables,
-      builderSyncState: 'synced',
-      lastBuilderPolicySnapshot: policy,
-      selectedBuilderNodeId: null,
-      operatorSwitchNodeId: null,
       builderBinaryTrimNotice: false,
     });
   },

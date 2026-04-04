@@ -1,11 +1,10 @@
 /**
- * Builder Templates
+ * Builder test fixtures
  *
- * Provides starter templates for the visual builder.
- * Each template returns a tree, policy string, and key variables.
+ * Factory helpers for unit tests (serialize, tree-to-flow, store tests).
  */
 
-import type { BuildStarterId, BuilderTemplate, StrategyNode } from './types';
+import type { BuilderTemplate, StrategyNode } from './types';
 
 // Valid secp256k1 test public keys (from DEFAULT_TEST_KEYS)
 const TEST_PUBLIC_KEYS = [
@@ -58,8 +57,7 @@ export function singleSigTemplate(): BuilderTemplate {
 }
 
 /**
- * 多人共管起手模板：2-of-3，Policy 字符串为
- * `thresh(2,pk(Alice),pk(Bob),pk(Charlie))`（与 serializeStrategyTree 一致）。
+ * 2-of-3 threshold: thresh(2,pk(Alice),pk(Bob),pk(Charlie))
  */
 export function sharedControlTemplate(): BuilderTemplate {
   const tree: StrategyNode = {
@@ -86,10 +84,11 @@ export function sharedControlTemplate(): BuilderTemplate {
 }
 
 /**
- * Recovery template: and(pk(User),or(pk(Service),older(4320)))
+ * Nested and/or/timelock tree for flow tests: and(pk(User),or(pk(Service),older(4320)))
+ * (Stable ids for assertions — resetNodeIdCounter before use in tests.)
  */
-export function recoveryTemplate(): BuilderTemplate {
-  const tree: StrategyNode = {
+export function nestedRecoveryLikeTree(): StrategyNode {
+  return {
     id: generateNodeId(),
     kind: 'group',
     op: 'all',
@@ -111,71 +110,5 @@ export function recoveryTemplate(): BuilderTemplate {
         ],
       },
     ],
-  };
-
-  return {
-    tree,
-    policy: 'and(pk(User),or(pk(Service),older(4320)))',
-    keyVariables: [
-      { name: 'User', policyName: 'User', publicKey: getTestPublicKey() },
-      { name: 'Service', policyName: 'Service', publicKey: getTestPublicKey() },
-    ],
-  };
-}
-
-/**
- * Get a template by its starter ID
- */
-export function getTemplate(starterId: BuildStarterId): BuilderTemplate {
-  switch (starterId) {
-    case 'single-control':
-      return singleSigTemplate();
-    case 'shared-control':
-      return sharedControlTemplate();
-    case 'recovery':
-      return recoveryTemplate();
-    default:
-      throw new Error(`Unknown starter ID: ${starterId}`);
-  }
-}
-
-/**
- * Create a new signature node with a given role
- */
-export function createSignatureNode(roleId: string): StrategyNode {
-  return {
-    id: generateNodeId(),
-    kind: 'signature',
-    roleId,
-  };
-}
-
-/**
- * Create a new relative timelock node
- */
-export function createRelativeTimelockNode(blocks: number): StrategyNode {
-  return {
-    id: generateNodeId(),
-    kind: 'timelock',
-    mode: 'relative',
-    value: blocks,
-    unit: 'blocks',
-  };
-}
-
-/**
- * Create a new group node
- */
-export function createGroupNode(
-  op: 'all' | 'any' | 'threshold',
-  children: StrategyNode[],
-  threshold?: number
-): StrategyNode {
-  return {
-    id: generateNodeId(),
-    kind: 'group',
-    op,
-    threshold: op === 'threshold' ? threshold : undefined,
-    children,
   };
 }

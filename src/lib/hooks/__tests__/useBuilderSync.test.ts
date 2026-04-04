@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useBuilderSync } from '../useBuilderSync';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
+import { createRootPlaceholderTree } from '@/lib/builder/root-placeholder';
 
 // Mock the store
 vi.mock('@/lib/stores/playground-store', () => ({
@@ -47,7 +48,31 @@ describe('useBuilderSync', () => {
     expect(mockSetBuilderSyncState).not.toHaveBeenCalled();
   });
 
-  it('clears strategy tree and snapshot when policy is empty in build mode', () => {
+  it('does not reset when policy and snapshot are both empty (empty and/or serializes to "")', () => {
+    const mockUsePlaygroundStore = usePlaygroundStore as unknown as ReturnType<typeof vi.fn>;
+    mockUsePlaygroundStore.mockImplementation((selector: (state: Record<string, unknown>) => unknown) => {
+      const state = {
+        playgroundMode: 'build',
+        policy: '',
+        semanticTree: null,
+        compilationError: null,
+        lastBuilderPolicySnapshot: '',
+        builderSyncState: 'synced',
+        setStrategyTree: mockSetStrategyTree,
+        updateStrategyTree: mockUpdateStrategyTree,
+        setBuilderSyncState: mockSetBuilderSyncState,
+        setLastBuilderPolicySnapshot: mockSetLastBuilderPolicySnapshot,
+      };
+      return selector(state);
+    });
+
+    renderHook(() => useBuilderSync());
+
+    expect(mockSetStrategyTree).not.toHaveBeenCalled();
+    expect(mockSetLastBuilderPolicySnapshot).not.toHaveBeenCalled();
+  });
+
+  it('resets to root placeholder tree and clears snapshot when policy is empty in build mode', () => {
     const mockUsePlaygroundStore = usePlaygroundStore as unknown as ReturnType<typeof vi.fn>;
     mockUsePlaygroundStore.mockImplementation((selector: (state: Record<string, unknown>) => unknown) => {
       const state = {
@@ -67,7 +92,7 @@ describe('useBuilderSync', () => {
 
     renderHook(() => useBuilderSync());
 
-    expect(mockSetStrategyTree).toHaveBeenCalledWith(null);
+    expect(mockSetStrategyTree).toHaveBeenCalledWith(createRootPlaceholderTree());
     expect(mockSetLastBuilderPolicySnapshot).toHaveBeenCalledWith(null);
     expect(mockSetBuilderSyncState).not.toHaveBeenCalled();
   });

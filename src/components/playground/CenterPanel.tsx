@@ -67,8 +67,6 @@ export function CenterPanel() {
   const compilationError = usePlaygroundStore((s) => s.compilationError);
   const semanticTree = usePlaygroundStore((s) => s.semanticTree);
   const playgroundMode = usePlaygroundStore((s) => s.playgroundMode);
-  const strategyTree = usePlaygroundStore((s) => s.strategyTree);
-
   // Layer 2: while the user browses scenario mode, silently prefetch
   // the BuilderCanvas bundle so switching to build mode feels instant.
   useEffect(() => {
@@ -81,29 +79,8 @@ export function CenterPanel() {
     }
   }, [playgroundMode]);
 
-  // Build mode: show BuilderCanvas
+  // Build mode: always use the same layout (canvas shows root placeholder when policy is empty)
   if (playgroundMode === 'build') {
-    // Show starter cards if no tree, otherwise show canvas
-    if (!strategyTree && !policy) {
-      return (
-        <div className="flex flex-1 flex-col">
-          <EditorSection />
-          <div className="relative min-h-0 flex-1">
-            <BuilderCanvas />
-          </div>
-          <div className="border-t border-border-subtle bg-surface-card">
-            <div className="px-4 pt-2 pb-1">
-              <StatusBanner />
-            </div>
-            <div className={cn('flex flex-col gap-3 px-4 pb-3 pt-1')}>
-              <ConditionToggles />
-              <TimeSlider />
-            </div>
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div className="flex flex-1 flex-col overflow-hidden">
         <EditorSection />

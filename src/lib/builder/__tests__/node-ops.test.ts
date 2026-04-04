@@ -205,11 +205,12 @@ describe('wrapNodeInGroup', () => {
     expect(outerChildren[0].children[0].id).toBe('inner');
   });
 
-  it('supports threshold op when wrapping', () => {
+  it('supports threshold op when wrapping and clamps k to real child count', () => {
     const tree: StrategyNode = { id: 'sig-1', kind: 'signature', roleId: 'Alice' };
     const result = wrapNodeInGroup(tree, 'sig-1', 'threshold', 2);
     expect((result as any).op).toBe('threshold');
-    expect((result as any).threshold).toBe(2);
+    // Wrapped group has one real child; k must not exceed 1
+    expect((result as any).threshold).toBe(1);
   });
 });
 
@@ -245,6 +246,12 @@ describe('changeGroupOp', () => {
 
   it('uses provided k value when switching to threshold', () => {
     const result = changeGroupOp(tree, 'root', 'threshold', 3);
+    expect((result as any).threshold).toBe(3);
+  });
+
+
+  it('clamps provided k to real child count when switching to threshold', () => {
+    const result = changeGroupOp(tree, 'root', 'threshold', 99);
     expect((result as any).threshold).toBe(3);
   });
 

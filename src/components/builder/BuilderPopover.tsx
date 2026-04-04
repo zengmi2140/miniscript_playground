@@ -24,6 +24,7 @@ import {
 import { TIMELOCK_PRESETS, blocksToHumanTime, type TimelockPresetKey } from '@/lib/builder/types';
 import type { StrategyNode } from '@/lib/builder/types';
 import { createNextKeyVariable } from '@/lib/playground/add-next-key-variable';
+import { AddChildOptions } from './AddChildOptions';
 
 type PopoverMode = 'root-type-select' | 'add-child' | 'edit-signature' | 'edit-timelock' | 'edit-threshold' | 'edit-group' | 'confirm-delete';
 
@@ -65,6 +66,9 @@ export function BuilderPopover() {
     
     if (selectedNode.kind === 'placeholder' && selectedNode.placeholderType === 'root') {
       return 'root-type-select';
+    }
+    if (selectedNode.kind === 'placeholder' && selectedNode.placeholderType === 'child') {
+      return 'add-child';
     }
     if (selectedNode.kind === 'signature') return 'edit-signature';
     if (selectedNode.kind === 'timelock') return 'edit-timelock';
@@ -128,7 +132,36 @@ export function BuilderPopover() {
   // ============ Add Child ============
   const handleAddChildType = useCallback(
     (type: 'signature' | 'timelock' | 'group', groupOp?: 'all' | 'any' | 'threshold') => {
-      if (!strategyTree || !parentIdForAdd) return;
+      if (!strategyTree) return;
+
+      const replacePlaceholder =
+        !isAddChildMode &&
+        targetNodeId &&
+        selectedNode?.kind === 'placeholder' &&
+        selectedNode.placeholderType === 'child';
+
+      if (replacePlaceholder) {
+        let newTree: StrategyNode;
+        if (type === 'signature') {
+          const roleId = keyVariables.length > 0 ? keyVariables[0].name : 'Signer1';
+          if (keyVariables.length === 0) {
+            const newKey = createDefaultKeyVariables(1)[0];
+            addKeyVariable(newKey);
+          }
+          newTree = convertChildPlaceholder(strategyTree, targetNodeId, 'signature', { roleId });
+        } else if (type === 'timelock') {
+          newTree = convertChildPlaceholder(strategyTree, targetNodeId, 'timelock', { timelockBlocks: 4320 });
+        } else {
+          newTree = convertChildPlaceholder(strategyTree, targetNodeId, 'group', {
+            groupOp: groupOp || 'all',
+          });
+        }
+        updateStrategyTree(newTree);
+        handleClose();
+        return;
+      }
+
+      if (!parentIdForAdd) return;
 
       const parentForAdd = findNode(strategyTree, parentIdForAdd);
       if (
@@ -141,7 +174,6 @@ export function BuilderPopover() {
 
       let newTree: StrategyNode;
       if (type === 'signature') {
-        // Use first available role or create new
         const roleId = keyVariables.length > 0 ? keyVariables[0].name : 'Signer1';
         if (keyVariables.length === 0) {
           const newKey = createDefaultKeyVariables(1)[0];
@@ -151,7 +183,6 @@ export function BuilderPopover() {
       } else if (type === 'timelock') {
         newTree = addTimelockChild(strategyTree, parentIdForAdd, 4320);
       } else {
-        // Nested group
         const childGroup: StrategyNode = {
           id: `nested_${Date.now()}`,
           kind: 'group',
@@ -165,7 +196,17 @@ export function BuilderPopover() {
       updateStrategyTree(newTree);
       handleClose();
     },
-    [strategyTree, parentIdForAdd, keyVariables, addKeyVariable, updateStrategyTree, handleClose]
+    [
+      strategyTree,
+      parentIdForAdd,
+      isAddChildMode,
+      targetNodeId,
+      selectedNode,
+      keyVariables,
+      addKeyVariable,
+      updateStrategyTree,
+      handleClose,
+    ]
   );
 
   // ============ Edit Signature ============
@@ -365,7 +406,7 @@ export function BuilderPopover() {
             <div className="flex h-5 w-5 items-center justify-center text-btc-500 font-bold text-xs">&amp;</div>
             <div>
               <p className="text-sm font-medium text-text-primary">{t('builder.node.all') || '都需要'}</p>
-              <p className="text-xs text-text-muted">所有条件都要满足</p>
+              <p className="text-xs text-text-muted">{t('builder.op.all.desc')}</p>
             </div>
           </button>
           <button
@@ -375,58 +416,14 @@ export function BuilderPopover() {
             <div className="flex h-5 w-5 items-center justify-center text-btc-500 font-bold text-xs">|</div>
             <div>
               <p className="text-sm font-medium text-text-primary">{t('builder.node.any') || '任选一'}</p>
-              <p className="text-xs text-text-muted">满足其中一个即可</p>
+              <p className="text-xs text-text-muted">{t('builder.op.any.desc')}</p>
             </div>
           </button>
         </div>
       )}
 
       {/* Add Child */}
-      {mode === 'add-child' && (
-        <div className="space-y-2">
-          <button
-            onClick={() => handleAddChildType('signature')}
-            className="w-full flex items-center gap-3 rounded-lg border border-border-subtle bg-surface-elevated p-3 text-left hover:border-btc-500 hover:bg-btc-500/10 transition-all"
-          >
-            <Key className="h-4 w-4 text-btc-500" />
-            <div>
-              <p className="text-sm font-medium text-text-primary">{t('builder.action.addSignature') || '添加签名'}</p>
-            </div>
-          </button>
-          <button
-            onClick={() => handleAddChildType('timelock')}
-            className="w-full flex items-center gap-3 rounded-lg border border-border-subtle bg-surface-elevated p-3 text-left hover:border-btc-500 hover:bg-btc-500/10 transition-all"
-          >
-            <Clock className="h-4 w-4 text-btc-500" />
-            <div>
-              <p className="text-sm font-medium text-text-primary">{t('builder.action.addTimelock') || '添加时间锁'}</p>
-            </div>
-          </button>
-          <div className="pt-2 border-t border-border-subtle">
-            <p className="text-xs text-text-muted mb-2">添加嵌套组</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleAddChildType('group', 'all')}
-                className="flex-1 rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-xs text-text-secondary hover:border-btc-500"
-              >
-                都需要
-              </button>
-              <button
-                onClick={() => handleAddChildType('group', 'any')}
-                className="flex-1 rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-xs text-text-secondary hover:border-btc-500"
-              >
-                任选一
-              </button>
-              <button
-                onClick={() => handleAddChildType('group', 'threshold')}
-                className="flex-1 rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-xs text-text-secondary hover:border-btc-500"
-              >
-                门限
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {mode === 'add-child' && <AddChildOptions onPick={handleAddChildType} />}
 
       {/* Edit Signature */}
       {mode === 'edit-signature' && selectedNode?.kind === 'signature' && (

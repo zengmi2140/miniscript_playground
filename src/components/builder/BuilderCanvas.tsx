@@ -6,7 +6,7 @@ import { AlertTriangle } from 'lucide-react';
 import { NodeInternalsSync } from '@/components/flow/NodeInternalsSync';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
-import { findNode } from '@/lib/builder/node-ops';
+import { findNode, countRealChildren } from '@/lib/builder/node-ops';
 import { builderTreeToFlow } from '@/lib/builder/tree-to-flow';
 import { collectHighlightedNodeIds } from '@/lib/builder/path-highlighting';
 import { builderNodeTypes } from './BuilderNodes';
@@ -14,9 +14,9 @@ import { builderEdgeTypes } from './BuilderEdge';
 import { BuilderSyncBanner } from './BuilderSyncBanner';
 import { BuilderPopover } from './BuilderPopover';
 import { OperatorSwitchPopover } from './OperatorSwitchPopover';
-
 function BuilderCanvasInner() {
   const { locale, t } = useI18n();
+  const policy = usePlaygroundStore((s) => s.policy);
   const strategyTree = usePlaygroundStore((s) => s.strategyTree);
   const builderSyncState = usePlaygroundStore((s) => s.builderSyncState);
   const availableKeys = usePlaygroundStore((s) => s.availableKeys);
@@ -71,8 +71,11 @@ function BuilderCanvasInner() {
       definedRoles,
       isReadOnly,
       locale,
+      labels: {
+        addConditionLine: `+ ${t('builder.node.addChild')}`,
+      },
     });
-  }, [strategyTree, availableKeys, currentTimeBlocks, highlightedIds, definedRoles, isReadOnly, locale]);
+  }, [strategyTree, availableKeys, currentTimeBlocks, highlightedIds, definedRoles, isReadOnly, locale, t]);
 
   const operatorSwitchGroup = useMemo(() => {
     if (!strategyTree || !operatorSwitchNodeId) return null;
@@ -89,11 +92,13 @@ function BuilderCanvasInner() {
     }
   }, [strategyTree, operatorSwitchNodeId, setOperatorSwitchNodeId]);
 
-  // If no tree exists, show a minimal state
+  // No tree: empty policy should be rare after useBuilderSync (root placeholder); non-empty → wait for compile
   if (!strategyTree) {
     return (
-      <div className="relative h-full w-full flex items-center justify-center">
-        <p className="text-sm text-text-muted">加载中...</p>
+      <div className="relative flex h-full w-full items-center justify-center">
+        <p className="text-sm text-text-muted">
+          {policy.trim() ? t('builder.canvas.waitingTree') : t('builder.canvas.initializing')}
+        </p>
       </div>
     );
   }
@@ -155,7 +160,7 @@ function BuilderCanvasInner() {
           className="absolute right-4 top-4 z-50"
           currentOp={operatorSwitchGroup.op}
           currentThreshold={operatorSwitchGroup.threshold}
-          realChildCount={operatorSwitchGroup.children.length}
+          realChildCount={countRealChildren(operatorSwitchGroup)}
           onSwitch={(newOp, newThreshold) =>
             switchNodeOperator(operatorSwitchGroup.id, newOp, newThreshold)
           }

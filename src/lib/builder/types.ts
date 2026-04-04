@@ -8,8 +8,6 @@
 
 export type BuilderSyncState = 'synced' | 'text-led' | 'compile-error';
 
-export type BuildStarterId = 'single-control' | 'shared-control' | 'recovery';
-
 /**
  * StrategyNode represents a node in the visual builder tree.
  * This is the builder's own domain model, separate from MiniscriptNode.

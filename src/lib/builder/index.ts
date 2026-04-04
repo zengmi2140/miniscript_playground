@@ -1,8 +1,10 @@
 // Types
 export * from './types';
 
-// Templates
-export { getTemplate, singleSigTemplate, sharedControlTemplate, recoveryTemplate, resetNodeIdCounter } from './templates';
+export { createRootPlaceholderTree, ROOT_PLACEHOLDER_ID } from './root-placeholder';
+
+// Test fixtures
+export { singleSigTemplate, sharedControlTemplate, nestedRecoveryLikeTree, resetNodeIdCounter } from './templates';
 
 // Serialization
 export { serializeStrategyTree } from './serialize';
@@ -17,6 +19,9 @@ export {
   removeNode,
   addChildNode,
   canAddChildToBinaryGroup,
+  countRealChildren,
+  defaultThresholdK,
+  clampThresholdK,
   wrapNodeInGroup,
   changeGroupOp,
   computeTreeDepth,

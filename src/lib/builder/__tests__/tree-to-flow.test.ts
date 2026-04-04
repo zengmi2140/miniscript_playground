@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { builderTreeToFlow, resetFlowNodeIdCounter } from '../tree-to-flow';
-import { singleSigTemplate, sharedControlTemplate, recoveryTemplate, resetNodeIdCounter } from '../templates';
+import { singleSigTemplate, sharedControlTemplate, nestedRecoveryLikeTree, resetNodeIdCounter } from '../templates';
 
 describe('builderTreeToFlow', () => {
   beforeEach(() => {
@@ -43,9 +43,9 @@ describe('builderTreeToFlow', () => {
       expect(conditions).toHaveLength(3);
     });
 
-    it('converts recovery template to nested structure', () => {
-      const template = recoveryTemplate();
-      const { nodes, edges } = builderTreeToFlow(template.tree, defaultOptions);
+    it('converts nested and/or/timelock tree to flow', () => {
+      const tree = nestedRecoveryLikeTree();
+      const { nodes, edges } = builderTreeToFlow(tree, defaultOptions);
 
       // Root + User + OR; OR + Service + timelock (binary AND/OR full: no virtual add-child)
       expect(nodes).toHaveLength(5);
@@ -61,8 +61,8 @@ describe('builderTreeToFlow', () => {
       const conditions = nodes.filter((n) => n.type === 'builderCondition');
       expect(conditions).toHaveLength(3); // User, Service, timelock
 
-      const addButtons = nodes.filter((n) => n.data.isAddButton === true);
-      expect(addButtons).toHaveLength(0);
+      const virtualAdds = nodes.filter((n) => n.data.addChildSlotKind === 'virtual');
+      expect(virtualAdds).toHaveLength(0);
     });
 
     it('shows virtual add-child for binary all/any with fewer than two children', () => {
@@ -74,9 +74,29 @@ describe('builderTreeToFlow', () => {
       };
       resetFlowNodeIdCounter();
       const { nodes } = builderTreeToFlow(tree, defaultOptions);
-      const addButtons = nodes.filter((n) => n.data.isAddButton === true);
-      expect(addButtons.length).toBeGreaterThanOrEqual(1);
+      const virtualAdds = nodes.filter((n) => n.data.addChildSlotKind === 'virtual');
+      expect(virtualAdds.length).toBeGreaterThanOrEqual(1);
     });
+
+    it('does not add virtual add-child when threshold group has a tree placeholder', () => {
+      const tree = {
+        id: 'root',
+        kind: 'group' as const,
+        op: 'threshold' as const,
+        threshold: 1,
+        children: [
+          { id: 'sig-1', kind: 'signature' as const, roleId: 'Alice' },
+          { id: 'ph-1', kind: 'placeholder' as const, placeholderType: 'child' as const },
+        ],
+      };
+      resetFlowNodeIdCounter();
+      const { nodes } = builderTreeToFlow(tree, defaultOptions);
+      const virtualAdds = nodes.filter((n) => n.data.addChildSlotKind === 'virtual');
+      expect(virtualAdds.length).toBe(0);
+      const treePh = nodes.find((n) => n.data.addChildSlotKind === 'treePlaceholder');
+      expect(treePh).toBeDefined();
+    });
+
   });
 
   describe('status computation', () => {
@@ -98,8 +118,8 @@ describe('builderTreeToFlow', () => {
     });
 
     it('marks relative timelock as pending when time not reached', () => {
-      const template = recoveryTemplate();
-      const { nodes } = builderTreeToFlow(template.tree, {
+      const tree = nestedRecoveryLikeTree();
+      const { nodes } = builderTreeToFlow(tree, {
         ...defaultOptions,
         currentTimeBlocks: 1000, // less than 4320
       });
@@ -109,8 +129,8 @@ describe('builderTreeToFlow', () => {
     });
 
     it('marks relative timelock as satisfied when time reached', () => {
-      const template = recoveryTemplate();
-      const { nodes } = builderTreeToFlow(template.tree, {
+      const tree = nestedRecoveryLikeTree();
+      const { nodes } = builderTreeToFlow(tree, {
         ...defaultOptions,
         currentTimeBlocks: 5000, // greater than 4320
       });
@@ -142,15 +162,15 @@ describe('builderTreeToFlow', () => {
     });
 
     it('computes and-group status correctly', () => {
-      const template = recoveryTemplate();
+      const tree = nestedRecoveryLikeTree();
 
       // Need User + (Service OR timelock)
       // Nothing available: User missing, OR has timelock pending -> root pending
-      let result = builderTreeToFlow(template.tree, defaultOptions);
+      let result = builderTreeToFlow(tree, defaultOptions);
       expect(result.nodes[0].data.status).toBe('pending');
 
       // User available, timelock pending -> pending
-      result = builderTreeToFlow(template.tree, {
+      result = builderTreeToFlow(tree, {
         ...defaultOptions,
         availableKeys: new Set(['User']),
         currentTimeBlocks: 1000,
@@ -158,7 +178,7 @@ describe('builderTreeToFlow', () => {
       expect(result.nodes[0].data.status).toBe('pending');
 
       // User + Service available -> satisfied
-      result = builderTreeToFlow(template.tree, {
+      result = builderTreeToFlow(tree, {
         ...defaultOptions,
         availableKeys: new Set(['User', 'Service']),
       });
@@ -168,8 +188,8 @@ describe('builderTreeToFlow', () => {
 
   describe('read-only mode', () => {
     it('marks all nodes as read-only when isReadOnly is true', () => {
-      const template = recoveryTemplate();
-      const { nodes } = builderTreeToFlow(template.tree, {
+      const tree = nestedRecoveryLikeTree();
+      const { nodes } = builderTreeToFlow(tree, {
         ...defaultOptions,
         isReadOnly: true,
       });
@@ -212,8 +232,8 @@ describe('builderTreeToFlow', () => {
     });
 
     it('centers nested OR group over its children row', () => {
-      const template = recoveryTemplate();
-      const { nodes, edges } = builderTreeToFlow(template.tree, defaultOptions);
+      const tree = nestedRecoveryLikeTree();
+      const { nodes, edges } = builderTreeToFlow(tree, defaultOptions);
       const orOp = nodes.find((n) => n.type === 'builderOperator' && n.data.op === 'any');
       expect(orOp).toBeDefined();
       expectParentCenteredOverChildren(nodes, edges, orOp!.id);

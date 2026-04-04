@@ -32,9 +32,10 @@ Status: Ready for Testing
 
 ### Initial Placeholder Node
 
-- [ ] When entering build mode, a placeholder root node is shown (not starter templates)
-- [ ] Placeholder node has dashed border and "选择策略类型" label
-- [ ] Clicking placeholder opens strategy type selection
+- [ ] When entering build mode, a placeholder root node is shown
+- [ ] Placeholder node has dashed border and "选择策略类型" label (or localized equivalent)
+- [ ] Clicking placeholder opens strategy type selection in the right popover (same pattern as other node actions)
+- [ ] Policy editor toolbar does **not** show a separate "Templates" button in build mode
 
 ### Strategy Type Selection
 
