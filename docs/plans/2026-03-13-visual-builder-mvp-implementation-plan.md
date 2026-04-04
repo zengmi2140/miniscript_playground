@@ -1,5 +1,7 @@
 # 可视化构建 MVP Implementation Plan
 
+> **Historical note (2026-04):** The Policy editor toolbar 「模板」 / `BuilderStarterCards` / `applyBuildStarter` were **removed**. Build mode now uses **only** the canvas root placeholder plus the right-side `BuilderPopover` for strategy type selection. Sections below that still mention toolbar templates are **obsolete** for new work.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Build the `自己动手` -> `build` mode MVP as a constrained visual strategy editor that syncs with the Policy editor, overlays live satisfaction status on the same canvas, and preserves future compatibility for `after()` and hashlocks.
@@ -159,7 +161,7 @@ Example:
 ```ts
 expect(serializeStrategyTree(singleSigTemplate().tree)).toBe('pk(Alice)');
 expect(serializeStrategyTree(sharedControlTemplate().tree)).toBe('thresh(2,pk(Alice),pk(Bob),pk(Charlie))'); // Policy uses thresh(), multi() is Miniscript-level
-expect(serializeStrategyTree(recoveryTemplate().tree)).toBe('and(pk(User),or(pk(Service),older(4320)))');
+expect(serializeStrategyTree(nestedRecoveryLikeTree())).toBe('and(pk(User),or(pk(Service),older(4320)))');
 ```
 
 **Step 2: Run test to verify it fails**
@@ -337,7 +339,7 @@ git commit -m "feat: add builder semantic tree importer"
 - Clicking `自己动手` enters `build` mode.
 - Clicking a scenario always returns to `scenario` mode.
 - Build mode survives local restore and share links.
-- Clicking `自己动手` from any non-build context resets into a blank builder workspace with starter cards.
+- Clicking `自己动手` from any non-build context resets into a blank builder workspace with a **placeholder root node** on the canvas (not full-screen starter templates; templates are available from the Policy editor toolbar).
 - Restoring a saved `build` session or opening a `build` share link rehydrates that build session instead of forcing a reset.
 
 ### Task 4: Extend the store with builder state, source tracking, and mode-correct transitions
@@ -354,7 +356,7 @@ Add store tests that expect:
 
 - `loadScenario()` sets `playgroundMode` to `'scenario'`
 - `enterBuildMode()` sets `playgroundMode` to `'build'`
-- `enterBuildMode()` clears `policy`, `strategyTree`, `keyVariables`, path results, and active scenario
+- `enterBuildMode()` clears `policy`, sets `strategyTree` to the root placeholder, clears `keyVariables`, path results, and active scenario
 - `applyBuildStarter()` seeds `policy`, `keyVariables`, and `strategyTree`
 
 **Step 2: Run test to verify it fails**
@@ -399,7 +401,6 @@ Behavior:
   ```
 - `enterBuildMode` must also reset:
   - `policy: ''`
-  - `strategyTree: null`
   - `keyVariables: []`
   - `compilationResult: null`
   - `compilationError: null`
@@ -531,7 +532,7 @@ Change `DiyComingSoonCard` into a real `BuildModeCard`.
 Behavior:
 
 - clicking the DIY card from `scenario` mode or any other non-build context must always call the fresh-reset `enterBuildMode`
-- after reset, the center panel must show starter cards because `strategyTree === null` and `policy === ''`
+- after reset, the center panel must show the builder canvas with a root placeholder (`strategyTree` from `createRootPlaceholderTree()`), not full-screen starter cards
 - do not attempt to import the current scenario policy during this transition
 - if the DIY card is already active in `build` mode, clicking it should be a no-op to avoid destructive accidental resets
 
@@ -561,17 +562,17 @@ git commit -m "feat: activate diy build mode entry"
 ### Phase 3 Acceptance
 
 - `build` mode shows a builder canvas instead of `PathMap`.
-- Empty build sessions show starter skeletons.
+- Empty build sessions show the root placeholder on the canvas; starter templates are a secondary entry (Policy editor toolbar), not the first screen.
 - The canvas renders a constrained strategy tree using React Flow/Dagre.
 - Node popovers can edit signatures, thresholds, and `older()` values.
 - Structural operations work without free-form edge editing.
 
-### Task 7: Add the builder canvas shell, starter cards, and mode-aware center panel
+### Task 7: Add the builder canvas shell, template entry, and mode-aware center panel
 
 **Files:**
 - Create: `src/components/builder/BuilderCanvas.tsx`
 - Create: `src/components/builder/BuilderNodes.tsx`
-- Create: `src/components/builder/BuilderEmptyState.tsx`
+- ~~Create: `src/components/builder/BuilderEmptyState.tsx`~~ (superseded: root placeholder first screen; `BuilderStarterCards` opened from Policy editor toolbar modal)
 - Create: `src/lib/builder/tree-to-flow.ts`
 - Create: `src/lib/builder/__tests__/tree-to-flow.test.ts`
 - Modify: `src/components/builder/BuilderStarterCards.tsx`
@@ -581,8 +582,7 @@ git commit -m "feat: activate diy build mode entry"
 
 Add tests that expect:
 
-- no starter cards when `strategyTree` exists
-- starter cards when `playgroundMode === 'build'` and `strategyTree === null`
+- builder canvas when `playgroundMode === 'build'` (root placeholder when policy is empty; not full-screen starter cards)
 - builder tree-to-flow produces nodes for:
   - root group
   - signature child
@@ -610,7 +610,7 @@ Implementation rules:
 - `CenterPanel` switches:
   - `scenario` mode -> keep existing `PathMap`
   - `build` mode -> show `BuilderCanvas`
-- `BuilderEmptyState` contains the starter card selection UI.
+- Starter templates: `BuilderStarterCards` in a modal from the Policy editor toolbar (`applyBuildStarter`), not a dedicated `BuilderEmptyState` full-screen step.
 
 **Step 4: Run test to verify it passes**
 
@@ -627,7 +627,7 @@ Expected:
 **Step 5: Commit**
 
 ```bash
-git add src/components/builder/BuilderCanvas.tsx src/components/builder/BuilderNodes.tsx src/components/builder/BuilderEmptyState.tsx src/lib/builder/tree-to-flow.ts src/lib/builder/__tests__/tree-to-flow.test.ts src/components/builder/BuilderStarterCards.tsx src/components/playground/CenterPanel.tsx
+git add src/components/builder/BuilderCanvas.tsx src/components/builder/BuilderNodes.tsx src/lib/builder/tree-to-flow.ts src/lib/builder/__tests__/tree-to-flow.test.ts src/components/builder/BuilderStarterCards.tsx src/components/playground/CenterPanel.tsx
 git commit -m "feat: add builder canvas shell"
 ```
 
@@ -764,7 +764,7 @@ Expected:
 Implement `useBuilderSync` with these rules:
 
 - If `playgroundMode !== 'build'`, do nothing.
-- If `policy.trim() === ''`, keep `strategyTree === null`, keep starter-card state, and do not attempt reverse import.
+- If `policy.trim() === ''`, set `strategyTree` to the root placeholder (`createRootPlaceholderTree()`), clear `lastBuilderPolicySnapshot`, and do not attempt reverse import.
 - If `policy === lastBuilderPolicySnapshot`, ignore reverse import.
 - If compilation succeeds and `semanticTree` imports as supported:
   - set `strategyTree`
@@ -962,7 +962,7 @@ git commit -m "feat: highlight builder branches from selected paths"
 Add or extend component tests for:
 
 - builder banners use localized strings
-- starter cards are keyboard reachable
+- starter template modal (Policy editor toolbar) is keyboard reachable
 - node popover trigger buttons expose accessible labels
 
 **Step 2: Run test to verify it fails**
@@ -981,7 +981,7 @@ Expected:
 
 - Add all missing `zh/en` strings for:
   - build entry
-  - starter cards
+  - starter templates (toolbar modal)
   - text-led banner
   - compile-error banner
   - node popover labels
@@ -989,7 +989,7 @@ Expected:
 - Add keyboard / aria labels where missing.
 - Create `docs/plans/2026-03-13-visual-builder-mvp-qa-checklist.md` with desktop QA coverage for:
   - DIY entry
-  - starter templates
+  - starter templates (secondary entry)
   - builder editing
   - Policy reverse sync
   - text-led mode with unsupported `after()`

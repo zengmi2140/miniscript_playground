@@ -89,7 +89,7 @@ src/
   components/
     providers.tsx   Theme + I18n 根 Provider
     ui/             shadcn 基础组件（如 button）
-    builder/        build 模式：可视化策略树画布（BuilderCanvas、节点、画布右上角浮层 BuilderPopover/OperatorSwitchPopover、同步横幅）
+    builder/        build 模式：可视化策略树画布（BuilderCanvas、节点、BuilderPopover/AddChildOptions/OperatorSwitchPopover、同步横幅）
     flow/           scenario 模式：花费路径图与 React Flow 节点/边
     home/           首页组件（HomepageHero、HomepageHowItWorks、HomepageFeatures）
     layout/         顶部导航（Header）
@@ -128,7 +128,7 @@ src/
 - 里面既放业务状态，也放 UI 状态：
   - `playgroundMode`：`'scenario' | 'build'`（**自己动手** 进入 `build`；`loadScenario` 进入 `scenario`）
   - policy 文本
-  - **build 模式**：`strategyTree`（`StrategyNode`）、`builderSyncState`、`selectedBuilderNodeId`（节点参数编辑浮层）、`operatorSwitchNodeId`（操作符切换浮层，与前者互斥）、`lastBuilderPolicySnapshot`；`enterBuildMode()` 会清空场景相关状态并置入根占位节点；`applyBuildStarter()` / `updateStrategyTree()` 维护树与 Policy 字符串
+  - **build 模式**：`strategyTree`（`StrategyNode`）、`builderSyncState`、`selectedBuilderNodeId`（节点参数编辑浮层）、`operatorSwitchNodeId`（操作符切换浮层，与前者互斥）、`lastBuilderPolicySnapshot`；`enterBuildMode()` 会清空场景相关状态并置入根占位节点；`updateStrategyTree()` 等维护树与 Policy 字符串
   - key variables
   - context / network
   - compilation result / error / semantic tree / spending paths
@@ -177,13 +177,16 @@ src/
 
 ### 可视化构建（build /「自己动手」模式）
 
-- `src/lib/builder/tree-to-flow.ts`：将 `StrategyNode` 转为 React Flow 图；**递归 TB 布局**（子树宽度自下而上、节点自上而下，父在直接子行含未满员时的「+ 添加条件」上水平居中）；**`all`/`any` 分组满两个子节点后不渲染虚拟加号**。节点上叠加满足态；与 `src/lib/builder/types.ts`、`serialize.ts`、`node-ops.ts`、`path-highlighting.ts`、`status.ts` 等配合。
-- `src/components/builder/BuilderCanvas.tsx`：build 模式主画布；在画布容器内右上角挂载 `BuilderPopover`（选中节点编辑）与 `OperatorSwitchPopover`（`operatorSwitchNodeId` 对应的 Group 操作符切换），二者互斥；只读态由 `builderSyncState !== 'synced'` 控制；嵌套超过 5 层时显示黄色警告 toast；从 threshold 切到 AND/OR 且子节点被裁剪为两个时显示底部提示 toast。
-- `src/lib/hooks/useBuilderSync.ts`：在 `playgroundMode === 'build'` 时双向同步 Policy 文本与 `strategyTree`；挂载于 `PlaygroundClient.tsx`。成功导入时用 `updateStrategyTree` 统一树与 Policy 字符串；Policy 为空时清空 `strategyTree` 与 `lastBuilderPolicySnapshot`。
+- `src/lib/builder/tree-to-flow.ts`：将 `StrategyNode` 转为 React Flow 图；**递归 TB 布局**（子树宽度自下而上、节点自上而下，父在直接子行上水平居中；**`all`/`any` 未满员时**有虚拟「+ 添加条件」；**门限分组若已有树内子 placeholder 槽则不再挂虚拟「+」**）。Flow 节点数据用 `addChildSlotKind`：`virtual`（`add_child:父组 id`）与 `treePlaceholder`（子占位节点 id）。可选 `labels.addConditionLine` 由 `BuilderCanvas` 注入以统一「+ 添加条件」文案。节点上叠加满足态；与 `types.ts`、`serialize.ts`、`node-ops.ts`、`path-highlighting.ts`、`status.ts` 等配合。
+- `src/components/builder/BuilderCanvas.tsx`：build 模式主画布；在画布容器内右上角挂载 `BuilderPopover`（选中节点编辑）与 `OperatorSwitchPopover`（`operatorSwitchNodeId` 对应的 Group 操作符切换），二者互斥；向 `builderTreeToFlow` 传入 `labels.addConditionLine`；`OperatorSwitchPopover` 的 `realChildCount` 使用 `countRealChildren`（与 `childCount` 一致）。只读态由 `builderSyncState !== 'synced'` 控制；嵌套超过 5 层时显示黄色警告 toast；从 threshold 切到 AND/OR 且子节点被裁剪为两个时显示底部提示 toast。
+- `src/components/builder/AddChildOptions.tsx`：「添加条件」浮层内签名 / 时间锁 / 嵌套组按钮的纯 UI；由 `BuilderPopover` 在 `add-child` 模式下渲染，`onPick` 对接 `handleAddChildType`（内部区分 `convertChildPlaceholder` 与 `addChildNode`）。
+- `src/components/builder/BuilderNodes.tsx`：`BuilderAddChildNode` 按 `addChildSlotKind` 设置 `selectedBuilderNodeId`（不再依赖 `isAddButton`）。
+- `src/lib/hooks/useBuilderSync.ts`：在 `playgroundMode === 'build'` 时双向同步 Policy 文本与 `strategyTree`；挂载于 `PlaygroundClient.tsx`。成功导入时用 `updateStrategyTree` 统一树与 Policy 字符串；Policy 为空时将 `strategyTree` 重置为根占位节点（`createRootPlaceholderTree()`），并清空 `lastBuilderPolicySnapshot`，与 `enterBuildMode` 的空白 scratch 一致。
 - `src/lib/playground/add-next-key-variable.ts`：`createNextKeyVariable` / `generateRandomPubkey`，供左栏 `KeyVariableManager` 与 `BuilderPopover`（签名编辑「新建角色」）共用同一套「下一个角色」逻辑；浮层内一键创建后会 `updateSignatureRole` + `updateStrategyTree`。
-- **操作符切换**：`changeGroupOp(tree, nodeId, newOp, newThreshold?)` 允许 Group 节点在 AND / OR / threshold 之间自由切换；切换到 threshold 时 k 值重置为 `min(2, childCount)`；切换到 AND/OR 且子节点多于 2 个时**裁剪为前两个子条件**。UI 入口为 Group 节点上的可点击操作符徽章；`OperatorSwitchPopover` 在 **画布右上角** 渲染（非节点下方），由 `operatorSwitchNodeId` 驱动，避免遮挡子树。
-- **二元 AND/OR 与 Policy**：`addChildNode` 对已满员的 `all`/`any` 父节点不再追加子节点；`serializeStrategyTree` 将 `all`/`any` 序列化为嵌套二元 `and`/`or`；`importFromSemanticTree` 将 N 叉语义 `and`/`or` 折叠为嵌套二叉 `StrategyNode`。
-- **节点包裹**：`wrapNodeInGroup(tree, nodeId, wrapperOp, wrapperThreshold?)` 将任意节点（签名、时间锁、Group）包裹进新的父级 Group，原节点成为第一个子节点，同时添加 placeholder 子槽。UI 入口为所有节点浮层底部的"包裹进新组"三按钮。
+- **操作符切换**：`changeGroupOp(tree, nodeId, newOp, newThreshold?)` 允许 Group 节点在 AND / OR / threshold 之间自由切换；切换到 threshold 时默认 k 为 `defaultThresholdK(realChildCount)`（等价于 `min(2, max(1, realChildCount))`），传入的 k 经 `clampThresholdK` 钳制；切换到 AND/OR 且子节点多于 2 个时**裁剪为前两个子条件**。UI 入口为 Group 节点上的可点击操作符徽章；`OperatorSwitchPopover` 在 **画布右上角** 渲染（非节点下方），由 `operatorSwitchNodeId` 驱动，避免遮挡子树。
+- **二元 AND/OR 与 Policy**：`addChildNode` 对已满员的 `all`/`any` 父节点不再追加子节点；`serializeStrategyTree` 将 `all`/`any` 序列化为嵌套二元 `and`/`or`，对 `thresh` 输出前钳制 k；`importFromSemanticTree` 将 N 叉语义 `and`/`or` 折叠为嵌套二叉 `StrategyNode`。
+- **节点包裹**：`wrapNodeInGroup(tree, nodeId, wrapperOp, wrapperThreshold?)` 将任意节点（签名、时间锁、Group）包裹进新的父级 Group，原节点成为第一个子节点，同时添加 placeholder 子槽；包裹为门限时对默认/显式 k 做与单真实子节点数一致的钳制。UI 入口为所有节点浮层底部的「包裹进新组」三按钮。
+- **子占位填写 vs 追加**：`convertChildPlaceholder` 替换树内子槽；`addChildNode` / `addSignatureChild` 等向父组追加；勿对 placeholder id 调用 `addChildNode`。
 - **嵌套深度检测**：`computeTreeDepth(tree)` 计算最大嵌套层数；包裹操作后若深度超过 5 层，`BuilderCanvas` 会显示 4 秒自动消失的警告 toast。
 - 专项设计与范围见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 
@@ -344,9 +347,9 @@ src/
 
 ### 修改可视化构建（build 模式）
 
-- `src/lib/builder/tree-to-flow.ts`、`src/lib/builder/types.ts`、`src/lib/builder/serialize.ts`（嵌套二元 `and`/`or`）、`src/lib/builder/from-semantic-tree.ts`（导入语义树时折叠 N 叉 `and`/`or`）、`src/lib/builder/node-ops.ts`（含 `canAddChildToBinaryGroup`、`addChildNode` 二元限制、`changeGroupOp`、`wrapNodeInGroup`、`computeTreeDepth`）
+- `src/lib/builder/tree-to-flow.ts`、`src/lib/builder/types.ts`、`src/lib/builder/serialize.ts`（嵌套二元 `and`/`or` + `thresh` k 钳制）、`src/lib/builder/from-semantic-tree.ts`（导入语义树时折叠 N 叉 `and`/`or`）、`src/lib/builder/node-ops.ts`（含 `countRealChildren`、`defaultThresholdK`、`clampThresholdK`、`canAddChildToBinaryGroup`、`addChildNode`、`convertChildPlaceholder`、`changeGroupOp`、`wrapNodeInGroup`、`computeTreeDepth`）
 - `src/lib/playground/add-next-key-variable.ts`（角色「下一个」命名与公钥，与左栏共用）
-- `src/components/builder/BuilderCanvas.tsx`（主画布 + 右上角 `BuilderPopover` / `OperatorSwitchPopover` + 深度警告 toast + 裁剪子节点提示 toast）、`BuilderNodes.tsx`（操作符徽章，仅切换 store）、`BuilderPopover.tsx`（包裹按钮）、`OperatorSwitchPopover.tsx`（操作符切换浮层，由画布挂载）
+- `src/components/builder/BuilderCanvas.tsx`（主画布 + 右上角 `BuilderPopover` / `OperatorSwitchPopover` + 深度警告 toast + 裁剪子节点提示 toast + `builderTreeToFlow` 的 `labels`）、`BuilderNodes.tsx`（操作符徽章；`addChildSlotKind` 点击路由）、`BuilderPopover.tsx` / `AddChildOptions.tsx`（添加条件面板；包裹按钮）、`OperatorSwitchPopover.tsx`（操作符切换浮层，由画布挂载）
 - `src/lib/hooks/useBuilderSync.ts`、`src/lib/stores/playground-store.ts`（`enterBuildMode`、`updateStrategyTree`、`setOperatorSwitchNodeId`、`switchNodeOperator`、`wrapNode`、`clearDepthWarning`、`clearBinaryTrimNotice` 等）
 
 ### 修改 Policy 编辑器
@@ -389,7 +392,7 @@ src/
 - `src/lib/hooks/__tests__/useBuilderSync.test.ts`、`src/lib/hooks/__tests__/useCompiler.test.ts`
 - `src/lib/utils/__tests__/storage-share-builder.test.ts`
 - `src/components/playground/__tests__/LeftPanelBuildEntry.test.tsx`
-- `src/components/builder/__tests__/`（如 `BuilderPopover`、`BuilderStarterCards`）
+- `src/components/builder/__tests__/`（如 `BuilderPopover`）
 - `src/lib/playground/__tests__/add-next-key-variable.test.ts`
 - `src/components/results/__tests__/PathsTabSelection.test.tsx`
 

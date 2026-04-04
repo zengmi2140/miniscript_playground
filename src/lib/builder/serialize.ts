@@ -77,10 +77,11 @@ export function serializeStrategyTree(node: StrategyNode): string {
           return foldBinaryOr(childPolicies);
 
         case 'threshold': {
-          const k = node.threshold ?? 1;
-          // Policy language uses thresh(k,pk(),...) for all thresholds
-          // multi() is a Miniscript-level construct, not Policy-level
-          if (childPolicies.length === 0) return '';
+          // Defensive: tree state should keep k <= n; clamp so we never emit invalid thresh(k,...) when k > arity.
+          const n = childPolicies.length;
+          if (n === 0) return '';
+          const kRaw = node.threshold ?? 1;
+          const k = Math.min(Math.max(1, kRaw), n);
           return `thresh(${k},${childPolicies.join(',')})`;
         }
 

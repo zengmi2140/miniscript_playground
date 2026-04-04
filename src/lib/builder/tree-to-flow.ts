@@ -29,7 +29,8 @@ export interface BuilderFlowNodeData {
   isReadOnly: boolean;
   isHighlighted: boolean;
   isUndefinedRole?: boolean;
-  isAddButton?: boolean;
+  /** virtual = parent group id for append; treePlaceholder = placeholder node id for replace */
+  addChildSlotKind?: 'virtual' | 'treePlaceholder';
   [key: string]: unknown;
 }
 
@@ -151,11 +152,19 @@ function computeAllStatuses(
 
 /**
  * Get label for a strategy node
+ * @param addConditionLine — full line for child placeholder / virtual add (from i18n via options.labels)
  */
-function getNodeLabel(node: StrategyNode, locale: 'zh' | 'en' = 'zh'): string {
+function getNodeLabel(
+  node: StrategyNode,
+  locale: 'zh' | 'en' = 'zh',
+  addConditionLine?: string
+): string {
   switch (node.kind) {
     case 'placeholder':
-      return locale === 'zh' ? '选择策略类型' : 'Choose Strategy Type';
+      if (node.placeholderType === 'root') {
+        return locale === 'zh' ? '选择策略类型' : 'Choose Strategy Type';
+      }
+      return addConditionLine ?? (locale === 'zh' ? '+ 添加条件' : '+ Add Condition');
 
     case 'signature':
       return node.roleId;
@@ -177,9 +186,10 @@ function getNodeLabel(node: StrategyNode, locale: 'zh' | 'en' = 'zh'): string {
         case 'any':
           return locale === 'zh' ? '任选一' : 'Any One';
         case 'threshold': {
-          // Count real children (exclude placeholders)
           const realChildCount = node.children.filter((c) => c.kind !== 'placeholder').length;
-          return `${node.threshold ?? 1}-of-${realChildCount}`;
+          const k = node.threshold ?? 1;
+          const kDisplay = Math.min(Math.max(1, k), Math.max(1, realChildCount));
+          return `${kDisplay}-of-${realChildCount}`;
         }
         default:
           return '';
@@ -198,6 +208,8 @@ interface BuildContext {
   definedRoles: Set<string>;
   isReadOnly: boolean;
   locale: 'zh' | 'en';
+  /** Virtual add-child strip + tree child placeholder label, e.g. "+ Add Condition" */
+  addConditionLine: string;
 }
 
 function buildFlowGraph(
@@ -209,7 +221,7 @@ function buildFlowGraph(
   const flowId = nextFlowId();
   const status = ctx.statusMap.get(strategyNode.id) ?? 'missing';
   const isHighlighted = ctx.highlightedIds.has(strategyNode.id);
-  const label = getNodeLabel(strategyNode, ctx.locale);
+  const label = getNodeLabel(strategyNode, ctx.locale, ctx.addConditionLine);
 
   // Determine node type
   let nodeType: BuilderNodeType;
@@ -250,6 +262,9 @@ function buildFlowGraph(
     nodeData.timelockMode = strategyNode.mode;
   } else if (strategyNode.kind === 'placeholder') {
     nodeData.placeholderType = strategyNode.placeholderType;
+    if (strategyNode.placeholderType === 'child') {
+      nodeData.addChildSlotKind = 'treePlaceholder';
+    }
   }
 
   const size = NODE_SIZES[nodeType];
@@ -282,9 +297,12 @@ function buildFlowGraph(
     const binaryGroupFull =
       (strategyNode.op === 'all' || strategyNode.op === 'any') &&
       strategyNode.children.length >= 2;
-    if (!ctx.isReadOnly && !binaryGroupFull) {
+    const thresholdHasTreePlaceholder =
+      strategyNode.op === 'threshold' &&
+      strategyNode.children.some((c) => c.kind === 'placeholder');
+    if (!ctx.isReadOnly && !binaryGroupFull && !thresholdHasTreePlaceholder) {
       const addChildId = nextFlowId();
-      const addChildLabel = ctx.locale === 'zh' ? '+ 添加条件' : '+ Add Condition';
+      const addChildLabel = ctx.addConditionLine;
       const addChildSize = NODE_SIZES.builderAddChild;
       ctx.nodes.push({
         id: addChildId,
@@ -300,7 +318,7 @@ function buildFlowGraph(
           status: 'pending',
           isReadOnly: false,
           isHighlighted: false,
-          isAddButton: true,
+          addChildSlotKind: 'virtual',
         },
       });
       ctx.edges.push({
@@ -424,6 +442,11 @@ export interface BuilderTreeToFlowOptions {
   definedRoles?: Set<string>;
   isReadOnly?: boolean;
   locale?: 'zh' | 'en';
+  /** Optional UI strings; if omitted, locale fallbacks are used */
+  labels?: {
+    /** Line shown on virtual add-child and child placeholder nodes, e.g. "+ Add Condition" */
+    addConditionLine?: string;
+  };
 }
 
 /**
@@ -442,7 +465,11 @@ export function builderTreeToFlow(
     definedRoles = new Set(),
     isReadOnly = false,
     locale = 'zh',
+    labels,
   } = options;
+
+  const addConditionLine =
+    labels?.addConditionLine ?? (locale === 'zh' ? '+ 添加条件' : '+ Add Condition');
 
   // Compute statuses bottom-up
   const statusMap = new Map<string, BuilderNodeStatus>();
@@ -456,6 +483,7 @@ export function builderTreeToFlow(
     definedRoles,
     isReadOnly,
     locale,
+    addConditionLine,
   };
 
   buildFlowGraph(tree, ctx);

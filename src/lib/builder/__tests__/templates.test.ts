@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { serializeStrategyTree } from '../serialize';
 import {
   singleSigTemplate,
   sharedControlTemplate,
-  recoveryTemplate,
-  getTemplate,
+  nestedRecoveryLikeTree,
   resetNodeIdCounter,
 } from '../templates';
 
-describe('Builder Templates', () => {
+describe('Builder test fixtures', () => {
   beforeEach(() => {
     resetNodeIdCounter();
   });
@@ -62,15 +62,15 @@ describe('Builder Templates', () => {
     });
   });
 
-  describe('recoveryTemplate', () => {
+  describe('nestedRecoveryLikeTree', () => {
     it('returns an and-group with signature and or-group', () => {
-      const template = recoveryTemplate();
-      expect(template.tree.kind).toBe('group');
-      if (template.tree.kind === 'group') {
-        expect(template.tree.op).toBe('all');
-        expect(template.tree.children).toHaveLength(2);
+      const tree = nestedRecoveryLikeTree();
+      expect(tree.kind).toBe('group');
+      if (tree.kind === 'group') {
+        expect(tree.op).toBe('all');
+        expect(tree.children).toHaveLength(2);
 
-        const [firstChild, secondChild] = template.tree.children;
+        const [firstChild, secondChild] = tree.children;
         expect(firstChild.kind).toBe('signature');
         expect(secondChild.kind).toBe('group');
 
@@ -88,37 +88,9 @@ describe('Builder Templates', () => {
       }
     });
 
-    it('returns policy and(pk(User),or(pk(Service),older(4320)))', () => {
-      const template = recoveryTemplate();
-      expect(template.policy).toBe('and(pk(User),or(pk(Service),older(4320)))');
-    });
-
-    it('returns two key variables', () => {
-      const template = recoveryTemplate();
-      expect(template.keyVariables).toHaveLength(2);
-      expect(template.keyVariables.map((k) => k.name)).toEqual(['User', 'Service']);
-    });
-  });
-
-  describe('getTemplate', () => {
-    it('returns single-control template', () => {
-      const template = getTemplate('single-control');
-      expect(template.policy).toBe('pk(Alice)');
-    });
-
-    it('returns shared-control template', () => {
-      const template = getTemplate('shared-control');
-      expect(template.policy).toBe('thresh(2,pk(Alice),pk(Bob),pk(Charlie))');
-    });
-
-    it('returns recovery template', () => {
-      const template = getTemplate('recovery');
-      expect(template.policy).toBe('and(pk(User),or(pk(Service),older(4320)))');
-    });
-
-    it('throws for unknown starter id', () => {
-      // @ts-expect-error - testing invalid input
-      expect(() => getTemplate('invalid')).toThrow('Unknown starter ID');
+    it('serializes to and(pk(User),or(pk(Service),older(4320)))', () => {
+      const tree = nestedRecoveryLikeTree();
+      expect(serializeStrategyTree(tree)).toBe('and(pk(User),or(pk(Service),older(4320)))');
     });
   });
 });

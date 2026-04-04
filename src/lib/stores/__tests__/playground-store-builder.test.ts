@@ -1,6 +1,22 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { usePlaygroundStore } from '../playground-store';
-import { resetNodeIdCounter } from '@/lib/builder/templates';
+import { singleSigTemplate, sharedControlTemplate, resetNodeIdCounter } from '@/lib/builder/templates';
+import { serializeStrategyTree } from '@/lib/builder/serialize';
+import type { BuilderTemplate } from '@/lib/builder/types';
+
+function seedBuilderFromFixture(template: BuilderTemplate) {
+  const policy = serializeStrategyTree(template.tree);
+  usePlaygroundStore.setState({
+    strategyTree: template.tree,
+    policy,
+    keyVariables: template.keyVariables,
+    builderSyncState: 'synced',
+    lastBuilderPolicySnapshot: policy,
+    selectedBuilderNodeId: null,
+    operatorSwitchNodeId: null,
+    builderBinaryTrimNotice: false,
+  });
+}
 
 describe('Playground Store - Builder', () => {
   beforeEach(() => {
@@ -22,7 +38,7 @@ describe('Playground Store - Builder', () => {
 
       // First enter build mode
       store.enterBuildMode();
-      store.applyBuildStarter('single-control');
+      seedBuilderFromFixture(singleSigTemplate());
       expect(usePlaygroundStore.getState().strategyTree).not.toBeNull();
 
       // Then load a scenario
@@ -93,86 +109,11 @@ describe('Playground Store - Builder', () => {
     });
   });
 
-  describe('applyBuildStarter', () => {
-    it('seeds policy for single-control', () => {
-      const store = usePlaygroundStore.getState();
-      store.enterBuildMode();
-      store.applyBuildStarter('single-control');
-
-      expect(usePlaygroundStore.getState().policy).toBe('pk(Alice)');
-    });
-
-    it('seeds keyVariables for single-control', () => {
-      const store = usePlaygroundStore.getState();
-      store.enterBuildMode();
-      store.applyBuildStarter('single-control');
-
-      const state = usePlaygroundStore.getState();
-      expect(state.keyVariables).toHaveLength(1);
-      expect(state.keyVariables[0].name).toBe('Alice');
-    });
-
-    it('seeds strategyTree for single-control', () => {
-      const store = usePlaygroundStore.getState();
-      store.enterBuildMode();
-      store.applyBuildStarter('single-control');
-
-      const state = usePlaygroundStore.getState();
-      expect(state.strategyTree).not.toBeNull();
-      expect(state.strategyTree?.kind).toBe('signature');
-    });
-
-    it('seeds policy for shared-control as thresh(2,pk(...))', () => {
-      const store = usePlaygroundStore.getState();
-      store.enterBuildMode();
-      store.applyBuildStarter('shared-control');
-
-      expect(usePlaygroundStore.getState().policy).toBe(
-        'thresh(2,pk(Alice),pk(Bob),pk(Charlie))',
-      );
-    });
-
-    it('seeds keyVariables for shared-control', () => {
-      const store = usePlaygroundStore.getState();
-      store.enterBuildMode();
-      store.applyBuildStarter('shared-control');
-
-      const state = usePlaygroundStore.getState();
-      expect(state.keyVariables).toHaveLength(3);
-      expect(state.keyVariables.map((k) => k.name)).toEqual(['Alice', 'Bob', 'Charlie']);
-    });
-
-    it('seeds policy for recovery', () => {
-      const store = usePlaygroundStore.getState();
-      store.enterBuildMode();
-      store.applyBuildStarter('recovery');
-
-      expect(usePlaygroundStore.getState().policy).toBe('and(pk(User),or(pk(Service),older(4320)))');
-    });
-
-    it('sets builderSyncState to synced', () => {
-      const store = usePlaygroundStore.getState();
-      store.enterBuildMode();
-      store.setBuilderSyncState('text-led');
-      store.applyBuildStarter('single-control');
-
-      expect(usePlaygroundStore.getState().builderSyncState).toBe('synced');
-    });
-
-    it('sets lastBuilderPolicySnapshot', () => {
-      const store = usePlaygroundStore.getState();
-      store.enterBuildMode();
-      store.applyBuildStarter('single-control');
-
-      expect(usePlaygroundStore.getState().lastBuilderPolicySnapshot).toBe('pk(Alice)');
-    });
-  });
-
   describe('updateStrategyTree', () => {
     it('updates tree and policy together', () => {
       const store = usePlaygroundStore.getState();
       store.enterBuildMode();
-      store.applyBuildStarter('single-control');
+      seedBuilderFromFixture(singleSigTemplate());
 
       // Update the tree to a different signature
       store.updateStrategyTree({
@@ -192,7 +133,7 @@ describe('Playground Store - Builder', () => {
     it('updates lastBuilderPolicySnapshot', () => {
       const store = usePlaygroundStore.getState();
       store.enterBuildMode();
-      store.applyBuildStarter('single-control');
+      seedBuilderFromFixture(singleSigTemplate());
 
       store.updateStrategyTree({
         id: 'new',
@@ -202,13 +143,30 @@ describe('Playground Store - Builder', () => {
 
       expect(usePlaygroundStore.getState().lastBuilderPolicySnapshot).toBe('pk(Charlie)');
     });
+
+    it('sets builderSyncState to synced when seeding fixture after text-led', () => {
+      const store = usePlaygroundStore.getState();
+      store.enterBuildMode();
+      store.setBuilderSyncState('text-led');
+      seedBuilderFromFixture(singleSigTemplate());
+
+      expect(usePlaygroundStore.getState().builderSyncState).toBe('synced');
+    });
+
+    it('sets lastBuilderPolicySnapshot when seeding single-sig fixture', () => {
+      const store = usePlaygroundStore.getState();
+      store.enterBuildMode();
+      seedBuilderFromFixture(singleSigTemplate());
+
+      expect(usePlaygroundStore.getState().lastBuilderPolicySnapshot).toBe('pk(Alice)');
+    });
   });
 
   describe('operatorSwitchNodeId', () => {
     it('clears selectedBuilderNodeId when set to a group node id', () => {
       const store = usePlaygroundStore.getState();
       store.enterBuildMode();
-      store.applyBuildStarter('shared-control');
+      seedBuilderFromFixture(sharedControlTemplate());
       const tree = usePlaygroundStore.getState().strategyTree;
       expect(tree?.kind).toBe('group');
       if (tree?.kind !== 'group') return;
@@ -224,7 +182,7 @@ describe('Playground Store - Builder', () => {
     it('clears operatorSwitchNodeId when selecting another builder node', () => {
       const store = usePlaygroundStore.getState();
       store.enterBuildMode();
-      store.applyBuildStarter('shared-control');
+      seedBuilderFromFixture(sharedControlTemplate());
       const tree = usePlaygroundStore.getState().strategyTree;
       expect(tree?.kind).toBe('group');
       if (tree?.kind !== 'group') return;
@@ -240,7 +198,7 @@ describe('Playground Store - Builder', () => {
     it('clears operatorSwitchNodeId after switchNodeOperator', () => {
       const store = usePlaygroundStore.getState();
       store.enterBuildMode();
-      store.applyBuildStarter('shared-control');
+      seedBuilderFromFixture(sharedControlTemplate());
       const tree = usePlaygroundStore.getState().strategyTree;
       expect(tree?.kind).toBe('group');
       if (tree?.kind !== 'group') return;
@@ -254,7 +212,7 @@ describe('Playground Store - Builder', () => {
     it('clears operatorSwitchNodeId when entering build mode', () => {
       const store = usePlaygroundStore.getState();
       store.enterBuildMode();
-      store.applyBuildStarter('shared-control');
+      seedBuilderFromFixture(sharedControlTemplate());
       const tree = usePlaygroundStore.getState().strategyTree;
       expect(tree?.kind).toBe('group');
       if (tree?.kind !== 'group') return;

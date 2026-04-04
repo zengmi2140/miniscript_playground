@@ -9,8 +9,8 @@ import { AlignLeft, Trash2, Copy, Share2, Check } from 'lucide-react';
 import { policyExtensions } from '@/lib/editor/policy-language';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
-import { cn } from '@/lib/utils/cn';
 import { buildShareUrl } from '@/lib/utils/share';
+import { cn } from '@/lib/utils/cn';
 import type { FriendlyError } from '@/lib/engine/types';
 
 function formatPolicy(raw: string): string {

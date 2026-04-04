@@ -22,7 +22,7 @@
 | **B** | [`tree-to-flow.ts`](../src/lib/builder/tree-to-flow.ts)：二元组满员不渲染虚拟「+」。 |
 | **C** | `changeGroupOp` 切换到 `all`/`any` 时 `children.slice(0,2)`；[`playground-store`](../src/lib/stores/playground-store.ts) `switchNodeOperator` + 底部 toast；i18n `builder.op.binaryTrimNotice`。 |
 | **D** | [`from-semantic-tree.ts`](../src/lib/builder/from-semantic-tree.ts)：`foldBinaryGroupChildren` 右深二叉。 |
-| **E** | 模板本就满足 ≤2 子于 `all`/`any`；单测已更新。 |
+| **E** | 根占位与用户构建的树满足 ≤2 子于 `all`/`any`；单测 fixtures（`templates.ts`）已对齐。 |
 | **F** | [`SPEC.md`](../SPEC.md)、[`agent.md`](../agent.md) 已补充二元规则与文件职责。 |
 
 ---
@@ -64,7 +64,7 @@
 | E4 | `wrapNodeInGroup` → `[node, placeholder]` | 已满 2 槽，同 E3 | 与 `tree-to-flow` 一致 |
 | E5 | **threshold → all/any**，子数 >2 | **Phase C**：裁剪为 2 子（建议 `slice(0,2)`）+ i18n | 切换后 `all`/`any` 无 3+ 子；`serialize` 可编译 |
 | E6 | **`importFromSemanticTree`**，语义树 N 叉 `and`/`or` | **Phase D**：转为 **右深二叉** `StrategyNode`（与 `serialize` 右嵌套 Policy 一致） | DFS 任意 `all`/`any` 满足 `children.length ≤ 2` |
-| E7 | 模板 / `applyBuildStarter` | 凡 `all`/`any` 子数 ≤2；需嵌套则用嵌套 `group` | starter 编译通过 |
+| E7 | 根占位起手 / 画布构建的树 | 凡 `all`/`any` 子数 ≤2；需嵌套则用嵌套 `group` | 常见结构可编译 |
 | E8 | 删除子节点 | 2→1 子后 **恢复**「+」 | 手工 + 单测 |
 | E9 | 嵌套空 `group` | 子组按 **自身** `op` 递归应用 A/B 规则 | 空 AND 子组仍可显示「+」 |
 | E10 | Policy **手粘**宽 `and` | 编译失败走现有逻辑；**可选**依赖 `serialize` 折叠修复旧存档导入 | 不强制画布与非法文本一致 |
@@ -149,21 +149,21 @@
 
 ---
 
-### 3.5 Phase E — 模板与测试矩阵（必做）
+### 3.5 Phase E — 测试 fixtures 与矩阵（必做）
 
 **文件**  
-[`templates.ts`](../src/lib/builder/templates.ts)、[`serialize.test.ts`](../src/lib/builder/__tests__/serialize.test.ts)、[`templates.test.ts`](../src/lib/builder/__tests__/templates.test.ts)、`store-builder`/`storage-share` 等。
+[`templates.ts`](../src/lib/builder/templates.ts)（`singleSigTemplate` / `sharedControlTemplate` / `nestedRecoveryLikeTree` 等测试用工厂）、[`serialize.test.ts`](../src/lib/builder/__tests__/serialize.test.ts)、[`templates.test.ts`](../src/lib/builder/__tests__/templates.test.ts)、`store-builder`/`storage-share` 等。
 
 **实现要点**
 
-- 遍历模板：凡 `all`/`any`，子节点数 ≤2；若需三条件并列语义，改为 **嵌套 `group`**（与 `serialize` 右嵌套一致）。
+- 遍历 fixtures：凡 `all`/`any`，子节点数 ≤2；若需三条件并列语义，改为 **嵌套 `group`**（与 `serialize` 右嵌套一致）。
 - 全量 `vitest` + `lint`；CI 若存在 ecc 问题，对 `compiler` 全量测试的处理与现网一致即可。
 
 **验收标准**
 
 - [ ] `npm run lint` 通过。
 - [ ] `npx vitest run`（或项目约定命令）通过。
-- [ ] 每个 `applyBuildStarter` 策略在本地可编译。
+- [ ] 代表性策略树（含嵌套 and/or）在本地可编译。
 
 ---
 
@@ -187,7 +187,7 @@
 
 1. `npm run lint`
 2. `npx vitest run`（或项目脚本）
-3. **Build 模式手工**：§2 中 E1–E4、E8；E5–E6；starter 模板
+3. **Build 模式手工**：§2 中 E1–E4、E8；E5–E6；根占位选类型与画布编辑
 4. **Scenario 模式**：`loadScenario`、非 build 路径无回归
 5. 若改动 i18n：中英键齐全
 
@@ -213,7 +213,7 @@
 | **B** | `tree-to-flow` 隐藏「+」 | **已完成** |
 | **C** | `changeGroupOp` 裁剪 + i18n | **已完成** |
 | **D** | `importFromSemanticTree` 二叉化 | **已完成** |
-| **E** | 模板 + 测试 | **已完成** |
+| **E** | fixtures + 测试 | **已完成** |
 | **F** | SPEC + agent | **已完成** |
 
 ---

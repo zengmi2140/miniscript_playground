@@ -29,6 +29,27 @@ export function canAddChildToBinaryGroup(node: StrategyGroupNode): boolean {
 }
 
 /**
+ * Count direct children that are not placeholder slots (matches serialized sub-policies).
+ */
+export function countRealChildren(group: StrategyGroupNode): number {
+  return group.children.filter((c) => c.kind !== 'placeholder').length;
+}
+
+/**
+ * Default threshold k when switching to threshold or wrapping as threshold.
+ * Must stay in sync with changeGroupOp's default k rule.
+ */
+export function defaultThresholdK(realChildCount: number): number {
+  return Math.min(2, Math.max(1, realChildCount));
+}
+
+/** Clamp stored k so 1 <= k <= max(1, realChildCount). */
+export function clampThresholdK(k: number, realChildCount: number): number {
+  const n = Math.max(1, realChildCount);
+  return Math.min(Math.max(1, k), n);
+}
+
+/**
  * Find a node by ID in the tree
  */
 export function findNode(tree: StrategyNode, nodeId: string): StrategyNode | null {
@@ -82,7 +103,8 @@ export function updateNode(
 }
 
 /**
- * Add a child node to a group
+ * Append a new child under a group. Only valid when `parentId` refers to a group.
+ * For filling an existing child placeholder slot, use `convertChildPlaceholder` instead.
  */
 export function addChildNode(
   tree: StrategyNode,
@@ -147,11 +169,17 @@ export function wrapNodeInGroup(
     placeholderType: 'child',
   };
 
+  // New group always has exactly one real child (the wrapped node) plus optional placeholder.
+  const realAfterWrap = 1;
+  const rawK = threshold ?? defaultThresholdK(realAfterWrap);
+  const thresholdClamped =
+    op === 'threshold' ? clampThresholdK(rawK, realAfterWrap) : undefined;
+
   const newGroup: StrategyNode = {
     id: generateNodeId(),
     kind: 'group',
     op,
-    threshold: op === 'threshold' ? (threshold ?? 2) : undefined,
+    threshold: thresholdClamped,
     children: [node, placeholder],
   };
 
@@ -179,11 +207,11 @@ export function changeGroupOp(
   return updateNode(tree, nodeId, (node) => {
     if (node.kind !== 'group') return node;
 
-    // Count real (non-placeholder) children to compute default k
-    const realChildCount = node.children.filter((c) => c.kind !== 'placeholder').length;
+    const realChildCount = countRealChildren(node);
 
     if (newOp === 'threshold') {
-      const k = newThreshold ?? Math.min(2, Math.max(1, realChildCount));
+      const rawK = newThreshold ?? defaultThresholdK(realChildCount);
+      const k = clampThresholdK(rawK, realChildCount);
       return { ...node, op: 'threshold', threshold: k };
     }
 
@@ -362,7 +390,8 @@ export function convertRootPlaceholder(
 }
 
 /**
- * Convert a child placeholder to a specific node type
+ * Replace a child placeholder node with a concrete condition. Does not append siblings;
+ * for appending under a group, use `addChildNode`.
  */
 export function convertChildPlaceholder(
   tree: StrategyNode,
@@ -402,7 +431,8 @@ export function convertChildPlaceholder(
       id: generateNodeId(),
       kind: 'group',
       op,
-      threshold: op === 'threshold' ? (options.threshold ?? 2) : undefined,
+      threshold:
+        op === 'threshold' ? clampThresholdK(options.threshold ?? defaultThresholdK(0), 0) : undefined,
       children: [],
     };
   });
