@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EditorView, keymap, placeholder as cmPlaceholder } from '@codemirror/view';
-import { EditorState } from '@codemirror/state';
+import { Compartment, EditorState } from '@codemirror/state';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { lineNumbers } from '@codemirror/view';
 import { AlignLeft, Trash2, Copy, Share2, Check, ChevronDown, ChevronRight } from 'lucide-react';
-import { policyExtensions } from '@/lib/editor/policy-language';
+import { buildErrorHighlightExtensions, policyExtensions } from '@/lib/editor/policy-language';
+import { clampHighlightToDoc } from '@/lib/engine/policy-error-highlight';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 import { buildShareUrl } from '@/lib/utils/share';
@@ -51,6 +52,7 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
   const network = usePlaygroundStore((s) => s.network);
   const playgroundMode = usePlaygroundStore((s) => s.playgroundMode);
   const suppressSync = useRef(false);
+  const highlightCompartment = useMemo(() => new Compartment(), []);
   const [shareCopied, setShareCopied] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [rawCopied, setRawCopied] = useState(false);
@@ -86,6 +88,7 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
           }
         }),
         EditorView.lineWrapping,
+        highlightCompartment.of(buildErrorHighlightExtensions(null)),
         ...policyExtensions,
       ],
     });
@@ -119,6 +122,16 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
       });
     }
   }, [policy]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+    const len = view.state.doc.length;
+    const r = clampHighlightToDoc(compilationError?.highlight, len);
+    view.dispatch({
+      effects: highlightCompartment.reconfigure(buildErrorHighlightExtensions(r)),
+    });
+  }, [compilationError, highlightCompartment, policy]);
 
   const handleFormat = useCallback(() => {
     const view = viewRef.current;

@@ -115,6 +115,11 @@ export interface FriendlyError {
     zh: string[];
     en: string[];
   };
+  /** UTF-16 half-open [from, to) into the Policy string; for editor decorations. */
+  highlight?: {
+    from: number;
+    to: number;
+  };
   line?: number;
   column?: number;
 }
