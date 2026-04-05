@@ -70,6 +70,9 @@ describe('compiler', () => {
     expect(result).toBeNull();
     expect(error).not.toBeNull();
     expect(error!.friendly.zh).toBeTruthy();
+    expect(error!.raw).toBeTruthy();
+    expect(error!.category).toBeTruthy();
+    expect(error!.friendly.zh).not.toMatch(/无法识别 ''/);
   });
 
   it('compiles all 6 scenarios successfully', async () => {

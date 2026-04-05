@@ -5,7 +5,7 @@ import { EditorView, keymap, placeholder as cmPlaceholder } from '@codemirror/vi
 import { EditorState } from '@codemirror/state';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { lineNumbers } from '@codemirror/view';
-import { AlignLeft, Trash2, Copy, Share2, Check } from 'lucide-react';
+import { AlignLeft, Trash2, Copy, Share2, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { policyExtensions } from '@/lib/editor/policy-language';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
@@ -52,6 +52,12 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
   const playgroundMode = usePlaygroundStore((s) => s.playgroundMode);
   const suppressSync = useRef(false);
   const [shareCopied, setShareCopied] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [rawCopied, setRawCopied] = useState(false);
+
+  useEffect(() => {
+    setDetailsOpen(false);
+  }, [compilationError?.raw]);
 
   const onDocChange = useCallback(
     (newDoc: string) => {
@@ -137,6 +143,13 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
     navigator.clipboard.writeText(policy);
   }, [policy]);
 
+  const handleCopyRawError = useCallback(() => {
+    if (!compilationError) return;
+    navigator.clipboard.writeText(compilationError.raw);
+    setRawCopied(true);
+    setTimeout(() => setRawCopied(false), 2000);
+  }, [compilationError]);
+
   const handleShare = useCallback(async () => {
     try {
       const url = buildShareUrl({
@@ -176,6 +189,59 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
           <p className="text-[12px] leading-relaxed text-semantic-warning">
             {locale === 'zh' ? compilationError.friendly.zh : compilationError.friendly.en}
           </p>
+          {(() => {
+            const hints =
+              compilationError.hints &&
+              (locale === 'zh' ? compilationError.hints.zh : compilationError.hints.en);
+            if (!hints?.length) return null;
+            return (
+              <div className="mt-2">
+                <p className="mb-1 text-[11px] font-medium text-text-muted">
+                  {t('playground.error.hints')}
+                </p>
+                <ul className="list-disc space-y-1 pl-4 text-[11px] leading-relaxed text-text-secondary">
+                  {hints.map((h, i) => (
+                    <li key={i}>{h}</li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })()}
+          <button
+            type="button"
+            onClick={() => setDetailsOpen((o) => !o)}
+            aria-expanded={detailsOpen}
+            className="mt-2 flex w-full items-center gap-1 rounded px-0 py-1 text-left text-[11px] text-text-muted transition-colors hover:text-text-secondary"
+          >
+            {detailsOpen ? (
+              <ChevronDown className="h-3.5 w-3.5 flex-shrink-0" />
+            ) : (
+              <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />
+            )}
+            {detailsOpen ? t('playground.error.collapseDetails') : t('playground.error.expandDetails')}
+          </button>
+          {detailsOpen && (
+            <div className="mt-2 border-t border-border-subtle pt-2">
+              <div className="mb-1 flex items-center justify-end gap-1">
+                <button
+                  type="button"
+                  onClick={handleCopyRawError}
+                  className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] text-text-muted hover:bg-surface-elevated hover:text-text-secondary"
+                  title={t('playground.error.copyRaw')}
+                >
+                  {rawCopied ? (
+                    <Check className="h-3 w-3 text-semantic-satisfied" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                  {rawCopied ? t('playground.error.rawCopied') : t('playground.error.copyRaw')}
+                </button>
+              </div>
+              <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-all rounded bg-surface-elevated p-2 font-mono text-[10px] leading-relaxed text-text-secondary">
+                {compilationError.raw}
+              </pre>
+            </div>
+          )}
         </div>
       )}
     </div>
