@@ -1,7 +1,9 @@
 import { StreamLanguage } from '@codemirror/language';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
-import { EditorView } from '@codemirror/view';
+import type { Extension } from '@codemirror/state';
+import { StateField } from '@codemirror/state';
+import { Decoration, DecorationSet, EditorView } from '@codemirror/view';
 
 export const policyLanguage = StreamLanguage.define({
   token(stream) {
@@ -64,7 +66,30 @@ export const policyTheme = EditorView.theme({
   '.cm-line': {
     padding: '0 8px',
   },
+  '.cm-policy-error-highlight': {
+    backgroundColor: 'rgba(234, 179, 8, 0.15)',
+    borderBottom: '2px solid rgba(245, 158, 11, 0.5)',
+  },
 });
+
+const policyErrorMark = Decoration.mark({ class: 'cm-policy-error-highlight' });
+
+/** Compartment content: empty or a StateField that paints one error range. */
+export function buildErrorHighlightExtensions(
+  range: { from: number; to: number } | null,
+): Extension[] {
+  if (!range || range.from >= range.to) return [];
+  const field = StateField.define<DecorationSet>({
+    create() {
+      return Decoration.set([policyErrorMark.range(range.from, range.to)]);
+    },
+    update(deco, tr) {
+      return deco.map(tr.changes);
+    },
+    provide: (f) => EditorView.decorations.from(f),
+  });
+  return [field];
+}
 
 export const policyExtensions = [
   policyLanguage,

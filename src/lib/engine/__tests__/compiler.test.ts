@@ -61,11 +61,8 @@ describe('compiler', () => {
   });
 
   it('returns friendly error for invalid policy', async () => {
-    const { result, error } = await compile(
-      'invalid_garbage!!!()',
-      [],
-      'wsh',
-    );
+    const policy = 'invalid_garbage!!!()';
+    const { result, error } = await compile(policy, [], 'wsh');
 
     expect(result).toBeNull();
     expect(error).not.toBeNull();
@@ -73,6 +70,12 @@ describe('compiler', () => {
     expect(error!.raw).toBeTruthy();
     expect(error!.category).toBeTruthy();
     expect(error!.friendly.zh).not.toMatch(/无法识别 ''/);
+    if (error!.highlight) {
+      const { from, to } = error!.highlight;
+      expect(from).toBeGreaterThanOrEqual(0);
+      expect(to).toBeGreaterThan(from);
+      expect(to).toBeLessThanOrEqual(policy.length);
+    }
   });
 
   it('compiles all 6 scenarios successfully', async () => {
