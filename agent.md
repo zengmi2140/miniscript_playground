@@ -161,7 +161,7 @@ src/
 
 - `src/lib/engine/miniscript-parser.ts`
   - 将编译出来的 Miniscript 字符串（`result.miniscript`，含角色名）解析成自定义 `MiniscriptNode` 语义树。
-  - 会剥离 wrapper 前缀，例��� `v:`、`c:`、`sln:`。
+  - 会剥离 wrapper 前缀，例如 `v:`、`c:`、`sln:`。
 
 - `src/lib/flow/tree-to-flow.ts`
   - 把语义树转成 React Flow nodes/edges。
@@ -181,7 +181,7 @@ src/
 - `src/components/builder/BuilderCanvas.tsx`：build 模式主画布；在画布容器内右上角挂载 `BuilderPopover`（选中节点编辑）与 `OperatorSwitchPopover`（`operatorSwitchNodeId` 对应的 Group 操作符切换），二者互斥；向 `builderTreeToFlow` 传入 `labels.addConditionLine`；`OperatorSwitchPopover` 的 `realChildCount` 使用 `countRealChildren`（与 `childCount` 一致）。只读态由 `builderSyncState !== 'synced'` 控制；嵌套超过 5 层时显示黄色警告 toast；从 threshold 切到 AND/OR 且子节点被裁剪为两个时显示底部提示 toast。
 - `src/components/builder/AddChildOptions.tsx`：「添加条件」浮层内签名 / 时间锁 / 嵌套组按钮的纯 UI；由 `BuilderPopover` 在 `add-child` 模式下渲染，`onPick` 对接 `handleAddChildType`（内部区分 `convertChildPlaceholder` 与 `addChildNode`）。
 - `src/components/builder/BuilderNodes.tsx`：`BuilderAddChildNode` 按 `addChildSlotKind` 设置 `selectedBuilderNodeId`（不再依赖 `isAddButton`）。
-- `src/lib/hooks/useBuilderSync.ts`：在 `playgroundMode === 'build'` 时双向同步 Policy 文本与 `strategyTree`；挂载于 `PlaygroundClient.tsx`。成功导入时用 `updateStrategyTree` 统一树与 Policy 字符串；Policy 为空时将 `strategyTree` 重置为根占位节点（`createRootPlaceholderTree()`），并清空 `lastBuilderPolicySnapshot`，与 `enterBuildMode` 的空白 scratch 一致。
+- `src/lib/hooks/useBuilderSync.ts`：在 `playgroundMode === 'build'` 时双向同步 Policy 文本与 `strategyTree`；挂载于 `PlaygroundClient.tsx`。成功导入时用 `updateStrategyTree` 统一树与 Policy 字符串；Policy 为空时将 `strategyTree` 重置为根占位节点（`createRootPlaceholderTree()`），并清空 `lastBuilderPolicySnapshot`，与 `enterBuildMode` 的空白 scratch 一致。Policy 非空但编译失败时：`builderSyncState` 为 `compile-error`（画布只读）；若尚无 `strategyTree` 则植入根占位，避免无限「等待画布」。
 - `src/lib/playground/add-next-key-variable.ts`：`createNextKeyVariable` / `generateRandomPubkey`，供左栏 `KeyVariableManager` 与 `BuilderPopover`（签名编辑「新建角色」）共用同一套「下一个角色」逻辑；浮层内一键创建后会 `updateSignatureRole` + `updateStrategyTree`。
 - **操作符切换**：`changeGroupOp(tree, nodeId, newOp, newThreshold?)` 允许 Group 节点在 AND / OR / threshold 之间自由切换；切换到 threshold 时默认 k 为 `defaultThresholdK(realChildCount)`（等价于 `min(2, max(1, realChildCount))`），传入的 k 经 `clampThresholdK` 钳制；切换到 AND/OR 且子节点多于 2 个时**裁剪为前两个子条件**。UI 入口为 Group 节点上的可点击操作符徽章；`OperatorSwitchPopover` 在 **画布右上角** 渲染（非节点下方），由 `operatorSwitchNodeId` 驱动，避免遮挡子树。
 - **二元 AND/OR 与 Policy**：`addChildNode` 对已满员的 `all`/`any` 父节点不再追加子节点；`serializeStrategyTree` 将 `all`/`any` 序列化为嵌套二元 `and`/`or`，对 `thresh` 输出前钳制 k；`importFromSemanticTree` 将 N 叉语义 `and`/`or` 折叠为嵌套二叉 `StrategyNode`。
@@ -305,7 +305,7 @@ src/
 
 10. **build 模式**（自己动手）已实现为 MVP：受约束策略树 + Policy 双向同步；并非任意拖线流程图。不支持的结构会进入 `text-led`，详见 `useBuilderSync` 与 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 
-11. **渐进式加载**：`playground/page.tsx` 直接 import `PlaygroundClient`（服务端渲染三栏框架 HTML，用户进入页面立即看到完整框架）；`PlaygroundContent` 移除了 `mode === 'loading' → null` 逻辑；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载，期间显示带 spinner 骨架屏；`layout.tsx` 加 `<link rel="prefetch">` 提前获取 Playground 页面；��页 `requestIdleCallback` 预热所有 Playground 模块（三栏组件、两个画布、编译器），同 Tab 内来回切换命中浏览器模块缓存无需重新加载，刷新后命中 HTTP 缓存（Next.js 文件名含 hash）极快恢复。
+11. **渐进式加载**：`playground/page.tsx` 直接 import `PlaygroundClient`（服务端渲染三栏框架 HTML，用户进入页面立即看到完整框架）；`PlaygroundContent` 移除了 `mode === 'loading' → null` 逻辑；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载，期间显示带 spinner 骨架屏；`layout.tsx` 加 `<link rel="prefetch">` 提前获取 Playground 页面；首页 `requestIdleCallback` 预热所有 Playground 模块（三栏组件、两个画布、编译器），同 Tab 内来回切换命中浏览器模块缓存无需重新加载，刷新后命中 HTTP 缓存（Next.js 文件名含 hash）极快恢复。
 
 12. **首页设计**：新增 `HomepageMiniscriptExplainer`（标题区定义"什么是 Miniscript"，下方三卡片纵向堆叠对比传统 Script vs Miniscript，代码块与左侧文本在 `md` 断点用 `items-center` 对齐）、`HomepageMission`（纯居中文本说明"我们为什么做这个"，无 CTA 按钮）。首页完整流程：Hero → 科普区 → 使命区 → 使用流程 → 核心功能 → 场景库 → 底部 CTA。
 
@@ -318,7 +318,7 @@ src/
   - `src/lib/scenarios/tags.ts`
   - `src/components/scenarios/ScenarioCard.tsx`
 
-### 修改 Policy 语法��持
+### 修改 Policy 语法支持
 
 通常至少要同时检查这些文件：
 

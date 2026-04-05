@@ -69,117 +69,71 @@
 | E9 | 嵌套空 `group` | 子组按 **自身** `op` 递归应用 A/B 规则 | 空 AND 子组仍可显示「+」 |
 | E10 | Policy **手粘**宽 `and` | 编译失败走现有逻辑；**可选**依赖 `serialize` 折叠修复旧存档导入 | 不强制画布与非法文本一致 |
 | E11 | **`addChildNode` 被直接调用**（测试/未来功能） | 与 Popover 一致：父为 `all`/`any` 且已满 → no-op | `node-ops` 单测 |
+| E12 | Build 模式 + 非空 Policy + **编译失败** + `strategyTree === null`（如 `restoreSession` 后从未成功编译） | `builderSyncState: compile-error`；若无树则 `createRootPlaceholderTree()`，避免画布长期停在「正在编译并同步画布…」 | [`useBuilderSync.ts`](../src/lib/hooks/useBuilderSync.ts)、[`useBuilderSync.test.ts`](../src/lib/hooks/__tests__/useBuilderSync.test.ts) |
 
 ---
 
-## 3. 分阶段实施（剩余工作详解）
+## 3. 分阶段实施（历史记录与验收证据）
 
-### 3.1 Phase A — 添加路径拦截（必做）
+> 与 §6 一致：Phase A–F 已落地。本节保留设计摘要；**验收以仓库内测试为准**（避免与 §6 冲突）。
+
+### 3.1 Phase A — 添加路径拦截
 
 **涉及文件**  
-[`node-ops.ts`](../src/lib/builder/node-ops.ts)（或新建 `builder/constraints.ts`）、[`BuilderPopover.tsx`](../src/components/builder/BuilderPopover.tsx)、全局搜索 `addChildNode` / `addSignatureChild` / `addTimelockChild`。
+[`node-ops.ts`](../src/lib/builder/node-ops.ts)、[`BuilderPopover.tsx`](../src/components/builder/BuilderPopover.tsx)。
 
-**实现要点**
+**实现要点（摘要）**  
+`canAddChildToBinaryGroup`；`addChildNode` 在满员 `all`/`any` 上返回未修改树；Popover 前置校验。
 
-1. `canAddChildToBinaryGroup(parent: StrategyGroupNode): boolean`  
-   - `threshold` → `true`（或沿用现有深度策略）  
-   - `all`/`any` → `parent.children.length < 2`
-2. 在 `addChildNode`（或统一入口）内：若父为 `all`/`any` 且 `!canAddChildToBinaryGroup`，**返回未修改的 `tree`**（禁止静默丢错误，开发环境可 `console.warn`）。
-3. `BuilderPopover` 在发起添加前若已满，**不调用** `updateStrategyTree`（双保险）。
-
-**验收标准**
-
-- [ ] `node-ops.test.ts`：构造 `all`/`any` 两子后再次 `addChildNode`，`assert` 树深度与结构不变。
-- [ ] `threshold` 组仍可添加多子（≥3）。
+**验收证据**  
+[`node-ops.test.ts`](../src/lib/builder/__tests__/node-ops.test.ts)。
 
 ---
 
-### 3.2 Phase B — 画布隐藏「+ 添加条件」（必做）
+### 3.2 Phase B — 画布隐藏「+ 添加条件」
 
 **涉及文件**  
-[`tree-to-flow.ts`](../src/lib/builder/tree-to-flow.ts) `buildFlowGraph`（约 `strategyNode.kind === 'group'` 末尾虚拟 `builderAddChild` 段）。
+[`tree-to-flow.ts`](../src/lib/builder/tree-to-flow.ts)。
 
-**实现要点**
+**实现要点（摘要）**  
+`all`/`any` 且 `children.length >= 2` 时不生成虚拟 `builderAddChild`。
 
-- 当 `strategyNode.op` 为 `all` 或 `any`，且 `strategyNode.children.length >= 2` 时：**不** `push` 虚拟 `builderAddChild` 节点与边。
-
-**验收标准**
-
-- [ ] `tree-to-flow.test.ts`：对固定 `strategyTree`（含 2 子 `all`/`any`）断言无 `builderAddChild`（或等价 `isAddButton` 节点数）。
-- [ ] 手工：两子后无「+」；删回一子后「+」再现。
+**验收证据**  
+[`tree-to-flow.test.ts`](../src/lib/builder/__tests__/tree-to-flow.test.ts)。
 
 ---
 
-### 3.3 Phase C — `changeGroupOp`：thresh → all/any 裁剪（必做）
+### 3.3 Phase C — `changeGroupOp`：thresh → all/any 裁剪
 
 **涉及文件**  
-[`node-ops.ts`](../src/lib/builder/node-ops.ts) `changeGroupOp`；[`zh.ts`](../src/lib/i18n/zh.ts)、[`en.ts`](../src/lib/i18n/en.ts)；可选：在 `switchNodeOperator` 后触发 toast（[`playground-store.ts`](../src/lib/stores/playground-store.ts)）。
+[`node-ops.ts`](../src/lib/builder/node-ops.ts)、[`playground-store.ts`](../src/lib/stores/playground-store.ts)、i18n `builder.op.binaryTrimNotice`。
 
-**实现要点**
-
-- 当 `newOp` 为 `all` 或 `any`，且当前 `node.children.length > 2`：  
-  `children = node.children.slice(0, 2)`（若需优先保留非占位，可先 `filter` 再 slice，需产品拍板）。
-- 文案示例：`已切换为「都需要 / 任选一」，仅保留前两个子条件。`
-
-**验收标准**
-
-- [ ] 单元测试：3 子 `threshold` + 切到 `all` → 仅剩 2 子。
-- [ ] `serializeStrategyTree` 输出可 `compile`（测试密钥下）。
+**验收证据**  
+[`node-ops.test.ts`](../src/lib/builder/__tests__/node-ops.test.ts)、[`serialize.test.ts`](../src/lib/builder/__tests__/serialize.test.ts)。
 
 ---
 
-### 3.4 Phase D — `importFromSemanticTree` 二叉化（必做）
+### 3.4 Phase D — `importFromSemanticTree` 二叉化
 
-**现状**  
-[`from-semantic-tree.ts`](../src/lib/builder/from-semantic-tree.ts) 中 `case 'and':` / `'or':` 使用 `children: node.children.map(convertNode)`，语义树 **N 叉** 时会产生 **宽 `all`/`any`**，与 §1 冲突。
+**涉及文件**  
+[`from-semantic-tree.ts`](../src/lib/builder/from-semantic-tree.ts)。
 
-**实现要点**
-
-1. 辅助函数：`foldChildrenToBinaryRight(children: StrategyNode[], op: 'all' | 'any'): StrategyNode`  
-   - 若 `children.length <= 1`：直接返回单节点或需与 `group` 包装策略一致（见现有 `miniscript` 语义）。  
-   - 若 `length === 2`：**一个** `group` 节点 `{ op, children: [c0,c1] }`。  
-   - 若 `length > 2`：右结合：`group(op, [c0, foldRest(children.slice(1))])` 等价于嵌套 `all`/`any`。
-2. `case 'and':` / `'or':` 使用 `foldChildrenToBinaryRight(convertedChildren, 'all'|'any')` 替代平铺 `map`。
-
-**验收标准**
-
-- [ ] `from-semantic-tree.test.ts`：构造 3+ 子 `MiniscriptNode` `and`/`or`，导入后 **DFS** 所有 `group` 且 `op` 为 `all`/`any` → `children.length <= 2`。
-- [ ] 导入后 `serializeStrategyTree(tree)` 与直接 `compile` 无 Policy 语法错误（与现有密钥测试一致）。
-- [ ] `useBuilderSync` 集成路径：编译成功回写画布后，树满足不变量（可抽一条 hook 测试或 E2E 说明）。
+**验收证据**  
+[`from-semantic-tree.test.ts`](../src/lib/builder/from-semantic-tree.test.ts)。
 
 ---
 
-### 3.5 Phase E — 测试 fixtures 与矩阵（必做）
+### 3.5 Phase E — 测试 fixtures 与矩阵
 
-**文件**  
-[`templates.ts`](../src/lib/builder/templates.ts)（`singleSigTemplate` / `sharedControlTemplate` / `nestedRecoveryLikeTree` 等测试用工厂）、[`serialize.test.ts`](../src/lib/builder/__tests__/serialize.test.ts)、[`templates.test.ts`](../src/lib/builder/__tests__/templates.test.ts)、`store-builder`/`storage-share` 等。
-
-**实现要点**
-
-- 遍历 fixtures：凡 `all`/`any`，子节点数 ≤2；若需三条件并列语义，改为 **嵌套 `group`**（与 `serialize` 右嵌套一致）。
-- 全量 `vitest` + `lint`；CI 若存在 ecc 问题，对 `compiler` 全量测试的处理与现网一致即可。
-
-**验收标准**
-
-- [ ] `npm run lint` 通过。
-- [ ] `npx vitest run`（或项目约定命令）通过。
-- [ ] 代表性策略树（含嵌套 and/or）在本地可编译。
+**验收证据**  
+[`templates.test.ts`](../src/lib/builder/__tests__/templates.test.ts)、[`serialize.test.ts`](../src/lib/builder/__tests__/serialize.test.ts)；全量 `npm run lint`、`npx vitest run`（见 [`CLAUDE.md`](../CLAUDE.md)）。
 
 ---
 
-### 3.6 Phase F — SPEC.md 与 agent.md（必做）
+### 3.6 Phase F — SPEC.md 与 agent.md
 
-**内容要求**（与 §8 旧稿一致，此处略作压缩）
-
-| 文档 | 必须写清 |
-|------|----------|
-| **SPEC.md** | Build 画布：`all`/`any` 最多两直接子；「+」满员隐藏；thresh 多子；切换操作符时裁剪；语义树导入 N 叉→嵌套二叉。 |
-| **agent.md** | 与 SPEC 对齐的 **二元 AND/OR**、**C/D 配套**、**serialize 已折叠**；修改清单含 `node-ops`、`tree-to-flow`、`from-semantic-tree`。 |
-
-**验收标准**
-
-- [ ] 全文搜索无「AND/OR 下可挂任意多个平铺子节点」类过时描述。
-- [ ] 新人只读 `agent.md` 能定位到约束与相关文件。
+**验收证据**  
+[`SPEC.md`](../SPEC.md)、[`agent.md`](../agent.md) 中 Build / 二元 AND/OR / `useBuilderSync` 相关节。
 
 ---
 
@@ -187,7 +141,7 @@
 
 1. `npm run lint`
 2. `npx vitest run`（或项目脚本）
-3. **Build 模式手工**：§2 中 E1–E4、E8；E5–E6；根占位选类型与画布编辑
+3. **Build 模式手工**：§2 中 E1–E4、E8；E5–E6、**E12**；根占位选类型与画布编辑
 4. **Scenario 模式**：`loadScenario`、非 build 路径无回归
 5. 若改动 i18n：中英键齐全
 
@@ -222,6 +176,7 @@
 
 - 旧分享链接 / localStorage 中 **宽树** 迁移脚本（一次性）。
 - Build 模式 **仅**在 `compilationError` 时展示「底部条件来自上一成功编译」的副文案（与 `useCompiler` 清空策略协调，避免重复）。
+- 暂缓或非本次范围的 QA 项见 [`qa-known-issues.md`](qa-known-issues.md)。
 
 ---
 

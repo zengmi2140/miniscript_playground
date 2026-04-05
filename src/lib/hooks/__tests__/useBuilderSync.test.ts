@@ -97,27 +97,61 @@ describe('useBuilderSync', () => {
     expect(mockSetBuilderSyncState).not.toHaveBeenCalled();
   });
 
-  it('sets compile-error state when there is a compilation error', () => {
-    const mockUsePlaygroundStore = usePlaygroundStore as unknown as ReturnType<typeof vi.fn>;
-    mockUsePlaygroundStore.mockImplementation((selector: (state: Record<string, unknown>) => unknown) => {
-      const state = {
-        playgroundMode: 'build',
-        policy: 'pk(Alice',
-        semanticTree: null,
-        compilationError: { message: 'Syntax error' },
-        lastBuilderPolicySnapshot: 'pk(Bob)',
-        builderSyncState: 'synced',
-        setStrategyTree: mockSetStrategyTree,
-        updateStrategyTree: mockUpdateStrategyTree,
-        setBuilderSyncState: mockSetBuilderSyncState,
-        setLastBuilderPolicySnapshot: mockSetLastBuilderPolicySnapshot,
-      };
-      return selector(state);
-    });
+  it('sets compile-error and seeds root placeholder when strategyTree is null', () => {
+    const mockUsePlaygroundStore = usePlaygroundStore as unknown as ReturnType<typeof vi.fn> & {
+      getState: () => { strategyTree: ReturnType<typeof createRootPlaceholderTree> | null };
+    };
+    const state = {
+      playgroundMode: 'build',
+      policy: 'pk(Alice',
+      semanticTree: null,
+      compilationError: { message: 'Syntax error' },
+      lastBuilderPolicySnapshot: 'pk(Bob)',
+      builderSyncState: 'synced',
+      strategyTree: null as ReturnType<typeof createRootPlaceholderTree> | null,
+      setStrategyTree: mockSetStrategyTree,
+      updateStrategyTree: mockUpdateStrategyTree,
+      setBuilderSyncState: mockSetBuilderSyncState,
+      setLastBuilderPolicySnapshot: mockSetLastBuilderPolicySnapshot,
+    };
+    mockUsePlaygroundStore.mockImplementation((selector: (s: Record<string, unknown>) => unknown) =>
+      selector(state),
+    );
+    mockUsePlaygroundStore.getState = () => ({ strategyTree: state.strategyTree });
 
     renderHook(() => useBuilderSync());
 
     expect(mockSetBuilderSyncState).toHaveBeenCalledWith('compile-error');
+    expect(mockSetStrategyTree).toHaveBeenCalledWith(createRootPlaceholderTree());
+  });
+
+  it('sets compile-error but does not replace strategyTree when one already exists', () => {
+    const mockUsePlaygroundStore = usePlaygroundStore as unknown as ReturnType<typeof vi.fn> & {
+      getState: () => { strategyTree: ReturnType<typeof createRootPlaceholderTree> | null };
+    };
+    const existingTree = createRootPlaceholderTree();
+    const state = {
+      playgroundMode: 'build',
+      policy: 'pk(Alice',
+      semanticTree: null,
+      compilationError: { message: 'Syntax error' },
+      lastBuilderPolicySnapshot: 'pk(Bob)',
+      builderSyncState: 'synced',
+      strategyTree: existingTree,
+      setStrategyTree: mockSetStrategyTree,
+      updateStrategyTree: mockUpdateStrategyTree,
+      setBuilderSyncState: mockSetBuilderSyncState,
+      setLastBuilderPolicySnapshot: mockSetLastBuilderPolicySnapshot,
+    };
+    mockUsePlaygroundStore.mockImplementation((selector: (s: Record<string, unknown>) => unknown) =>
+      selector(state),
+    );
+    mockUsePlaygroundStore.getState = () => ({ strategyTree: state.strategyTree });
+
+    renderHook(() => useBuilderSync());
+
+    expect(mockSetBuilderSyncState).toHaveBeenCalledWith('compile-error');
+    expect(mockSetStrategyTree).not.toHaveBeenCalled();
   });
 
   it('does not reverse sync when policy matches snapshot', () => {

@@ -84,7 +84,8 @@ export const en: Record<string, string> = {
   'builder.canvas.waitingTree': 'Compiling and syncing canvas…',
   'builder.canvas.initializing': 'Syncing canvas…',
   'builder.sync.textLed': 'Current policy contains unsupported constructs (e.g., after() or hashlocks). Canvas shows the last synced snapshot.',
-  'builder.sync.compileError': 'Policy has syntax errors. Canvas shows the last successful compilation.',
+  'builder.sync.compileError':
+    'Policy cannot be compiled or parsed. The canvas is read-only. If nothing has compiled successfully yet, you see the initial placeholder; fix the Policy to resync.',
   'builder.sync.readOnly': 'Read-only',
   'builder.node.signature': 'Signature',
   'builder.node.timelock': 'Timelock',
