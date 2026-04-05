@@ -14,6 +14,7 @@
 
 - **场景画廊** — 6 个预设场景：个人单签、多签、2FA 双重验证、遗产继承、退化多签金库、保险柜
 - **Playground** — 三栏 IDE，实时编译 Policy → Miniscript → Script → Descriptor → Address
+- **编译错误体验** — 中英文摘要、可展开原始错误与复制、分类与建议（hints）；启发式在 Policy 编辑器内标出可能问题区间（非 IDE 级精度）
 - **花费路径地图** — React Flow 可视化，节点颜色实时反映当前条件满足状态（framer-motion 300ms 过渡动画）
 - **条件模拟** — 勾选已有密钥、已知哈希原像、拖动时间滑块，实时预览哪条路径可用
 - **GlossaryTooltip** — 悬停节点查看 `pk`、`older`、`after`、`sha256` 等操作符的双语解释
@@ -50,6 +51,8 @@ npm install
 npm run dev
 ```
 
+测试：`npm run test`（Vitest）。代码检查：`npm run lint`。
+
 启动后访问终端输出的地址（通常是 http://localhost:3000）。
 
 ## 项目结构
@@ -69,7 +72,7 @@ src/
 │   ├── scenarios/          # 场景画廊组件
 │   └── shared/             # 公共组件（GlossaryTooltip 等）
 └── lib/
-    ├── engine/             # 编译引擎（compiler, parser, path-analyzer）
+    ├── engine/             # 编译引擎（compiler, policy-errors, policy-error-highlight, parser, path-analyzer）
     ├── flow/               # tree-to-flow 转换
     ├── glossary/           # Miniscript 术语词典
     ├── i18n/               # 双语翻译文件

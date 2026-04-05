@@ -12,6 +12,7 @@ Miniscript Lab is a Bitcoin Miniscript educational playground. It compiles Polic
 npm run dev    # Start dev server at http://localhost:3000
 npm run build  # Production build
 npm run lint   # ESLint check
+npm run test   # Vitest (vitest run)
 ```
 
 Testing uses Vitest. Tests live alongside source files with `.test.ts` / `.test.tsx` suffixes.
@@ -19,7 +20,9 @@ Testing uses Vitest. Tests live alongside source files with `.test.ts` / `.test.
 ## Architecture
 
 ### Core Compilation Engine (`src/lib/engine/`)
-- `compiler.ts` — Policy → Miniscript → Script compilation, key variable substitution
+- `compiler.ts` — Policy → Miniscript → Script compilation, key variable substitution; attaches `FriendlyError.highlight` via `policy-error-highlight.ts`
+- `policy-errors.ts` — Maps library error strings to `FriendlyError` (`category`, `hints`, `friendly` zh/en)
+- `policy-error-highlight.ts` — Heuristic UTF-16 ranges in the Policy text for editor marking (`unknown_fragment` token search, parenthesis stack for bracket-related errors)
 - `miniscript-parser.ts` — Miniscript string → semantic AST
 - `path-analyzer.ts` — Analyzes spending paths and their conditions
 - `time-utils.ts` — Block height to human-readable time conversion
@@ -48,7 +51,7 @@ Testing uses Vitest. Tests live alongside source files with `.test.ts` / `.test.
 ### Key Dependencies
 - `@bitcoinerlab/miniscript` / `miniscript-policies` / `descriptors` — Bitcoin Miniscript compilation (`DescriptorsFactory` from `@bitcoinerlab/descriptors/dist/descriptors`; `@ledgerhq/ledger-bitcoin` is webpack-aliased to `src/lib/shims/ledger-bitcoin-stub.js` — no hardware wallet in-app)
 - `@xyflow/react` + `dagre` — Path graph visualization
-- `@codemirror/6` — Policy editor with custom syntax highlighting
+- `@codemirror/6` — Policy editor with custom syntax highlighting; `policy-language.ts` includes optional error-range decorations (`buildErrorHighlightExtensions`) used by `PolicyEditor`
 - `framer-motion` — Node transition animations
 - Zustand — State management
 

@@ -13,6 +13,7 @@ import type {
   SpendingPath,
 } from './types';
 import { mapError } from './policy-errors';
+import { attachErrorHighlight } from './policy-error-highlight';
 import { analyzeSpendingPaths } from './path-analyzer';
 
 const { Output } = DescriptorsFactory(ecc);
@@ -61,10 +62,11 @@ export async function compile(
       policyResult.miniscript === '[compile error]' ||
       policyResult.miniscript.startsWith('[exception:')
     ) {
+      const err = mapError(policyResult.miniscript || 'Unknown compilation error');
       return {
         result: null,
         paths: [],
-        error: mapError(policyResult.miniscript || 'Unknown compilation error'),
+        error: attachErrorHighlight(policy, err),
       };
     }
 
@@ -74,10 +76,11 @@ export async function compile(
     const compileResult = compileMiniscript(miniscriptWithKeys);
 
     if (compileResult.error) {
+      const err = mapError(compileResult.error);
       return {
         result: null,
         paths: [],
-        error: mapError(compileResult.error),
+        error: attachErrorHighlight(policy, err),
       };
     }
 
@@ -124,10 +127,11 @@ export async function compile(
     };
   } catch (err: unknown) {
     const raw = err instanceof Error ? err.message : String(err);
+    const mapped = mapError(raw);
     return {
       result: null,
       paths: [],
-      error: mapError(raw),
+      error: attachErrorHighlight(policy, mapped),
     };
   }
 }
