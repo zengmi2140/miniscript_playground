@@ -5,6 +5,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@ledgerhq/ledger-bitcoin': path.resolve(
+        __dirname,
+        './src/lib/shims/ledger-bitcoin-stub.js',
+      ),
     },
   },
   test: {

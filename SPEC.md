@@ -345,6 +345,12 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 
 这是产品的核心页面。
 
+#### 桌面优先与窄视口
+
+- **产品策略**：完整 Playground（三栏工作台 + Build 画布）以**桌面端 / 宽视口**为设计目标；窄视口下不提供完整界面，仅展示全屏说明（`MobileFallback`）与返回场景入口等引导。
+- **实现**：`PlaygroundClient` 使用 `matchMedia('(min-width: 768px)')` 分支；窄视口渲染 `MobileFallback`（文案键 `playground.mobile.*`）；首页在 `md` 断点以下于 Hero 与底部 CTA 展示 `home.playground.desktopHint`，与 Playground 内说明一致。
+- **用户可见文案**：不出现像素数字，表述为建议在桌面端或更大屏幕以获得完整体验。
+
 #### 渐进式加载架构
 
 目标：页面切换像 App 内导航一样丝滑——三栏框架立即可见，只有画布区域异步加载。
@@ -796,7 +802,8 @@ const scriptHex = descriptor.getScriptPubKey().toString('hex');
 2. MVP 仅处理 P2WSH 上下文，descriptor 格式固定为 `wsh(<miniscript>)`。Taproot 相关逻辑不在 MVP 实现
 3. 使用 `knowns`/`unknowns` 参数驱动条件开关功能
 4. 使用 `@bitcoinerlab/descriptors` 构建 descriptor 字符串，再调用其 `.getAddress(network)` 方法生成地址。该库内部依赖 `bitcoinjs-lib`，需一并安装
-5. 编译过程应在 Web Worker 中执行以避免阻塞 UI（可选优化）
+5. **构建与 Descriptor 入口（实现约定）**：本站不接硬件钱包，但 `@bitcoinerlab/descriptors` 主入口会顺带拉入 Ledger / PSBT 签名相关模块。当前实现从 `@bitcoinerlab/descriptors/dist/descriptors` 导入 `DescriptorsFactory`，在 `compiler.ts` 中用 `DescriptorsFactory(ecc)` 得到 `Output`，以 `new Output({ descriptor, network })` 解析并生成地址（与上文「解析 descriptor → 地址」语义一致，API 名称以代码为准）。Next.js 的 `webpack.resolve.alias` 将 `@ledgerhq/ledger-bitcoin` 指向仓库内 `src/lib/shims/ledger-bitcoin-stub.js`，**不**安装、**不**打入真实 `@ledgerhq/ledger-bitcoin`；Vitest 配置中同步该别名。若未来需要 Ledger，应移除别名并恢复对真实 peer 依赖的安装。
+6. 编译过程应在 Web Worker 中执行以避免阻塞 UI（可选优化）
 
 ### 6.2 路径分析器
 
@@ -1396,7 +1403,7 @@ const GLOSSARY: Record<string, { zh: string; en: string; explain_zh: string; exp
 | 图标         | lucide-react                      | latest               | 统一图标库                                                       |
 | Miniscript | @bitcoinerlab/miniscript          | latest               | 编译 + satisfier                                              |
 | Policy 编译  | @bitcoinerlab/miniscript-policies | latest               | Policy → Miniscript                                         |
-| Descriptor | @bitcoinerlab/descriptors         | latest               | descriptor 解析 + 地址生成                                        |
+| Descriptor | @bitcoinerlab/descriptors         | latest               | descriptor 解析 + 地址生成（`dist/descriptors` 入口与 Ledger stub，见 6.1 关键实现细节第 5 条） |
 | 比特币基础库    | bitcoinjs-lib                     | latest               | @bitcoinerlab/descriptors 的底层依赖，提供网络定义和脚本编码              |
 | 字体         | Plus Jakarta Sans + IBM Plex Mono | via next/font/google |                                                             |
 

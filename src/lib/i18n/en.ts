@@ -73,6 +73,7 @@ export const en: Record<string, string> = {
   'home.cta.subtitle': 'Open the Playground to write any Policy freely, or use the visual builder to compose from scratch.',
   'home.cta.playground': 'Open Blank Playground',
   'home.cta.build': 'Build with Canvas',
+  'home.playground.desktopHint': 'For the full experience, open the Playground on a desktop or larger screen.',
 
   // Builder
   'builder.starter.title': 'Choose Strategy Type',
@@ -213,8 +214,9 @@ export const en: Record<string, string> = {
   'warnings.malleable': '{count} path(s) have malleable witness data, which may affect fee estimation',
   'warnings.largeWitness': 'Maximum witness size is ~{size} vB; larger witnesses mean higher fees',
   'glossary.tooltip.label': 'What is this',
-  'playground.mobile.title': 'Desktop Required',
-  'playground.mobile.description': 'The Playground works best on a larger screen. Please open it on a desktop or laptop.',
+  'playground.mobile.title': 'Use a Desktop or Larger Screen',
+  'playground.mobile.description':
+    'The full Playground — three-column layout and visual builder — needs a wider viewport. Open it on a desktop, laptop, or a tablet in landscape for the full experience.',
   'playground.mobile.goScenarios': 'Browse Scenarios',
   'compare.featureList.title': 'Planned Features',
   'compare.feature.1': 'Side-by-side compilation results for two Policies',

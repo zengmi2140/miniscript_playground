@@ -73,6 +73,7 @@ export const zh: Record<string, string> = {
   'home.cta.subtitle': '在 Playground 里自由输入任意 Policy，或者用可视化构建器从零搭建。',
   'home.cta.playground': '打开空白 Playground',
   'home.cta.build': '用画布搭建策略',
+  'home.playground.desktopHint': 'Playground 建议在桌面端打开以获得完整体验。',
 
   // Builder
   'builder.starter.title': '选择策略类型',
@@ -217,8 +218,9 @@ export const zh: Record<string, string> = {
   'warnings.malleable': '{count} 条路径的见证数据可被第三方篡改（malleable），可能影响手续费预估',
   'warnings.largeWitness': '最大见证数据约 {size} vB，较大的 witness 意味着更高的手续费',
   'glossary.tooltip.label': '是什么',
-  'playground.mobile.title': '请使用桌面端',
-  'playground.mobile.description': 'Playground 需要较大屏幕才能获得最佳体验，请在电脑上打开。',
+  'playground.mobile.title': '请在桌面端或更大屏幕上使用',
+  'playground.mobile.description':
+    '完整的三栏工作台与可视化搭建需要更宽的视口。请在电脑、平板横屏或更大屏幕上打开，以获得完整体验。',
   'playground.mobile.goScenarios': '浏览场景',
   'compare.featureList.title': '计划功能',
   'compare.feature.1': '并排对比两个 Policy 的编译结果',

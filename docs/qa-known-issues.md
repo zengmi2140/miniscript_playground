@@ -4,19 +4,13 @@
 
 ---
 
-## 构建与依赖
+## 已处理
 
-| 现象 | 影响 | 建议方向 |
-|------|------|----------|
-| 开发/生产构建时，`@bitcoinerlab/descriptors` 拉取 `ledger.js` 报 `Can't resolve '@ledgerhq/ledger-bitcoin'` | 控制台与终端噪音；易与真实业务报错混淆 | 评估 optional 依赖的 webpack 别名、externals 或显式安装/打桩 |
+### 平台与模式
 
----
-
-## 平台与模式
-
-| 现象 | 影响 | 建议方向 |
-|------|------|----------|
-| 视口宽度 &lt; 768px 时仅显示 `MobileFallback`，无法使用三栏 Playground 与 Build 画布 | 手机用户无法使用构建模式 | 产品决策：维持「桌面优先」或规划响应式/简化版 |
+- **原现象**：视口宽度 &lt; 768px 时仅显示 `MobileFallback`，无法使用三栏 Playground 与 Build 画布。
+- **结论**：维持**桌面优先**（`matchMedia('(min-width: 768px)')` 行为不变）。
+- **处理**：在 [`MobileFallback`](/src/app/playground/PlaygroundClient.tsx) 与首页窄屏提示中说明需在**桌面端或更大屏幕**使用以获得完整体验；用户可见文案**不写像素数字**。
 
 ---
 

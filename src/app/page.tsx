@@ -96,6 +96,9 @@ export default function ScenariosPage() {
               <ArrowRight className="h-4 w-4 text-text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-text-primary" />
             </Link>
           </div>
+          <p className="mt-4 text-xs leading-relaxed text-text-muted md:hidden">
+            {t('home.playground.desktopHint')}
+          </p>
         </div>
       </section>
 
