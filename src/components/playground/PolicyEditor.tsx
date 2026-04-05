@@ -49,6 +49,7 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
   const keyVariables = usePlaygroundStore((s) => s.keyVariables);
   const context = usePlaygroundStore((s) => s.context);
   const network = usePlaygroundStore((s) => s.network);
+  const playgroundMode = usePlaygroundStore((s) => s.playgroundMode);
   const suppressSync = useRef(false);
   const [shareCopied, setShareCopied] = useState(false);
 
@@ -138,12 +139,18 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
 
   const handleShare = useCallback(async () => {
     try {
-      const url = buildShareUrl({ policy, keyVariables, context, network });
+      const url = buildShareUrl({
+        policy,
+        keyVariables,
+        context,
+        network,
+        playgroundMode,
+      });
       await navigator.clipboard.writeText(url);
       setShareCopied(true);
       setTimeout(() => setShareCopied(false), 2000);
     } catch {}
-  }, [policy, keyVariables, context, network]);
+  }, [policy, keyVariables, context, network, playgroundMode]);
 
   return (
     <div className="flex flex-col gap-2">

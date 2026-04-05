@@ -174,7 +174,7 @@
 
 ## 7. 可选后续（非必须）
 
-- 旧分享链接 / localStorage 中 **宽树** 迁移脚本（一次性）。
+- 旧分享链接中 **宽树** 迁移脚本（一次性）（Playground 已不再依赖 localStorage 会话恢复）。
 - Build 模式 **仅**在 `compilationError` 时展示「底部条件来自上一成功编译」的副文案（与 `useCompiler` 清空策略协调，避免重复）。
 - 暂缓或非本次范围的 QA 项见 [`qa-known-issues.md`](qa-known-issues.md)。
 

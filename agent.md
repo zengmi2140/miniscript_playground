@@ -67,7 +67,7 @@ npx vitest run
 - `/playground`
   - 三栏 Playground，是项目主界面。
   - 入口组件：`src/app/playground/page.tsx`（直接 import `PlaygroundClient`）
-  - 客户端组件：`src/app/playground/PlaygroundClient.tsx`（含 `'use client'`，负责读取 URL 分享参数 `?s=`、场景参数 `?scenario=`、本地缓存会话；并挂载 `useCompiler`、`useAutoSave`、`useBuilderSync`）
+  - 客户端组件：`src/app/playground/PlaygroundClient.tsx`（含 `'use client'`，负责读取 URL 分享参数 `?s=`、场景参数 `?scenario=`；首屏调用 `clearSession()` 清理遗留的 `miniscript-lab-session` 键、**不再**从 localStorage 恢复 Playground 会话；并挂载 `useCompiler`、`useBuilderSync`）
   - **渐进式加载架构**：服务端渲染三栏框架 HTML 用户立即看到完整框架；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载显示 spinner 骨架屏；`layout.tsx` 加 `<link rel="prefetch">` 让浏览器提前获取文档；scenario 模式停留 2 秒后后台预加载 Builder 代码。
 
 - `/compare`
@@ -103,7 +103,7 @@ src/
     editor/         CodeMirror Policy 语法高亮
     flow/           语义树 -> React Flow 图（scenario 路径图，Dagre TB）
     glossary/       术语解释
-    hooks/          useCompiler、useAutoSave、useBuilderSync（build 同步）
+    hooks/          useCompiler、useBuilderSync（build 同步）
     i18n/           轻量双语系统
     scenarios/      预设场景和标签
     stores/         Zustand 单一主 store
@@ -197,14 +197,13 @@ src/
   - 输出签名、相对时间锁、绝对时间锁、哈希锁等条件。
   - UI 的 `Paths`、`Warnings`、`StatusBanner` 都依赖这份结构化结果。
 
-### 自动保存与分享
+### 分享与会话存储
 
-- `src/lib/hooks/useAutoSave.ts`
-  - 800ms debounce 保存到 localStorage。
+- **Playground 不自动持久化**：刷新或再次进入 `/playground` 使用 store 初始状态；不再 `loadSession` / `saveSession`。
 - `src/lib/utils/storage.ts`
-  - localStorage key: `miniscript-lab-session`（会话含 `playgroundMode`）
+  - `clearSession()` 移除 `miniscript-lab-session`（首屏调用，清理历史残留）。
 - `src/lib/utils/share.ts`
-  - 分享链接把 payload 编码进 `?s=`（`SharePayload` 可含 `playgroundMode`）；`decodeSharePayload` 仅接受 `playgroundMode` 为 `scenario` 或 `build`，否则忽略该字段。
+  - 分享链接把 payload 编码进 `?s=`（`SharePayload` 可含 `policy`、`keyVariables`、`context`、`network`、`playgroundMode`）；`PolicyEditor`「分享」写入剪贴板；`decodeSharePayload` 仅接受 `playgroundMode` 为 `scenario` 或 `build`，否则忽略该字段。
 
 ## 8. 关键 UI 结构
 
@@ -372,8 +371,7 @@ src/
 
 ### 修改分享、恢复、持久化
 
-- `src/app/playground/page.tsx`
-- `src/lib/hooks/useAutoSave.ts`
+- `src/app/playground/PlaygroundClient.tsx`
 - `src/lib/utils/storage.ts`
 - `src/lib/utils/share.ts`
 
