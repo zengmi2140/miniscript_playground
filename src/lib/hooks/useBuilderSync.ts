@@ -12,7 +12,9 @@ import { createRootPlaceholderTree } from '@/lib/builder/root-placeholder';
  * - When in build mode and policy changes externally (text edit), tries to import back to builder
  * - If import succeeds, updates strategyTree
  * - If import fails (unsupported constructs), sets text-led mode
- * - If compilation fails, sets compile-error mode but keeps last tree
+ * - If compilation fails: sets compile-error mode (read-only canvas). Keeps the last strategyTree when
+ *   one exists; if strategyTree is still null (e.g. restored session never compiled), seeds the root
+ *   placeholder so the canvas does not stay stuck on “waiting for tree”.
  */
 export function useBuilderSync() {
   const playgroundMode = usePlaygroundStore((s) => s.playgroundMode);
@@ -56,8 +58,11 @@ export function useBuilderSync() {
 
     // Policy was edited externally - try to import from semantic tree
     if (compilationError) {
-      // Compilation failed - keep last tree, set compile-error state
       setBuilderSyncState('compile-error');
+      const existingTree = usePlaygroundStore.getState().strategyTree;
+      if (!existingTree) {
+        setStrategyTree(createRootPlaceholderTree());
+      }
       return;
     }
 

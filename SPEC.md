@@ -183,7 +183,7 @@ hover 态：Primary → `--orange-600`；Secondary → `--bg-overlay`
 ```
 ┌─────────────────────┐
 │ 🔑 Alice 签名        │  ← semantic-key 背景色 10% 透明度 + 左侧色条
-└────────────�����────────┘
+└─────────────────────┘
 ┌─────────────────────┐
 │ ⏳ 等待 30 天         │  ← semantic-timelock 背景色 10% 透明度 + 左侧色条
 └─────────────────────┘
@@ -394,7 +394,7 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 
 **区域 A: 场景选择器**
 
-- 场景列表（卡���形式，点击切换场景）
+- 场景列表（卡片形式，点击切换场景）
 - 第一个位置为 **「自己动手」** 入口卡片（可点击；`playgroundMode === 'build'` 时呈激活态）。点击后进入 **可视化构建（build）模式**（`playgroundMode: 'build'`）：清空当前场景-derived 状态，中央画布以根占位节点（虚线「选择策略类型」）为首屏；用户点击根占位后在右侧浮窗选择策略类型（单签、门限、AND、OR），**不继承**用户此前在场景模式下的 Policy / 角色变量 / 编译结果。从场景模式切换到普通预设场景仍通过下方场景卡片完成（`loadScenario` 会回到 `scenario` 模式）。
 - 通过分享链接 `?s=` 或本地会话恢复的 **build** 会话可携带已有 Policy，与「主动点自己动手」的清空规则不同；详见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
 - 切换场景（非「自己动手」）时自动填充 Policy 和 Key 变量
@@ -423,11 +423,12 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 - 高度自适应（最小 80px，最大 300px）
 - 语法高亮（见 §6.5）
 - 编辑后 500ms 防抖自动编译
-- 编���错误在编辑器下方显示（红色文字 + 友好中文描述）
+- 编译错误在编辑器下方显示（红色文字 + 友好中文描述）
 - 工具栏：[格式化] [清空] [复制] [分享🔗]（Build 模式与 Scenario 模式一致，无额外按钮）
 - **Build 模式**下编辑器与可视化画布双向同步：画布操作更新 Policy；用户编辑 Policy 时，若结构仍在构建器支持范围内则回写 `strategyTree`，否则进入「文本主导」状态（`builderSyncState: 'text-led'`），不强行破坏画布。同步逻辑见 `useBuilderSync`（`src/lib/hooks/useBuilderSync.ts`）。
   - 成功从语义树回写时通过 `updateStrategyTree` 写入，编辑器中的 Policy 与 `serializeStrategyTree(strategyTree)` 对齐为规范串。
   - Policy 为空（或仅空白）时：`useCompiler` 清空编译结果与语义树/路径；`useBuilderSync` 将 `strategyTree` 重置为根占位节点，并将 `lastBuilderPolicySnapshot` 置空，与「主动进入 build」的空白 scratch 一致。
+  - Policy 非空但**编译失败**且当前尚无 `strategyTree`（例如会话恢复后从未成功编译）：`useBuilderSync` 将 `builderSyncState` 置为 `compile-error`，并植入根占位树，避免画布长期停在「正在编译并同步画布…」；若已有树则只读保留快照。见 `src/lib/hooks/useBuilderSync.ts` 与 `src/lib/hooks/__tests__/useBuilderSync.test.ts`。
 
 **主画布（按 `playgroundMode` 二选一）**
 
@@ -595,11 +596,11 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 │ ──────────────────────────────────── │
 │ [🔑 User] [🔑 Service]              │
 │ ──────────────────────────────────── │
-│ Witness 大小: ~110 vB  |  状���: ✅    │
+│ Witness 大小: ~110 vB  |  状态: ✅    │
 └──────────────────────────────────────┘
 ┌──────────────────────────────────────┐
 │ 路径 2: 超时恢复                       │
-│ ────────────────────────────��─────── │
+│ ──────────────────────────────────── │
 │ [🔑 User] [⏳ 等待 30 天]            │
 │ ──────────────────────────────────── │
 │ Witness 大小: ~95 vB   |  状态: ⏳    │
@@ -1068,7 +1069,7 @@ const policyLanguage = StreamLanguage.define({
 
 - 中栏路径图正常渲染语义树，但所有叶子节点显示为灰色（未满足）
 - 路径卡片区域显示提示："此 Policy 无可用花费路径。所有路径当前条件下不可满足。"
-- 状态横幅显示红色："❌ 当前条件下无法花��"
+- 状态横幅显示红色："❌ 当前条件下无法花费"
 
 **首次进入 Playground（无场景参数 ?scenario=…）：**
 
@@ -1088,7 +1089,7 @@ const policyLanguage = StreamLanguage.define({
 {
   id: 'single-key',
   icon: 'Key',
-  title: { zh: '个人���签', en: 'Single Key' },
+  title: { zh: '个人单签', en: 'Single Key' },
   description: {
     zh: '只有你一个人可以花这笔钱。最简单的情况。',
     en: 'Only you can spend. The simplest case.'
@@ -1113,7 +1114,7 @@ const policyLanguage = StreamLanguage.define({
   icon: 'Users',
   title: { zh: '2-of-3 多签', en: '2-of-3 Multisig' },
   description: {
-    zh: '三把钥匙，任意两把就能花。适合团队或家庭共��。',
+    zh: '三把钥匙，任意两把就能花。适合团队或家庭共管。',
     en: 'Three keys, any two can spend. Great for teams or families.'
   },
   explanation: {
@@ -1186,7 +1187,7 @@ const policyLanguage = StreamLanguage.define({
   icon: 'Vault',
   title: { zh: '退化多签金库', en: 'Degrading Multisig Vault' },
   description: {
-    zh: '平时 3-of-3 全员签名；90 天后降��为 2-of-3。',
+    zh: '平时 3-of-3 全员签名；90 天后降级为 2-of-3。',
     en: '3-of-3 normally; degrades to 2-of-3 after 90 days.'
   },
   explanation: {
@@ -1215,7 +1216,7 @@ const policyLanguage = StreamLanguage.define({
     en: 'Hot + Cold dual-sign daily; recovery key kicks in after 120 days.'
   },
   explanation: {
-    zh: '双层安全设计：日常使用需要热钱包和冷钱包同时签名。如果冷钱包丢失或损坏，恢复密钥�� 120 天（约 17,280 个区块）后可以独立花费。99@ 表示正常双签路径更常用。',
+    zh: '双层安全设计：日常使用需要热钱包和冷钱包同时签名。如果冷钱包丢失或损坏，恢复密钥在 120 天（约 17,280 个区块）后可以独立花费。99@ 表示正常双签路径更常用。',
     en: '...'
   },
   policy: 'or(99@and(pk(Hot),pk(Cold)),and(pk(Recovery),older(17280)))',
@@ -1262,7 +1263,7 @@ const GLOSSARY: Record<string, { zh: string; en: string; explain_zh: string; exp
   },
   'older': {
     zh: '相对时间锁', en: 'Relative Timelock',
-    explain_zh: '从 UTXO 被创建开始算，必须等待指定数量的区块后才能花费。常用于恢复路径、惩罚窗口���。不是固定日期——每次你重新花费到新地址，计时器就会重置。',
+    explain_zh: '从 UTXO 被创建开始算，必须等待指定数量的区块后才能花费。常用于恢复路径、惩罚窗口等。不是固定日期——每次你重新花费到新地址，计时器就会重置。',
     explain_en: 'Must wait a specified number of blocks after the UTXO is created before spending.'
   },
   'after': {
@@ -1282,7 +1283,7 @@ const GLOSSARY: Record<string, { zh: string; en: string; explain_zh: string; exp
   },
   'thresh': {
     zh: '阈值条件', en: 'Threshold',
-    explain_zh: 'N 个条件中需要满足 K 个。多签是最常见的例子，但条件不限于签名——时间锁也可以作为其中一个��件。',
+    explain_zh: 'N 个条件中需要满足 K 个。多签是最常见的例子，但条件不限于签名——时间锁也可以作为其中一个条件。',
     explain_en: 'K out of N conditions must be met.'
   },
   'sha256': {
@@ -1340,7 +1341,7 @@ const GLOSSARY: Record<string, { zh: string; en: string; explain_zh: string; exp
   "scenarios.subtitle": "把 Bitcoin 的花费条件讲清楚",
   "scenarios.openBlank": "打开空白 Playground →",
   "playground.editor.title": "Policy 编辑器",
-  "playground.editor.placeholder": "在这里输入策���，例如：pk(Alice)",
+  "playground.editor.placeholder": "在这里输入策略，例如：pk(Alice)",
   "playground.editor.compile": "编译",
   "playground.editor.format": "格式化",
   "playground.editor.clear": "清空",
@@ -1542,7 +1543,7 @@ Miniscript Lab 在 MVP 阶段曾按照分阶段的方式实施（Phase 1–10：
 
 本 `SPEC.md` 继续作为**产品与体验层的唯一事实来源**，若与实施文档存在不一致，以本规格为准。
 
-**可视化构建（自己动�� / `build` 模式）MVP** 的专项设计与验收说明见：
+**可视化构建（自己动手 / `build` 模式）MVP** 的专项设计与验收说明见：
 
 - `docs/plans/2026-03-13-visual-builder-mvp-design.md`
 - `docs/plans/2026-03-13-visual-builder-mvp-implementation-plan.md`
@@ -1578,5 +1579,5 @@ Miniscript Lab 在 MVP 阶段曾按照分阶段的方式实施（Phase 1–10：
 7. **不要把"图"误当成"理解"** -- 理解来自状态变化和分支解释
 8. **不要默认进入「自己动手」构建模式** -- 新手仍应以场景与 Policy 编辑为主；`build` 模式是左栏明确的进阶入口，不应作为首次加载默认态
 9. **不要在任何功能中引入 AI/LLM** -- 编译/类型检查/sanity/satisfaction/解释文字全部确定性实现，无需网络请求
-10. **不要生成 mainnet 地址** -- 教育工具只�� testnet/signet
+10. **不要生成 mainnet 地址** -- 教育工具只用 testnet/signet
 
