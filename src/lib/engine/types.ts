@@ -88,11 +88,32 @@ export type ResultTab = 'policy' | 'miniscript' | 'script' | 'descriptor' | 'add
 
 export type PlaygroundMode = 'scenario' | 'build';
 
+/** Error kind for mapping UI and future docs links. */
+export type FriendlyErrorCategory =
+  | 'engine_init'
+  | 'syntax'
+  | 'unknown_fragment'
+  | 'semantic'
+  | 'timelock'
+  | 'security'
+  | 'limit'
+  | 'miniscript'
+  | 'unknown';
+
+/**
+ * `friendly.zh/en` is the primary one-line summary for the user.
+ * `hints` are optional short actionable bullets (same language as displayed).
+ */
 export interface FriendlyError {
   raw: string;
+  category: FriendlyErrorCategory;
   friendly: {
     zh: string;
     en: string;
+  };
+  hints?: {
+    zh: string[];
+    en: string[];
   };
   line?: number;
   column?: number;
