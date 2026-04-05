@@ -41,7 +41,7 @@
 - **不连接任何区块链网络** -- 纯前端模拟
 - **不构造或广播交易** -- 不是钱包
 - **地址生成仅支持 testnet / signet**
-- **数据仅保存在浏览器 localStorage** -- 不上传服务器
+- **不上传服务器**；主题与语言偏好可存于浏览器 localStorage；Playground 策略与模式**不**自动持久化，可通过分享链接（`?s=`）携带状态
 - **MVP 仅支持 P2WSH（SegWit v0）** -- Taproot (P2TR) 在 V2 实现
 - **不依赖任何 LLM / AI API** -- 所有功能纯确定性计算，无外部 API 调用
 
@@ -1499,7 +1499,7 @@ miniscript-lab/
 │   │   │
 │   │   ├── utils/
 │   │   │   ├── share.ts                     # URL 编码/解码分享链接（可含 playgroundMode）
-│   │   │   └── storage.ts                   # localStorage 读写封装
+│   │   │   └── storage.ts                   # 遗留会话键清理（clearSession）；不再自动读写 Playground 会话
 │   │   │
 │   │   ├── playground/
 │   │   │   └── add-next-key-variable.ts     # 左栏「添加」与签名浮层「新建角色」共用的下一角色逻辑
@@ -1509,7 +1509,6 @@ miniscript-lab/
 │   │   │
 │   │   └── hooks/
 │   │       ├── useCompiler.ts               # 编译 hook（防抖 + 错误处理）
-│   │       ├── useAutoSave.ts               # 会话持久化
 │   │       └── useBuilderSync.ts            # build 模式：Policy ↔ strategyTree 同步
 │   │
 │   └── test/

@@ -2,6 +2,8 @@
 
 > **Historical note (2026-04):** The Policy editor toolbar 「模板」 / `BuilderStarterCards` / `applyBuildStarter` were **removed**. Build mode now uses **only** the canvas root placeholder plus the right-side `BuilderPopover` for strategy type selection. Sections below that still mention toolbar templates are **obsolete** for new work.
 
+> **Historical note (2026-04 later):** **`useAutoSave` was removed** and Playground **no longer restores** from `miniscript-lab-session` on load. State recovery is via **`?s=` share URLs** (and `?scenario=`). Task 5 below still describes the earlier localStorage approach; treat it as **archival** unless migrating back.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Build the `自己动手` -> `build` mode MVP as a constrained visual strategy editor that syncs with the Policy editor, overlays live satisfaction status on the same canvas, and preserves future compatibility for `after()` and hashlocks.

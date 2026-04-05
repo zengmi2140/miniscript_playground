@@ -175,16 +175,16 @@ Status: Ready for Testing
 
 ## Phase 8: Persistence & State Recovery
 
-### LocalStorage
+> **Update:** Playground no longer auto-persists to localStorage. Verify **share link** (`?s=`) restores policy, keys, network, context, and `playgroundMode` instead.
 
-- [ ] Editing in build mode auto-saves to localStorage
-- [ ] Refreshing page restores build mode state
-- [ ] Tree, policy, and keyVariables all restored
+### Share URL
 
-### Cross-Session
+- [ ] Copy share from toolbar opens a URL that restores the same policy and mode when opened in a new tab
+- [ ] Build mode is preserved when `playgroundMode` was `build` at share time
 
-- [ ] Close browser, reopen → state restored
-- [ ] Mode (build vs scenario) correctly restored
+### LocalStorage (legacy)
+
+- [ ] `miniscript-lab-session` is not written during normal editing (may be cleared on load)
 
 ---
 
