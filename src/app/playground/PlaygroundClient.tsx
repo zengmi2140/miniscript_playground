@@ -10,10 +10,9 @@ import { CenterPanel } from '@/components/playground/CenterPanel';
 import { RightPanel } from '@/components/playground/RightPanel';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useCompiler } from '@/lib/hooks/useCompiler';
-import { useAutoSave } from '@/lib/hooks/useAutoSave';
 import { useBuilderSync } from '@/lib/hooks/useBuilderSync';
 import { decodeSharePayload } from '@/lib/utils/share';
-import { loadSession } from '@/lib/utils/storage';
+import { clearSession } from '@/lib/utils/storage';
 import { useI18n } from '@/lib/i18n/context';
 
 function useViewportMode() {
@@ -66,12 +65,13 @@ function DesktopPlayground() {
   const initialized = useRef(false);
 
   useCompiler();
-  useAutoSave();
   useBuilderSync();
 
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
+
+    clearSession();
 
     const shareParam = searchParams.get('s');
     if (shareParam) {
@@ -85,18 +85,6 @@ function DesktopPlayground() {
     const scenarioId = searchParams.get('scenario');
     if (scenarioId) {
       loadScenario(scenarioId);
-      return;
-    }
-
-    const saved = loadSession();
-    if (saved && saved.policy) {
-      restoreSession({
-        policy: saved.policy,
-        keyVariables: saved.keyVariables,
-        context: saved.context,
-        network: saved.network,
-        playgroundMode: saved.playgroundMode,
-      });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
