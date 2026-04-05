@@ -63,6 +63,9 @@ export function HomepageHero() {
                 {t('home.hero.cta.secondary')}
               </Link>
             </div>
+            <p className="mt-3 text-xs leading-relaxed text-text-muted md:hidden">
+              {t('home.playground.desktopHint')}
+            </p>
           </div>
 
           {/* Right: Code preview card */}

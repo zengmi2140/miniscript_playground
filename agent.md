@@ -63,11 +63,13 @@ npx vitest run
   - 入口组件：`src/app/page.tsx`（Server Component）
   - 子组件：`HomepageHero`（Hero 区）、`HomepageMiniscriptExplainer`（科普区，标题合并定义，下方三卡片纵向堆叠对比传统 Script vs Miniscript）、`HomepageMission`（我们为什么做这个，纯居中文本）、`HomepageFeatures`（核心能力）、`HomepageHowItWorks`（使用流程）、`ScenarioGallery`（场景卡片）
   - **首页预加载**：用 `requestIdleCallback` 在浏览器空闲时预热所有 Playground 模块，确保用户从首页进入 Playground 时体验丝滑
+  - **窄屏提示**：`md` 以下在 Hero 与页面底部 CTA 区域展示 `home.playground.desktopHint`（i18n），提醒用户在桌面端或更大屏幕打开 Playground 以获得完整体验；与 `/playground` 的 `MobileFallback` 文案一致为「桌面优先」预期管理
 
 - `/playground`
   - 三栏 Playground，是项目主界面。
   - 入口组件：`src/app/playground/page.tsx`（直接 import `PlaygroundClient`）
   - 客户端组件：`src/app/playground/PlaygroundClient.tsx`（含 `'use client'`，负责读取 URL 分享参数 `?s=`、场景参数 `?scenario=`；首屏调用 `clearSession()` 清理遗留的 `miniscript-lab-session` 键、**不再**从 localStorage 恢复 Playground 会话；并挂载 `useCompiler`、`useBuilderSync`）
+  - **视口与窄屏**：`PlaygroundClient` 内 `matchMedia('(min-width: 768px)')` 判定；窄视口只渲染 `MobileFallback`（`playground.mobile.*` i18n），引导用户在桌面端或更大屏幕使用；用户可见文案**不写像素数字**。`mode === 'loading'` 时先渲染三栏再解析媒体查询，可能出现极短暂的三栏闪现再切到 fallback（已知可接受）。
   - **渐进式加载架构**：服务端渲染三栏框架 HTML 用户立即看到完整框架；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载显示 spinner 骨架屏；`layout.tsx` 加 `<link rel="prefetch">` 让浏览器提前获取文档；scenario 模式停留 2 秒后后台预加载 Builder 代码。
 
 - `/compare`
@@ -156,6 +158,7 @@ src/
     7. 交给 `analyzeSpendingPaths(...)` 做结构化分析
   - 输出 `CompilationResult` 含 `policy`、`policyWithKeys`、`miniscript`、`miniscriptWithKeys` 等。`policy`/`miniscript` 保留角色名供路径图解析；`policyWithKeys`/`miniscriptWithKeys` 含真实公钥供右栏 Tab 展示。
   - 错误会被映射成中英文友好的 `FriendlyError`。
+  - **Descriptor 与构建**：从 `@bitcoinerlab/descriptors/dist/descriptors` 导入 `DescriptorsFactory`（避免包主入口拉入 Ledger PSBT 等）；`next.config.mjs` 与 `vitest.config.ts` 将 `@ledgerhq/ledger-bitcoin` 别名为 `src/lib/shims/ledger-bitcoin-stub.js`，不依赖真实 Ledger SDK。详见 `SPEC.md`「关键实现细节」第 5 条。
 
 ### 语义树与路径图（scenario 模式）
 
@@ -292,8 +295,9 @@ src/
 6. 这是一个“以交互为主的客户端应用”。
    - 虽然基于 Next.js App Router，但大部分页面和组件都是 `'use client'`。
 
-7. 移动端没有完整 Playground。
-   - `src/app/playground/page.tsx` 在移动端会显示 Desktop Required fallback。
+7. 移动端没有完整 Playground（**桌面优先**）。
+   - 窄视口不满足 `matchMedia('(min-width: 768px)')` 时仅渲染 `MobileFallback`，无法使用三栏与 Build 画布；判定与 UI 在 `src/app/playground/PlaygroundClient.tsx`（`playground.mobile.*` i18n），**不是**在 `page.tsx` 里分支。
+   - 首页 `md` 以下在 Hero 与底部 CTA 展示 `home.playground.desktopHint`，与 Playground 内文案一致，引导用户在桌面端或更大屏幕获得完整体验；**用户可见文案不写像素数字**。
 
 8. `regtest` 网络已从 UI 和类型中移除。
    - `Network` 类型只有 `'testnet' | 'signet'`。

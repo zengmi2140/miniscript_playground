@@ -1,6 +1,7 @@
 import { compilePolicy, ready as policiesReady } from '@bitcoinerlab/miniscript-policies';
 import { compileMiniscript, satisfier } from '@bitcoinerlab/miniscript';
-import { DescriptorsFactory } from '@bitcoinerlab/descriptors';
+// 从 dist/descriptors 入口导入，避免 @bitcoinerlab/descriptors 主入口拉入 signers（Ledger PSBT 等）
+import { DescriptorsFactory } from '@bitcoinerlab/descriptors/dist/descriptors';
 import * as ecc from '@bitcoinerlab/secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import type {

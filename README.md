@@ -34,6 +34,8 @@
 | 样式 | Tailwind CSS + shadcn/ui |
 | i18n | 自定义轻量 Context（无第三方依赖） |
 
+Descriptor 库使用 `@bitcoinerlab/descriptors/dist/descriptors` 入口，并通过构建别名避免打入 Ledger 硬件钱包 SDK；说明见 `SPEC.md`「关键实现细节」第 5 条。
+
 ## 设计约束
 
 - **纯前端** — 零后端、零 API 请求、零区块链连接

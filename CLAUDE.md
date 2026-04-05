@@ -46,7 +46,7 @@ Testing uses Vitest. Tests live alongside source files with `.test.ts` / `.test.
 - `shared/` — GlossaryTooltip, ExplainPopover, CodeBlock
 
 ### Key Dependencies
-- `@bitcoinerlab/miniscript` / `miniscript-policies` / `descriptors` — Bitcoin Miniscript compilation
+- `@bitcoinerlab/miniscript` / `miniscript-policies` / `descriptors` — Bitcoin Miniscript compilation (`DescriptorsFactory` from `@bitcoinerlab/descriptors/dist/descriptors`; `@ledgerhq/ledger-bitcoin` is webpack-aliased to `src/lib/shims/ledger-bitcoin-stub.js` — no hardware wallet in-app)
 - `@xyflow/react` + `dagre` — Path graph visualization
 - `@codemirror/6` — Policy editor with custom syntax highlighting
 - `framer-motion` — Node transition animations
