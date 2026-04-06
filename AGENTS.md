@@ -40,6 +40,7 @@ npm run test
 
 说明：
 
+- **包管理器**：仅使用 **npm**；锁文件为根目录 `package-lock.json`。请勿使用 pnpm / yarn 安装并提交 `pnpm-lock.yaml`、`yarn.lock`。
 - `npm run test` 等价于 `vitest run`（见 `package.json`）；也可直接运行 `npx vitest run`。
 - dev server 默认跑在 `http://localhost:3000`；如果 3000 被占用会自动尝试其他可用端口（以终端输出为准）。
 
