@@ -110,7 +110,7 @@ src/
 ### 自动编译
 
 - `src/lib/hooks/useCompiler.ts`
-  - 监听 policy、keyVariables、network、模拟条件变化。
+  - 监听 policy、keyVariables、network、模拟条件变��。
   - 500ms debounce 后调用 `compile(...)`。
   - 用 generation counter 丢弃过期异步结果。
   - Policy 为空或仅空白时同步清空 `compilationResult`、`semanticTree`、`spendingPaths`（避免右栏仍显示上一份策略）；`compile` 抛错时同样清空上述派生结果。
@@ -340,8 +340,9 @@ src/
 
 - 主入口：`src/app/resources/page.tsx`
 - i18n 词条：`src/lib/i18n/zh.ts` 和 `src/lib/i18n/en.ts`，前缀 `resources.*`
-- FAQ 数据：在页面顶部的 `FAQ_KEYS` 数组中添加 `{ q, a }` 词条键，并在两个 i18n 文件中对应添加翻译
-- 外部链接：在页面 Resource 区域的 `div` 中添加链接卡片，目前为占位占位状态
+- FAQ 数据：在页面顶部的 `FAQ_KEYS` 数组中添加 `{ q, a }` 词条键，并在两个 i18n 文件中对应添加翻译。当前共 18 条 FAQ，分为四部分：基础概念（Q1-Q5）、Policy 操作符（Q6-Q9）、高级话题（Q10-Q14）、优化与部署（Q15-Q18）
+- 每条 FAQ 的答案支持内联代码（backtick 包裹），自动渲染为等宽字体 + Bitcoin Orange（`btc-500`）色
+- 外部链接：在页面 Resource 区域的 `div` 中添加链接卡片，目前为占位状态
 
 ### 修改全局视觉或主题
 

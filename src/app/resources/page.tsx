@@ -16,6 +16,14 @@ const FAQ_KEYS = [
   { q: 'resources.faq.q8', a: 'resources.faq.a8' },
   { q: 'resources.faq.q9', a: 'resources.faq.a9' },
   { q: 'resources.faq.q10', a: 'resources.faq.a10' },
+  { q: 'resources.faq.q11', a: 'resources.faq.a11' },
+  { q: 'resources.faq.q12', a: 'resources.faq.a12' },
+  { q: 'resources.faq.q13', a: 'resources.faq.a13' },
+  { q: 'resources.faq.q14', a: 'resources.faq.a14' },
+  { q: 'resources.faq.q15', a: 'resources.faq.a15' },
+  { q: 'resources.faq.q16', a: 'resources.faq.a16' },
+  { q: 'resources.faq.q17', a: 'resources.faq.a17' },
+  { q: 'resources.faq.q18', a: 'resources.faq.a18' },
 ] as const;
 
 function FaqItem({ question, answer }: { question: string; answer: string }) {

@@ -141,7 +141,7 @@ export const zh: Record<string, string> = {
   'nav.scenarios': '场景',
   'nav.playground': 'Playground',
   'nav.compare': '资源',
-  'nav.comingSoon': '即将推出',
+  'nav.comingSoon': '即���推出',
   'nav.toggleMenu': '菜单',
   'header.language.zh': '中文',
   'header.language.en': 'EN',
@@ -234,4 +234,30 @@ export const zh: Record<string, string> = {
   'resources.faq.a9': '花费路径是满足策略条件的一种具体组合方式。例如策略 `or(pk(Alice), and(pk(Bob), older(144)))` 有两条路径：路径 1 是"Alice 签名"，路径 2 是"Bob 签名 + 等待 144 个区块"。条件模拟器允许你勾选签名、拖动时间滑块，实时查看哪条路径当前可用，以及还需要满足什么条件。',
   'resources.faq.q10': '为什么有些路径标注为"可延展（Malleable）"？',
   'resources.faq.a10': '可延展性（Malleability）指的是交易的 Witness 数据可以在不改变交易语义的情况下被第三方修改，从而改变交易 ID（txid）。虽然 SegWit 解决了主要的延展性问题，但某些复杂的 Miniscript 结构仍可能存在 Witness 层面的可延展路径。这在教学场景下通常是警告信息，不影响基本功能验证，但在生产环境中应尽量避免。',
+
+  // New FAQ items (11-18)
+  'resources.faq.q11': 'Policy 支持哪些基本操作符？',
+  'resources.faq.a11': 'Policy 支持的核心操作符包括：`pk(key)` 表示单个公钥签名；`older(n)` 表示相对时间锁（n 个区块）；`after(n)` 表示绝对时间锁（区块高度）；`sha256(h)` / `hash256(h)` / `ripemd160(h)` / `hash160(h)` 表示哈希锁；`and(cond1, cond2)` 表示两个条件都满足；`or(cond1, cond2)` 表示满足其一；`thresh(k, cond1, ...)` 表示 k-of-N；`andor(cond1, cond2, cond3)` 表示"如果 cond1 满足则必须满足 cond2，否则满足 cond3"。其他包括 `multi(k, key1, ...)` 用于直接多签，`just_key(key)` 用于优化单签等。',
+
+  'resources.faq.q12': '什么是 `andor()` 和 `or_c()`？何时使用它们？',
+  'resources.faq.a12': '`andor(cond1, cond2, cond3)` 是条件分支的一种形式，语义为"如果 cond1 满足，则 cond2 也必须满足；否则 cond3 必须满足"。这在资金恢复路径中很有用，例如 `andor(pk(Alice), pk(Bob), older(52560))` 表示 Alice 有权决定但需要 Bob 署名；或在 Bob 不配合时经过超时后 Alice 独自恢复。`or_c()` 是另一种条件分支，但编译策略不同，会影响 Witness 大小和费用。选择哪个取决于期望的执行频率：常用路径应编译得更小。',
+
+  'resources.faq.q13': '如何用 Policy 描述常见的多签和恢复场景？',
+  'resources.faq.a13': '常见多签示例：2-of-2 是 `and(pk(A), pk(B))`；2-of-3 是 `thresh(2, pk(A), pk(B), pk(C))`；3-of-5 是 `thresh(3, pk(A), pk(B), pk(C), pk(D), pk(E))`。带恢复路径：`or(thresh(2, pk(A), pk(B)), older(52560))` 表示"常规时期需要 A、B 二人签，但若 52560 个区块（约 1 年）无动作则任意一人可独自恢复"。遗产继承：`andor(pk(Alice), pk(Bob), or(pk(Carol), older(52560)))` 表示"Alice 和 Bob 联合管理，Bob 必须同意，但若 Bob 失联 1 年则 Carol 可接管"。',
+
+  'resources.faq.q14': 'Miniscript 的类型系统是什么？为什么需要 B、V、K、W 四种类型？',
+  'resources.faq.a14': 'Miniscript 中每个片段都有一个类型签名，用字母表示：`B` 表示脚本可作为顶级脚本执行（Boolean）；`V` 表示脚本在执行后在栈顶留下真值（Verify）；`K` 表示脚本接受一个密钥或签名参数（Key）；`W` 表示脚本的满足方式是非标准的（Wrapped）。类型系统的作用是保证脚本的正确组合——不是所有片段都可以嵌套，类型必须兼容。例如，`and(B, B)` 是有效的，但 `and(V, V)` 则不是，因为 `V` 型片段不适合作为 `and()` 的直接参数。这种形式化验证消除了手写脚本的错误。',
+
+  'resources.faq.q15': 'Miniscript 中的修饰符（Modifiers）是什么？',
+  'resources.faq.a15': 'Miniscript 修饰符是添加在片段前的单字母标记，用于调整脚本的性质。常见修饰符包括：`z:` 表示零删除（zero nullability）——脚本确保栈上没有空值；`o:` 表示一扩展——脚本可以在栈上推入任意值；`n:` 表示无数字——脚本不依赖栈上的数字解释；`d:` 表示代码可解析——脚本中包含 witness 栈的完整反序列化信息；`u:` 表示无满足——脚本可能无法满足。这些修饰符帮助编译器验证脚本的安全性和最优性，例如确保没有意外的栈污染或类型错误。',
+
+  'resources.faq.q16': '什么是常见的 Miniscript 片段和 Wrapper？',
+  'resources.faq.a16': '常见片段包括 `pk_k(key)` 是最小化的单签检查；`pk_h(key)` 是哈希公钥（减小 witness 大小）；`multi(k, keys...)` 是 k-of-N 多签；`thresh(k, conds...)` 是通用门限。Wrapper（包装器）用于调整片段的类型和属性，常见包括：`c:` 将验证型转为布尔型；`v:` 添加 `OP_VERIFY` 后缀；`d:` 添加反序列化支持；`s:` 交换栈顶两元素；`a:` 添加 `OP_ADD`；`j:` 添加 `OP_IF` 分支；`n:` 删除栈顶元素。正确使用这些片段和 wrapper 能显著减小脚本大小和手续费。',
+
+  'resources.faq.q17': '脚本大小、操作码数等有什么限制？如何优化？',
+  'resources.faq.a17': 'P2WSH 的限制包括：脚本最大 10000 字节；操作码最多 201 个（`OP_CHECKSIG` 等一些操作码计数为 1，但 `OP_ADD` 等计数不同）；Witness 栈最多 1000 项；单个 stack item 最大 520 字节。编译器通过两种方式优化：1) 结构优化——将常用分支编译为更紧凑的脚本结构；2) 权重指示符——在 thresh() 中使用 `9@` 语法为不同条件分配权重，编译器优先编译高权重（更常用）的路径为更紧凑的形式。例如 `thresh(2, 9@pk(A), pk(B), pk(C))` 会优先优化 A 的路径。',
+
+  'resources.faq.q18': '这个工具可以用于生产环境吗？',
+  'resources.faq.a18': '不可以。Miniscript Lab 纯粹用于教学、学习和原型验证。所有生成的地址仅基于测试网（Bitcoin Testnet / Signet），工具不连接实际区块链网络、不处理私钥或真实签名。如果你计划在主网部署 Miniscript 脚本，必须：1) 使用经过审计的生产级工具链（如专业钱包或 libminiscript C++ 库）；2) 进行充分的安全审计和测试；3) 在小额测试后逐步扩大资金规模；4) 妥善备份恢复密钥和脚本描述符。',
 };
+
