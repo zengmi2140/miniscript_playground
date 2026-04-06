@@ -13,5 +13,6 @@ npm run build && npm run lint && npm run test
 
 - **`AGENTS.md`**（中文）— 目录地图、运行链路、build/scenario 分工、已知限制、改动入口、测试位置。
 - **`SPEC.md`** — 产品与体验规格（SSOT）。
+- **`DESIGN.md`** — 视觉与设计系统（色板、字体、组件、Scenario 节点尺寸）。
 
 Do not duplicate long architecture lists here; keep them in `AGENTS.md`.
