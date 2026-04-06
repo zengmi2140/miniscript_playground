@@ -242,104 +242,15 @@ hover 态：Primary → `--orange-600`；Secondary → `--bg-overlay`
 
 ## 4. 页面规格
 
-### 4.1 场景画廊页（`/`）
-
-#### 布局
-
-```
-┌──────────────────────────────────────────────────┐
-│                     Header                        │
-├──────────────────────────────────────────────────┤
-│                                                   │
-│   ₿ Miniscript Lab                               │
-│   把 Bitcoin 的花费条件讲清楚                       │
-│                                                   │
-│   ┌────────┐ ┌────────┐ ┌────────┐               │
-│   │ 场景1   │ │ 场景2   │ │ 场景3   │               │
-│   └────────┘ └────────┘ └────────┘               │
-│   ┌────────┐ ┌────────┐ ┌────────┐               │
-│   │ 场景4   │ │ 场景5   │ │ 场景6   │               │
-│   └────────┘ └────────┘ └────────┘               │
-│                                                   │
-│   ──── 或者自己写 ────                             │
-│   [ 打开空白 Playground →  ]                       │
-│                                                   │
-│   底部: 简短说明 + GitHub 链接 + 版权               │
-└──────────────────────────────────────────────────┘
-```
-
-#### 场景卡片规格
-
-每张卡片包含：
-
-- 顶部色条（4px，用该场景主要条件类型的语义色）
-- 图标（Lucide icon，32px）
-- 标题（16px, SemiBold）
-- 一句话描述（13px, Regular, `--text-secondary`）
-- 涉及的条件类型标签（tiny chips: "多签" "时间锁" 等）
-
-卡片网格：桌面端 3 列，平板 2 列，手机 1 列。卡片宽度最小 280px，最大 380px。
-hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
-点击：导航到 `/playground?scenario=<id>`。
-
-#### 页面底部
-
-"或者自己写" 区域：一个 Ghost 按钮 "打开空白 Playground →"，导航到 `/playground`。
-
 ### 4.1 首页（`/`）
 
-这是产品的登陆入口，旨在快速传达 Miniscript Lab 的核心价值并吸引用户进入 Playground。
+产品着陆页：顶部 `Header`、Hero（「把 Bitcoin 的花费条件讲清楚」）、Miniscript 科普区（三卡片对比传统 Script / Policy）、使命区「我们为什么做这个」、「三步理解」流程、核心能力 2×2、**场景库**（6 张场景卡片）、底部 CTA；另有「或者自己写」入口。实现：`src/app/page.tsx`（Server Component）；组件：`HomepageHero`、`HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageFeatures`、`HomepageHowItWorks`、`ScenarioGallery`。i18n：`home.hero.*`、`home.explainer.*`、`home.how.*`、`home.features.*`、`home.cta.*`。
 
-#### 首页结构（从上到下）
+**场景卡片**：顶色条 4px（语义色）、Lucide 图标 32px、标题、一句话描述、条件类型 tag；桌面 3 列 / 平板 2 列 / 手机 1 列；hover 上移 + 阴影；点击 `/playground?scenario=<id>`。
 
-**Hero 区**
+**预加载**：`requestIdleCallback` 预热 Playground 相关模块（三栏、画布、编译器），减少进入 `/playground` 的等待。
 
-- 标题：**"把 Bitcoin 的花费条件讲清楚"**
-- 副标题：用真实的花费场景理解 Miniscript，从多签到时间锁，从理论到可运行的脚本。
-- 核心描述：每一个 Bitcoin UTXO 背后，都有一套决定"谁能花、什么时候花"的规则。Miniscript Lab 帮你读懂这套规则。
-- 两个 CTA 按钮：
-  - 主按钮：**"从场景开始"** → 导航到 `/playground?scenario=<首个场景id>`
-  - 次按钮：**"打开 Playground"** → 导航到 `/playground`
-- 右侧展示一个真实策略的预览卡片：示例 Policy + 花费路径分析
-
-**Miniscript 科普区**
-
-标题区合并了"什么是 Miniscript"的定义（单段副标题），下方三张垂直卡片依次为：
-- 传统 Bitcoin Script 的缺点（红色边框，左侧文点，右侧代码示例，`md:items-center` 对齐）
-- Miniscript Policy 的优势（绿色边框，同样布局）
-- 为什么需要 Miniscript（橙色边框，纯文本列表）
-
-**我们为什么做这个**
-
-独立居中模块，简洁阐述网站的目标和价值命题，无 CTA 按钮。
-
-**"三步理解任意花费策略"区**
-
-四格卡片从左到右（或纵向堆叠），从概念到输出的完整流程。
-
-**核心功能区**
-
-2×2 网格展示四大能力：实时编译反馈、花费路径可视化、可视化策略搭建、一键分享。
-
-**场景库区**
-
-展示 6+ 个真实场景的卡片网格，点击导航到 `/playground?scenario=<id>`。
-
-**底部 CTA**
-
-"准备好自己设计了吗？"区域，两个按钮导航到 Playground。
-
-#### 首页预加载策略
-
-在首页组件 mount 后，用 `requestIdleCallback` 在浏览器空闲时预热**所有** Playground 相关模块，包括：三栏组件、两个画布、编译器。这样用户点击进入 Playground 时所有代码已在浏览器内存中，切换体验接近 App 内页面切换。
-
-#### 首页设计实现
-
-- 文件：`src/app/page.tsx`（Server Component）
-- 组件：`HomepageHero`、`HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageFeatures`、`HomepageHowItWorks`、`ScenarioGallery`
-- i18n：`home.hero.*`、`home.explainer.*`、`home.how.*`、`home.features.*`、`home.cta.*`
-- `HomepageMiniscriptExplainer`：标题+副标题定义，三卡片纵向堆叠，代码块和左侧文本在 `md` 断点用 `items-center` 垂直居中
-- `HomepageMission`：纯居中文本，无按钮
+**窄屏**：`md` 以下 Hero 与底部 CTA 展示 `home.playground.desktopHint`，与 Playground 内说明一致（桌面优先）。
 
 ### 4.2 Playground 页（`/playground`）
 
@@ -402,7 +313,7 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 
 - 场景列表（卡片形式，点击切换场景）
 - 第一个位置为 **「自己动手」** 入口卡片（可点击；`playgroundMode === 'build'` 时呈激活态）。点击后进入 **可视化构建（build）模式**（`playgroundMode: 'build'`）：清空当前场景-derived 状态，中央画布以根占位节点（虚线「选择策略类型」）为首屏；用户点击根占位后在右侧浮窗选择策略类型（单签、门限、AND、OR），**不继承**用户此前在场景模式下的 Policy / 角色变量 / 编译结果。从场景模式切换到普通预设场景仍通过下方场景卡片完成（`loadScenario` 会回到 `scenario` 模式）。
-- 通过分享链接 `?s=` 或本地会话恢复的 **build** 会话可携带已有 Policy，与「主动点自己动手」的清空规则不同；详见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
+- 通过分享链接 `?s=` 恢复的 **build** 会话可携带已有 Policy；与从场景模式**主动**点「自己动手」进入时的空白 scratch（清空场景派生状态）不同。
 - 切换场景（非「自己动手」）时自动填充 Policy 和 Key 变量
 
 **区域 B: 角色与 Key 变量**
@@ -490,7 +401,7 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
   - 「添加条件」面板 UI 抽为 `AddChildOptions`（`src/components/builder/AddChildOptions.tsx`），与虚拟添加、子占位填写共用同一套按钮；`BuilderPopover` 内 `handleAddChildType` 根据是否选中子占位在 `convertChildPlaceholder` 与 `addChildNode` 系之间分支。
   - `OperatorSwitchPopover` 的「真实子节点数」与 `countRealChildren` 一致（不含 placeholder）。`BuilderCanvas` 调用 `builderTreeToFlow` 时传入 `labels.addConditionLine`（例如 `+` 与 `builder.node.addChild` 译文拼接），使画布上虚拟加号与子占位标签与 i18n 一致。
 - **嵌套深度检测**：包裹操作后若嵌套深度超过 5 层，画布底部显示黄色警告 toast（4 秒自动消失，可手动关闭），提示用户保持在 5 层以内。
-- 更完整的产品约束与不在 MVP 范围内的条目见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
+- **不在 MVP 范围内**：自由拖线构图、`after()`/哈希锁的画布编辑、移动端完整 Builder；未来可在此模式上叠加「引导搭建」等（见 §11）。
 
 **节点尺寸规格（Scenario 路径图）：**
 
@@ -788,25 +699,7 @@ satisfier(miniscript, opts)     ← @bitcoinerlab/miniscript
 
 编译失败时：`compiler.ts` 调用 `policy-errors.ts` 的 `mapError(raw)` 得到 `FriendlyError`；再调用 `policy-preflight.ts` 的 `upgradeErrorWithPreflight(policy, err)`（在库仅返回笼统错误时，用轻量扫描将「同一 `pk(占位名)` 多次出现」升级为 `duplicate_key` 并保持 `raw` 不变）；最后调用 `policy-error-highlight.ts` 的 `attachErrorHighlight(policy, err)` 按需写入 `highlights` / `highlight`（启发式区间，见各模块注释）。
 
-**Descriptor 与地址生成（使用 @bitcoinerlab/descriptors）：**
-
-```typescript
-import { Descriptor } from '@bitcoinerlab/descriptors';
-import * as bitcoin from 'bitcoinjs-lib';
-
-// 1. 将 miniscript 中的变量名替换为实际公钥后，拼接 descriptor 字符串
-const descriptorStr = `wsh(${miniscriptWithRealKeys})`;
-
-// 2. 解析 descriptor
-const descriptor = Descriptor.import({ descriptor: descriptorStr });
-
-// 3. 生成地址
-const network = bitcoin.networks.testnet; // 或 regtest
-const address = descriptor.getAddress(network);
-
-// 4. 获取 script hex
-const scriptHex = descriptor.getScriptPubKey().toString('hex');
-```
+**Descriptor 与地址生成：** 具体 API 调用以 **`src/lib/engine/compiler.ts`** 为准（`DescriptorsFactory`、`Output`、网络、`wsh(...)` 拼接、scriptPubKey hex）；概念上与「解析 descriptor → 地址」一致。不在此粘贴易过期的 import 示例。
 
 **关键实现细节：**
 
@@ -819,29 +712,12 @@ const scriptHex = descriptor.getScriptPubKey().toString('hex');
 
 ### 6.2 路径分析器
 
-从 `satisfier()` 输出解析出结构化的 `SpendingPath[]`：
+从 `satisfier()` 输出解析出结构化的 `SpendingPath[]`。入口与类型见 **`src/lib/engine/path-analyzer.ts`**（`analyzeSpendingPaths`）。
 
-```typescript
-function analyzeSpendingPaths(
-  nonMalleableSats: Satisfaction[],
-  malleableSats: Satisfaction[],
-  keyVariables: KeyVariable[],
-  availableKeys: Set<string>,
-  availableHashes: Set<string>,
-  currentTimeBlocks: number,
-): SpendingPath[]
-```
-
-**解析逻辑：**
+**解析逻辑（要点）：**
 
 1. 遍历每个 satisfaction 的 `asm` 字符串
-2. **构建公钥反向映射表**：satisfier 输出的 asm 中，key 变量名已被替换为实际公钥（例如 `<sig(02abc...)>`）。路径分析器必须先从 `keyVariables` 构建一个 pubkey → name 反向映射表（`Record<string, string>`），将公钥还原为用户定义的变量名（如 `Alice`）：
-```typescript
-const pubkeyToName: Record<string, string> = {};
-for (const kv of keyVariables) {
-  pubkeyToName[kv.publicKey] = kv.name;
-}
-```
+2. **构建公钥反向映射表**：satisfier 输出的 asm 中，key 变量名已被替换为实际公钥（例如 `<sig(02abc...)>`）。路径分析器必须先从 `keyVariables` 构建一个 pubkey → name 反向映射表（`Record<string, string>`），将公钥还原为用户定义的变量名（如 `Alice`）。
 3. 用正则提取并还原：
   - `<sig(02abc...)>` → 通过 `pubkeyToName` 还原为 `<sig(Alice)>` → 签名条件
   - `<preimage(hash)>` → 哈希条件
@@ -881,154 +757,17 @@ for (const kv of keyVariables) {
   - `multi_a(k,key1,...,keyn)` → 同上（Tapscript 版）
   - `0` → `{ type: 'just_0' }`
   - `1` → `{ type: 'just_1' }`
-3. 递归解析：使用括号匹配找到参数边界
+3. 递归解析：使用括号匹配分割参数（`splitArgs` 等逻辑见源码）。
 
-**解析器实现提示：**
-
-```typescript
-function parseMiniscript(expr: string): MiniscriptNode {
-  expr = expr.trim();
-
-  // 1. 剥离 wrapper 前缀
-  const wrapperRegex = /^([asdcvjntlu]):(.+)$/;
-  let match = wrapperRegex.exec(expr);
-  if (match) {
-    return parseMiniscript(match[2]);
-  }
-
-  // 2. 识别 fragment(args)
-  const fragmentMatch = /^(\w+)\((.+)\)$/.exec(expr);
-  if (!fragmentMatch) {
-    if (expr === '0') return { type: 'just_0' };
-    if (expr === '1') return { type: 'just_1' };
-    throw new Error(`无法解析: ${expr}`);
-  }
-
-  const name = fragmentMatch[1];
-  const argsStr = fragmentMatch[2];
-
-  // 3. 分割参数（注意括号嵌套）
-  const args = splitArgs(argsStr);
-
-  // 4. 根据 fragment 类型构建节点
-  switch (name) {
-    case 'pk': case 'pk_k': case 'pk_h':
-      return { type: 'key', name: args[0] };
-    case 'older':
-      return { type: 'older', blocks: parseInt(args[0]), humanReadable: blocksToHuman(parseInt(args[0])) };
-    case 'after':
-      return { type: 'after', value: parseInt(args[0]), humanReadable: afterToHuman(parseInt(args[0])) };
-    // ... sha256, hash256, ripemd160, hash160
-    case 'and_v': case 'and_b': case 'and_n':
-      return { type: 'and', children: args.map(parseMiniscript) };
-    case 'or_b': case 'or_c': case 'or_d': case 'or_i':
-      return { type: 'or', children: args.map(parseMiniscript) };
-    case 'andor':
-      return {
-        type: 'or',
-        children: [
-          { type: 'and', children: [parseMiniscript(args[0]), parseMiniscript(args[1])] },
-          parseMiniscript(args[2])
-        ]
-      };
-    case 'thresh':
-      const k = parseInt(args[0]);
-      return { type: 'threshold', k, n: args.length - 1, children: args.slice(1).map(parseMiniscript) };
-    case 'multi': case 'multi_a':
-      const mk = parseInt(args[0]);
-      return { type: 'multi', k: mk, keys: args.slice(1) };
-    default:
-      throw new Error(`未知 fragment: ${name}`);
-  }
-}
-
-function splitArgs(argsStr: string): string[] {
-  const args: string[] = [];
-  let depth = 0;
-  let current = '';
-  for (const ch of argsStr) {
-    if (ch === '(' ) depth++;
-    if (ch === ')') depth--;
-    if (ch === ',' && depth === 0) {
-      args.push(current.trim());
-      current = '';
-    } else {
-      current += ch;
-    }
-  }
-  if (current.trim()) args.push(current.trim());
-  return args;
-}
-```
+**实现位置（以源码为准，避免与本文档双处漂移）：** [`src/lib/engine/miniscript-parser.ts`](src/lib/engine/miniscript-parser.ts) — 入口 `parseMiniscript`；含 wrapper 剥离、`fragment(args)` 解析、各 Miniscript fragment 到 `MiniscriptNode` 的映射。
 
 ### 6.4 时间工具函数
 
-```typescript
-function blocksToHuman(blocks: number): string {
-  if (blocks < 144) return `${blocks} 区块 (≈${Math.round(blocks * 10)} 分钟)`;
-  if (blocks < 1008) return `≈${Math.round(blocks / 144)} 天`;
-  if (blocks < 4320) return `≈${Math.round(blocks / 1008)} 周`;
-  if (blocks < 52560) return `≈${Math.round(blocks / 4320)} 月`;
-  return `≈${(blocks / 52560).toFixed(1)} 年`;
-}
-
-function afterToHuman(value: number): string {
-  if (value < 500000000) {
-    return `区块高度 #${value.toLocaleString()}`;
-  } else {
-    return new Date(value * 1000).toLocaleDateString('zh-CN');
-  }
-}
-
-// 滑块值 → 是否满足特定 older() 条件
-function isOlderSatisfied(olderValue: number, currentBlocks: number): boolean {
-  return currentBlocks >= olderValue;
-}
-
-// 滑块值 → 是否满足特定 after() 条件
-function isAfterSatisfied(afterValue: number, currentBlocks: number, referenceBlockHeight: number): boolean {
-  if (afterValue < 500000000) {
-    return (referenceBlockHeight + currentBlocks) >= afterValue;
-  }
-  const referenceTime = Math.floor(Date.now() / 1000);
-  const elapsedSeconds = currentBlocks * 600;
-  return (referenceTime + elapsedSeconds) >= afterValue;
-}
-```
+人类可读时间、`older`/`after` 与滑块相关的辅助函数见 **`src/lib/engine/time-utils.ts`**（及路径分析器中的调用处）。不在此重复粘贴实现代码。
 
 ### 6.5 CodeMirror 语法高亮规格
 
-**MVP 实现方式**：使用 CodeMirror 的 `StreamLanguage.define()` + 正则 tokenizer 实现。不使用 `@lezer/lr` 语法定义。V2 再升级为完整 Lezer 语法（见 §11 路线图）。
-
-```typescript
-import { StreamLanguage } from '@codemirror/language';
-
-const policyLanguage = StreamLanguage.define({
-  token(stream, state) {
-    // 注释
-    if (stream.match(/\/\/.*/)) return 'comment';
-    // 概率/权重标注：99@
-    if (stream.match(/\d+@/)) return 'meta';
-    // 关键字
-    if (stream.match(/\b(pk|pkh|and|or|thresh|older|after|sha256|hash256|ripemd160|hash160)\b/))
-      return 'keyword';
-    // 十六进制 hash 值（40 或 64 字符）
-    if (stream.match(/[0-9a-fA-F]{40,64}/)) return 'string';
-    // 数字
-    if (stream.match(/\d+/)) return 'number';
-    // 标识符（变量名）
-    if (stream.match(/[A-Za-z_]\w*/)) return 'variableName';
-    // 括号、逗号
-    if (stream.match(/[(),]/)) return 'punctuation';
-    // 空白
-    if (stream.eat(/\s/)) return null;
-    // 未识别字符
-    stream.next();
-    return 'invalid';
-  },
-  startState() { return {}; },
-});
-```
+**MVP 实现方式**：`StreamLanguage.define()` + 正则 tokenizer（[`src/lib/editor/policy-language.ts`](src/lib/editor/policy-language.ts)），含可选错误区间装饰 `buildErrorHighlightExtensions`。V2 可升级为 Lezer（见 §11）。
 
 **Token 颜色映射（在 CodeMirror theme 中配置）：**
 
@@ -1063,11 +802,9 @@ const policyLanguage = StreamLanguage.define({
 
 **编译失败时：**
 
-- 编辑器下方显示红色错误消息（使用 §6.6 映射后的友好中文信息）
-- **保留上一次成功编译的路径图和右栏结果**，不清空
-- 路径图上方的状态横幅切换为琥珀色，显示"⚠️ Policy 有语法错误，显示的是上一次成功编译的结果"
-- 右栏 Tab 内容保持上次成功结果，Tab 标题旁显示小的"旧"标签（`--text-muted` 色）
-- 如果从未成功编译过（比如首次输入就错误），则中栏和右栏均显示空状态（见下方）
+- 编辑器下方显示错误摘要（`FriendlyError`，中英随语言切换），可展开查看 `raw`、复制、查看 `hints`；若存在 `highlights`/`highlight`，在编辑器内做启发式区间标记。
+- **`useCompiler` 行为（与实现对齐）**：当本次编译**没有**返回 `output.result` 时，清空 `compilationResult`、`semanticTree`、`spendingPaths`，避免路径图/右栏继续展示**过期**的成功结果。中栏与右栏进入空或错误态（见下方）；**不再**保留「上一次成功编译」的路径图与 Tab 输出。
+- 路径图区域与状态横幅随空结果表现为无可用路径或引导空状态。
 
 **空白 Playground（无 Policy 输入）：**
 
@@ -1544,28 +1281,28 @@ miniscript-lab/
 
 ---
 
-## 10. 实施顺序与验收文档
+## 10. MVP 交付说明与回归要点
 
-Miniscript Lab 在 MVP 阶段曾按照分阶段的方式实施（Phase 1–10：基础设施 → 引擎 → 场景页 → Playground → 花费路径图 → 结果面板 → 分享与持久化 → i18n → 最终打磨），
-每个阶段都定义了对应的开发任务与验收标准。
+MVP 阶段（基础设施 → 引擎 → 首页与场景 → Playground → 路径图 → 结果面板 → 分享与 i18n → 打磨）**已交付**。历史任务拆分与分阶段记录不再单独维护在仓库文档中，以 **Git 历史**为准。
 
-这些内容现在已经全部完成，其详细记录已从本规格文档中拆分到单独的实施文档：
+本 `SPEC.md` 为**产品与体验层唯一 SSOT**。实现落点、目录与「当前代码与规格差距」以仓库源码为准。
 
-- 参见 `IMPLEMENTATION.md`：**“Miniscript Lab 实施顺序与验收记录（MVP）”**
+### 10.1 Build 模式：`all` / `any` 二元约束（不变量）
 
-该实施文档现在主要用于：
+与 Policy 编译器一致，画布侧 **`all`（AND 组）/ `any`（OR 组）** 在 `strategyTree` 中**最多两个直接子节点**（子占位符占槽）；满员则**不**再渲染虚拟「+ 添加条件」，`addChildNode` 等不得追加第三子。`threshold` 组仍可多子。
 
-- 回溯当初的技术决策与目录结构；
-- 大重构或升级后的回归自测 checklist；
-- 新同学 onboarding 时快速建立对项目结构的全局认识。
+- **序列化**：`serializeStrategyTree` 输出**右嵌套**二元 `and`/`or`（见 `src/lib/builder/serialize.ts`），避免多参数 `and`/`or` 与 `compilePolicy` 不兼容。
+- **自编译回写**：`importFromSemanticTree` 将 N 叉语义 `and`/`or` **折叠**为右深二叉（`src/lib/builder/from-semantic-tree.ts`）。
+- **操作符切换**：从 threshold 切到 `all`/`any` 且子节点多于 2 个时**裁剪为前两个子条件**（toast：`builder.op.binaryTrimNotice`）。
+- **编译失败 + build**：见 `useBuilderSync` 中 `compile-error` 与根占位植入逻辑，避免画布长期停在「等待同步」。
 
-本 `SPEC.md` 继续作为**产品与体验层的唯一事实来源**，若与实施文档存在不一致，以本规格为准。
+### 10.2 发布或大改前回归（手工 + 自动化）
 
-**可视化构建（自己动手 / `build` 模式）MVP** 的专项设计与验收说明见：
-
-- `docs/plans/2026-03-13-visual-builder-mvp-design.md`
-- `docs/plans/2026-03-13-visual-builder-mvp-implementation-plan.md`
-- `docs/plans/2026-03-13-visual-builder-mvp-qa-checklist.md`
+- **自动化**：`npm run lint`、`npm run test`。
+- **Playground / scenario**：加载场景、路径图、条件开关、时间滑块、右栏 Tab 与复制、分享链接 `?s=`。
+- **Build**：左栏「自己动手」、根占位选策略、AND/OR/threshold、Policy ↔ 画布同步、`text-led` / `compile-error`、路径卡片高亮画布分支。
+- **i18n**：中/英切换无裸露 key。
+- **持久化**：正常编辑不依赖 `localStorage` 会话恢复；状态以 `?s=` / `?scenario=` 为准。
 
 ---
 
@@ -1579,7 +1316,7 @@ Miniscript Lab 在 MVP 阶段曾按照分阶段的方式实施（Phase 1–10：
 4. **交互式课程** -- 渐进式教程 + 小测验 + 进度追踪
 5. **移动端阅读页** -- 场景浏览 + 教程 + 分享 + 结果查看
 6. **Lift / 反向分析** -- Script → Miniscript → Policy
-7. **引导搭建** -- 在 `build` 模式内提供向导式分步搭建（与已上线的「可视化构建」并列；设计预留见 `docs/plans/2026-03-13-visual-builder-mvp-design.md` §5.2）
+7. **引导搭建** -- 在 `build` 模式内提供向导式分步搭建（与已上线的「可视化构建」并列）
 8. **导出代码** -- 生成 bitcoinjs-lib / BDK 代码片段
 9. **CodeMirror 完整 Lezer 语法** -- 替换 StreamLanguage 正则 tokenizer 为基于 @lezer/lr 的完整语法定义
 10. **rust-miniscript WASM 引擎** -- 替换 JS 引擎为最权威实现

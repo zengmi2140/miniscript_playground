@@ -4,7 +4,7 @@
 
 - 判断产品目标、需求、交互规格：以 `SPEC.md` 为准。
 - 判断当前实现现状：以实际代码为准。
-- 判断仓库结构、关键入口、修改落点、已知实现限制：以 `agent.md` 为准。
+- 判断仓库结构、关键入口、修改落点、已知实现限制：以 `AGENTS.md` 为准。
 - 如果 `SPEC.md` 与当前代码不一致，应理解为“需求与实现之间仍有差距”，不要把它当作文档互相冲突。
 
 ## 1. 项目一句话
@@ -43,27 +43,21 @@ npm install
 npm run dev
 npm run build
 npm run lint
-npx vitest run
+npm run test
 ```
 
 说明：
 
-- `package.json` 里没有 `test` script，测试要直接用 `npx vitest run`。
+- `npm run test` 等价于 `vitest run`（见 `package.json`）；也可直接运行 `npx vitest run`。
 - dev server 默认跑在 `http://localhost:3000`；如果 3000 被占用会自动尝试其他可用端口（以终端输出为准）。
 
 ## 5. 路由与页面职责
 
-- `/`
-  - 场景画廊首页。
-  - 入口组件：`src/app/page.tsx`
-  - 核心组件：`src/components/scenarios/*`
-
-- `/`
-  - 首页，产品登陆入口。
-  - 入口组件：`src/app/page.tsx`（Server Component）
-  - 子组件：`HomepageHero`（Hero 区）、`HomepageMiniscriptExplainer`（科普区，标题合并定义，下方三卡片纵向堆叠对比传统 Script vs Miniscript）、`HomepageMission`（我们为什么做这个，纯居中文本）、`HomepageFeatures`（核心能力）、`HomepageHowItWorks`（使用流程）、`ScenarioGallery`（场景卡片）
-  - **首页预加载**：用 `requestIdleCallback` 在浏览器空闲时预热所有 Playground 模块，确保用户从首页进入 Playground 时体验丝滑
-  - **窄屏提示**：`md` 以下在 Hero 与页面底部 CTA 区域展示 `home.playground.desktopHint`（i18n），提醒用户在桌面端或更大屏幕打开 Playground 以获得完整体验；与 `/playground` 的 `MobileFallback` 文案一致为「桌面优先」预期管理
+- `/`（首页：场景画廊 + 产品着陆内容）
+  - 入口：`src/app/page.tsx`（Server Component）
+  - 组件：`HomepageHero`、`HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageFeatures`、`HomepageHowItWorks`、`ScenarioGallery`（`src/components/scenarios/*` 等）
+  - **首页预加载**：`requestIdleCallback` 预热 Playground 相关模块，减少进入 `/playground` 的等待
+  - **窄屏提示**：`md` 以下在 Hero 与底部 CTA 展示 `home.playground.desktopHint`，与 `/playground` 的 `MobileFallback` 一致（桌面优先）
 
 - `/playground`
   - 三栏 Playground，是项目主界面。
@@ -191,7 +185,7 @@ src/
 - **节点包裹**：`wrapNodeInGroup(tree, nodeId, wrapperOp, wrapperThreshold?)` 将任意节点（签名、时间锁、Group）包裹进新的父级 Group，原节点成为第一个子节点，同时添加 placeholder 子槽；包裹为门限时对默认/显式 k 做与单真实子节点数一致的钳制。UI 入口为所有节点浮层底部的「包裹进新组」三按钮。
 - **子占位填写 vs 追加**：`convertChildPlaceholder` 替换树内子槽；`addChildNode` / `addSignatureChild` 等向父组追加；勿对 placeholder id 调用 `addChildNode`。
 - **嵌套深度检测**：`computeTreeDepth(tree)` 计算最大嵌套层数；包裹操作后若深度超过 5 层，`BuilderCanvas` 会显示 4 秒自动消失的警告 toast。
-- 专项设计与范围见 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
+- 产品与 build 模式边界以 `SPEC.md` §4.2 为准。
 
 ### 花费路径分析
 
@@ -306,7 +300,7 @@ src/
    - 根节点直接显示顶层条件逻辑类型（都需要/任选一/k-of-n），而非通用的"花费条件"。
    - 单一叶子条件的策略不再创建根节点，直接显示条件节点。
 
-10. **build 模式**（自己动手）已实现为 MVP：受约束策略树 + Policy 双向同步；并非任意拖线流程图。不支持的结构会进入 `text-led`，详见 `useBuilderSync` 与 `docs/plans/2026-03-13-visual-builder-mvp-design.md`。
+10. **build 模式**（自己动手）已实现为 MVP：受约束策略树 + Policy 双向同步；并非任意拖线流程图。不支持的结构会进入 `text-led`，详见 `useBuilderSync.ts` 与 `SPEC.md` §4.2。
 
 11. **渐进式加载**：`playground/page.tsx` 直接 import `PlaygroundClient`（服务端渲染三栏框架 HTML，用户进入页面立即看到完整框架）；`PlaygroundContent` 移除了 `mode === 'loading' → null` 逻辑；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载，期间显示带 spinner 骨架屏；`layout.tsx` 加 `<link rel="prefetch">` 提前获取 Playground 页面；首页 `requestIdleCallback` 预热所有 Playground 模块（三栏组件、两个画布、编译器），同 Tab 内来回切换命中浏览器模块缓存无需重新加载，刷新后命中 HTTP 缓存（Next.js 文件名含 hash）极快恢复。
 
@@ -422,19 +416,15 @@ src/
    - glossary / 文案 / 测试
 5. 如果某项功能涉及 `after()`、`P2TR`、`compare`，优先确认当前只是部分实现或未实现，不要在旧假设上继续堆代码。
 
-## 14. 进一步参考文档
+## 14. 文档索引（本仓库）
 
-- `README.md`
-  - 面向人类读者的项目介绍与快速运行说明。
+以下由 **`AGENTS.md`（本文件）** 引用；**`SPEC.md` 不引用本文件**，避免规格依赖助手文档。
 
-- `SPEC.md`
-  - 更完整的产品规格和设计意图，适合做大功能时参考。
-
-- `docs/plans/2026-03-13-visual-builder-mvp-design.md` / `2026-03-13-visual-builder-mvp-implementation-plan.md`
-  - 「自己动手」可视化构建 MVP 的产品与实现说明。
-
-- `replit.md`
-  - 一份较接近“架构速览”的实现说明，可作为补充。
+| 文档 | 用途 |
+|------|------|
+| `README.md` | 项目介绍、快速运行、面向访客的概览 |
+| `SPEC.md` | 产品与体验层唯一 SSOT（页面、交互、设计系统、引擎行为） |
+| `CLAUDE.md` | Claude Code 自动注入的短指针；详细说明以本文件与 `SPEC.md` 为准 |
 
 ---
 
