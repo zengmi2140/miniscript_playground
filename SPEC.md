@@ -99,17 +99,22 @@
 
 原导航中的「对比」标签已更名为「Resource 资源」并指向此路由。页面由两个区域组成：
 
-**FAQ 区域**：展示 18 条 Miniscript 常见问题与解答，分为四大部分：
-- **基础概念**（Q1-Q5）：Miniscript 定义与优势、三层抽象关系、时间锁原理、哈希锁、Descriptor
-- **Policy 操作符**（Q6-Q9）：地址格式区别、工具安全性声明、画布 vs 文本、花费路径概念
-- **高级话题**（Q10-Q14）：可延展性、基本操作符列表、条件分支、多签实例、类型系统
-- **优化与部署**（Q15-Q18）：修饰符、常见片段、资源限制、生产环境建议
+**FAQ 区域**：展示 18 条 Miniscript 常见问题与解答，按学习递进顺序分为四大部分：
 
-每条 FAQ 以手风琴折叠形式展示，支持展开/收起。答案中的内联代码用 backtick 包裹，渲染为等宽字体 + `btc-500` 色。
+- **基础概念**（Q1、Q5、Q2、Q9）：Miniscript 定义与优势、Descriptor 输出描述符、Policy 三层抽象、花费路径概念
+- **Miniscript 语言基础**（Q3、Q4、Q11、Q12、Q13）：时间锁差异、thresh() 操作符、操作符列表、andor() 条件分支、多签和恢复场景
+- **Miniscript 技术细节**（Q14、Q15、Q16、Q17、Q10）：类型系统（B/V/K/W）、修饰符、常见片段和 Wrapper、资源限制和优化、可延展性
+- **工具与安全**（Q6、Q7、Q8、Q18）：P2WSH 地址格式、测试网声明、画布 vs 文本编辑、生产环境建议
+
+答案排版支持富文本格式：
+- **加粗核心定义**：用 `**文本**` 包裹，渲染为 `font-semibold text-text-primary`
+- **列表项**：用 `- 项目` 开头，每行单独，渲染为带左侧 `btc-500` 符号的列表
+- **段落分离**：用双换行 `\n\n` 分隔，创造清晰的信息层次
+- **内联代码**：用 backtick 包裹，渲染为等宽字体 + `btc-500` 色
 
 **Resource 资源区域**：预留外部链接区域，初始显示占位提示文字（`resources.links.placeholder`），后续由维护者填充相关工具、规范、教程的外部链接。
 
-实现：`src/app/resources/page.tsx`（`'use client'` 组件）。i18n：`resources.*`（含 `resources.faq.*`、`resources.links.*`，共 51 个词条）。风格遵循设计系统，使用 `surface-base`/`surface-elevated`/`btc-500` 等语义 token，`rounded-2xl` 卡片，折叠区域 `ChevronDown` 旋转动画。
+实现：`src/app/resources/page.tsx`（`'use client'` 组件，增强的 `renderAnswer()` 函数支持富文本解析）。i18n：`resources.*`（含 `resources.faq.*` 共 66 个词条、`resources.links.*` 共 4 个词条、`resources.faq.section.*` 共 4 个小节标题）。风格遵循设计系统，使用 `surface-base`/`surface-elevated`/`btc-500` 等语义 token，`rounded-2xl` 卡片，折叠区域 `ChevronDown` 旋转动画。
 
 
 
@@ -219,7 +224,7 @@
 - 若策略根为 thresh(k,...) 或编译后退化为 multi(k,...) → 根节点显示 "k-of-n"
 - 若策略为单一叶子条件 → 直接显示该条件节点（无根节点）
 
-这样用���从图的顶部就能直接看到花费所需的逻辑关系，无需通过实线/虚线判断。
+这样������从图的顶部就能直接看到花费所需的逻辑关系，无需通过实线/虚线判断。
 
 其他节点：
 
@@ -489,7 +494,7 @@ interface PlaygroundState {
 
 // ===== 可视化构建（build 模式）：Zustand store 在 PlaygroundState 之上另含
 // strategyTree、builderSyncState、selectedBuilderNodeId、operatorSwitchNodeId、lastBuilderPolicySnapshot、builderDepthWarning。
-// operatorSwitchNodeId：当前在画布右上角展示「切换操作符��浮层所对应的 Group 节点 id；与 selectedBuilderNodeId 互斥。
+// operatorSwitchNodeId：当前在画布右上角展示「切��操作符��浮层所对应的 Group 节点 id；与 selectedBuilderNodeId 互斥。
 // StrategyNode、BuilderSyncState 等见 src/lib/builder/types.ts
 // 相关 actions：setOperatorSwitchNodeId、switchNodeOperator、wrapNode、clearDepthWarning =====
 

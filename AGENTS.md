@@ -110,7 +110,7 @@ src/
 ### 自动编译
 
 - `src/lib/hooks/useCompiler.ts`
-  - 监听 policy、keyVariables、network、模拟条件变��。
+  - 监听 policy、keyVariables、network、模拟条件变����。
   - 500ms debounce 后调用 `compile(...)`。
   - 用 generation counter 丢弃过期异步结果。
   - Policy 为空或仅空白时同步清空 `compilationResult`、`semanticTree`、`spendingPaths`（避免右栏仍显示上一份策略）；`compile` 抛错时同样清空上述派生结果。
@@ -223,7 +223,7 @@ src/
     - 左列导航只显示文字标签（policy / miniscript / script / descriptor / address / warnings），当前选中项用左侧竖线 + 浅色背景 + 加粗文字高亮。
     - 右列内容区根据当前 Tab 渲染对应组件（统一在 `src/components/results/*Tab.tsx` 中）。
     - **右栏所有 Tab 统一为「可复制的真实输出」**：Policy Tab 展示 `policyWithKeys`，Miniscript Tab 展示 `miniscriptWithKeys`，均含真实公钥（非 Alice 等角色名），便于用户复制到钱包或链上工具。中栏 Policy 编辑器和路径图已用角色名直观展示，右栏专注技术输出。
-    - 带 glossary 的 Tab（policy / miniscript / descriptor）在标签上悬停 2 秒后，会在右侧内容区域内弹出术语解释卡片，内容来自 `src/lib/glossary/data.ts`。
+    - 带 glossary 的 Tab（policy / miniscript / descriptor）在标签上��停 2 秒后，会在右侧内容区域内弹出术语解释卡片，内容来自 `src/lib/glossary/data.ts`。
 
 - 对应 Tab 组件都在 `src/components/results/`。
 
@@ -326,7 +326,7 @@ src/
 ### 修改 Policy 编辑器
 
 - `src/components/playground/PolicyEditor.tsx`（编辑器组件，现位于中栏顶部；错误摘要、可折叠 `raw`、hints、Compartment 错误装饰）
-- `src/components/playground/CenterPanel.tsx`（编辑器的容器/折叠逻辑）
+- `src/components/playground/CenterPanel.tsx`（���辑器的容器/折叠逻辑）
 - `src/lib/editor/policy-language.ts`（CodeMirror 高亮规则、`buildErrorHighlightExtensions`、`.cm-policy-error-highlight` 主题）
 - `src/lib/engine/policy-errors.ts`、`src/lib/engine/policy-preflight.ts`、`src/lib/engine/policy-error-highlight.ts`（错误文案、重复占位预检与启发式区间）
 
@@ -340,9 +340,18 @@ src/
 
 - 主入口：`src/app/resources/page.tsx`
 - i18n 词条：`src/lib/i18n/zh.ts` 和 `src/lib/i18n/en.ts`，前缀 `resources.*`
-- FAQ 数据：在页面顶部的 `FAQ_KEYS` 数组中添加 `{ q, a }` 词条键，并在两个 i18n 文件中对应添加翻译。当前共 18 条 FAQ，分为四部分：基础概念（Q1-Q5）、Policy 操作符（Q6-Q9）、高级话题（Q10-Q14）、优化与部署（Q15-Q18）
-- 每条 FAQ 的答案支持内联代码（backtick 包裹），自动渲染为等宽字体 + Bitcoin Orange（`btc-500`）色
-- 外部链接：在页面 Resource 区域的 `div` 中添加链接卡片，目前为占位状态
+
+**FAQ 数据组织**：
+- 18 条 FAQ 按学习递进分为 4 大部分：基础概念 (Q1/Q5/Q2/Q9)、语言基础 (Q3/Q4/Q11/Q12/Q13)、技术细节 (Q14/Q15/Q16/Q17/Q10)、工具与安全 (Q6/Q7/Q8/Q18)
+- 在页面顶部的 `FAQ_KEYS` 数组中以这个顺序组织，新增含 `resources.faq.section.*` 小节标题词条
+- 每条 FAQ 的答案支持富文本格式：`**粗体**` (核心定义)、`- 列表` (要点)、双换行 (段落)、backtick 代码
+
+**答案排版增强**：
+- `renderAnswer()` 函数解析富文本：加粗文本渲染为 `font-semibold text-text-primary`、列表项左侧添加 `btc-500` 符号装饰
+- 段落间隔：`my-3` 和 `mb-4`，列表项用 `flex` 布局对齐
+- 代码片段保持原有 inline code 样式
+
+**外部链接**：在页面 Resource 区域的 `div` 中添加链接卡片，目前为占位状态
 
 ### 修改全局视觉或主题
 
