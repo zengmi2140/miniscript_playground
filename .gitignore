@@ -29,3 +29,8 @@ dist-ssr
 
 # Replit configuration
 /.replit
+
+# IDE / editor / agent local config (not required for build or runtime)
+.claude/
+.cursor/
+.kilo/
