@@ -130,6 +130,25 @@ export function mapError(raw: string): FriendlyError {
     );
   }
 
+  /** Library-reported duplicate / repeated key (wording varies by version). */
+  if (
+    (/\bduplicate\b/i.test(raw) && /\b(key|pubkey|pk)\b/i.test(raw)) ||
+    /\brepeated\b.*\b(key|pubkey|pk)\b/i.test(raw)
+  ) {
+    return withHints(
+      raw,
+      'duplicate_key',
+      {
+        zh: '编译器检测到密钥或公钥重复使用。请展开「技术详情」查看原始信息，并检查策略中是否重复使用了同一 pk(...) 占位名或公钥。',
+        en: 'The compiler reported duplicate key or pubkey usage. Expand technical details for the raw message, and check for repeated pk(...) placeholders or keys.',
+      },
+      {
+        zh: ['确保每个角色名 / 公钥在策略中只对应一处 pk(...)'],
+        en: ['Ensure each role name or pubkey appears only once per pk(...) in the policy'],
+      },
+    );
+  }
+
   const isPolicyCompileShape =
     raw.includes('[compile error]') ||
     raw.includes('[exception:') ||

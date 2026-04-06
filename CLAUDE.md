@@ -20,9 +20,10 @@ Testing uses Vitest. Tests live alongside source files with `.test.ts` / `.test.
 ## Architecture
 
 ### Core Compilation Engine (`src/lib/engine/`)
-- `compiler.ts` — Policy → Miniscript → Script compilation, key variable substitution; attaches `FriendlyError.highlight` via `policy-error-highlight.ts`
+- `compiler.ts` — Policy → Miniscript → Script compilation, key variable substitution; `mapError` → `upgradeErrorWithPreflight` → `attachErrorHighlight`
 - `policy-errors.ts` — Maps library error strings to `FriendlyError` (`category`, `hints`, `friendly` zh/en)
-- `policy-error-highlight.ts` — Heuristic UTF-16 ranges in the Policy text for editor marking (`unknown_fragment` token search, parenthesis stack for bracket-related errors)
+- `policy-preflight.ts` — Detects duplicate `pk(placeholder)` names and upgrades low-confidence errors to `duplicate_key` without changing `raw`
+- `policy-error-highlight.ts` — Heuristic UTF-16 ranges (`highlights` / `highlight`) for editor marking (`duplicate_key` multi-range, `unknown_fragment` token, parenthesis stack)
 - `miniscript-parser.ts` — Miniscript string → semantic AST
 - `path-analyzer.ts` — Analyzes spending paths and their conditions
 - `time-utils.ts` — Block height to human-readable time conversion

@@ -13,6 +13,7 @@ import type {
   SpendingPath,
 } from './types';
 import { mapError } from './policy-errors';
+import { upgradeErrorWithPreflight } from './policy-preflight';
 import { attachErrorHighlight } from './policy-error-highlight';
 import { analyzeSpendingPaths } from './path-analyzer';
 
@@ -62,7 +63,8 @@ export async function compile(
       policyResult.miniscript === '[compile error]' ||
       policyResult.miniscript.startsWith('[exception:')
     ) {
-      const err = mapError(policyResult.miniscript || 'Unknown compilation error');
+      let err = mapError(policyResult.miniscript || 'Unknown compilation error');
+      err = upgradeErrorWithPreflight(policy, err);
       return {
         result: null,
         paths: [],
@@ -76,7 +78,8 @@ export async function compile(
     const compileResult = compileMiniscript(miniscriptWithKeys);
 
     if (compileResult.error) {
-      const err = mapError(compileResult.error);
+      let err = mapError(compileResult.error);
+      err = upgradeErrorWithPreflight(policy, err);
       return {
         result: null,
         paths: [],
@@ -127,7 +130,8 @@ export async function compile(
     };
   } catch (err: unknown) {
     const raw = err instanceof Error ? err.message : String(err);
-    const mapped = mapError(raw);
+    let mapped = mapError(raw);
+    mapped = upgradeErrorWithPreflight(policy, mapped);
     return {
       result: null,
       paths: [],

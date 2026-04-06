@@ -93,6 +93,7 @@ export type FriendlyErrorCategory =
   | 'engine_init'
   | 'syntax'
   | 'unknown_fragment'
+  | 'duplicate_key'
   | 'semantic'
   | 'timelock'
   | 'security'
@@ -115,7 +116,14 @@ export interface FriendlyError {
     zh: string[];
     en: string[];
   };
-  /** UTF-16 half-open [from, to) into the Policy string; for editor decorations. */
+  /**
+   * Placeholder names inside pk(...) that appear more than once (set by preflight / duplicate_key mapping).
+   * Used to compute multi-range highlights; optional when derivable from policy alone.
+   */
+  duplicateNames?: string[];
+  /** Multiple UTF-16 half-open [from, to) ranges (e.g. every duplicate identifier occurrence). */
+  highlights?: { from: number; to: number }[];
+  /** First range; kept for backward compatibility — prefer `highlights` when present. */
   highlight?: {
     from: number;
     to: number;
