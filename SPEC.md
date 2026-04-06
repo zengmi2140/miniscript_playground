@@ -60,24 +60,25 @@
 固定在页面顶部，高度 56px。
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│  ₿ Miniscript Lab    [场景]  [Playground]  [对比]    🌐 中/EN │
-└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│  ₿ Miniscript Lab    [场景]  [Playground]  [Resource 资源]  中/EN │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 - Logo: `₿` 符号 + "Miniscript Lab" 文字，点击回首页
-- 导航项：场景（首页）、Playground、对比（V2 标注 "Coming Soon"）
+- 导航项：场景（首页）、Playground、Resource 资源（`/resources`）
 - 右侧：语言切换（中/EN）、主题切换（日/月图标）
 
 ### 2.2 页面结构
 
 
-| 路由                       | 页面               | 描述           |
-| ------------------------ | ---------------- | ------------ |
-| `/`                      | 场景画廊             | 首页，场景卡片入口    |
-| `/playground`            | Playground       | 三栏工作台 + 底部抽屉 |
-| `/playground?s=<base64>` | Playground（分享链接） | 从 URL 恢复状态   |
-| `/compare`               | 对比模式（V2）         | 双面板 diff     |
+| 路由                       | 页面               | 描述                        |
+| ------------------------ | ---------------- | ------------------------- |
+| `/`                      | 场景画廊             | 首页，场景卡片入口                 |
+| `/playground`            | Playground       | 三栏工作台 + 底部抽屉              |
+| `/playground?s=<base64>` | Playground（分享链接） | 从 URL 恢复状态                |
+| `/resources`             | Resource 资源      | FAQ + 外部资源链接（原 `/compare`） |
+| `/compare`               | 对比模式（V2，保留路由）    | 双面板 diff，暂未实现             |
 
 
 ---
@@ -94,7 +95,29 @@
 
 **窄屏**：`md` 以下 Hero 与底部 CTA 展示 `home.playground.desktopHint`，与 Playground 内说明一致（桌面优先）。
 
-### 3.2 Playground 页（`/playground`）
+### 3.1b Resource 资源页（`/resources`）
+
+原导航中的「对比」标签已更名为「Resource 资源」并指向此路由。页面由两个区域组成：
+
+**FAQ 区域**：展示 10 条 Miniscript 常见问题与解答，覆盖以下主题：
+1. Miniscript vs Bitcoin Script 基础概念
+2. Policy vs Miniscript 的关系
+3. `older()` vs `after()` 时间锁区别
+4. `thresh()` vs `and()` / `or()` 的用法
+5. Descriptor（输出描述符）是什么
+6. P2WSH vs P2PKH / P2WPKH 地址格式
+7. 地址仅用于测试网的安全提示
+8. 可视化构建器（画布模式）与文本编辑的区别
+9. 花费路径（Spending Path）的含义
+10. 可延展性（Malleability）的含义与影响
+
+每条 FAQ 以手风琴折叠形式展示，支持展开/收起。答案中的内联代码用 backtick 包裹，渲染为等宽字体 + `btc-500` 色。
+
+**Resource 资源区域**：预留外部链接区域，初始显示占位提示文字（`resources.links.placeholder`），后续由维护者填充相关工具、规范、教程的外部链接。
+
+实现：`src/app/resources/page.tsx`（`'use client'` 组件）。i18n：`resources.*`（含 `resources.faq.*`、`resources.links.*`，共 23 个词条）。风格遵循设计系统，使用 `surface-base`/`surface-elevated`/`btc-500` 等语义 token，`rounded-2xl` 卡片，折叠区域 `ChevronDown` 旋转动画。
+
+
 
 这是产品的核心页面。
 
@@ -118,7 +141,7 @@
 
 - **文档级预取**：`layout.tsx` 加 `<link rel="prefetch" href="/playground" as="document">`，让浏览器提前获取 Playground 页面 HTML，无论从哪个页面导航过来都更快。
 
-- **缓存行为**：同 Tab 内来回切换命中浏览器**模块内存缓存**，完全不触发网络请求；普通刷新命中 **HTTP 缓存**（Next.js JS 文件名含 hash），极快恢复；仅强制刷新才重新下载。
+- **缓存行为**：同 Tab 内来回切换命中浏览器**模块内存缓存**，完全不触发网络请求；普通刷新命中 **HTTP 缓存**（Next.js JS 文件名含 hash），��快恢复；仅强制刷新才重新下载。
 
 #### 整体布局
 

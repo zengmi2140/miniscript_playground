@@ -60,8 +60,13 @@ npm run test
   - **渐进式加载架构**：服务端渲染三栏框架 HTML 用户立即看到完整框架；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载显示 spinner 骨架屏；`layout.tsx` 加 `<link rel="prefetch">` 让浏览器提前获取文档；scenario 模式停留 2 秒后后台预加载 Builder 代码。
 
 - `/compare`
-  - 当前只是 Coming Soon 占位页。
-  - 入口组件：`src/app/compare/page.tsx`
+  - 原「对比」标签路由，保留但已不作为主导航入口。当前仍为 Coming Soon 占位页（`src/app/compare/page.tsx`），V2 目标为双面板 diff 对比。
+
+- `/resources`
+  - 导航中「Resource 资源」标签对应的新页面（原 `/compare` 在导航中的位置）。
+  - 入口组件：`src/app/resources/page.tsx`（`'use client'`）
+  - 包含两个区域：FAQ 手风琴（10 条 Miniscript 常见问题）+ Resource 外部链接（占位预留）
+  - i18n 词条前缀：`resources.*`（中英文均已添加到 `zh.ts` / `en.ts`）
 
 - `/opengraph-image`
   - 动态 OG 图。
@@ -251,7 +256,7 @@ src/
 3. `signet` 地址派生实际上复用了 `bitcoinjs-lib` 的 testnet network。
    - 这是教学层面的折中，不要把它误当成完整 signet 基础设施。
 
-4. `/compare` 还没做。
+4. `/compare` 对比模式还没做（保留为 V2 目标）；导航中的「对比」标签已更名为「Resource 资源」并指向 `/resources`。
 
 5. `@supabase/supabase-js` 已安装，但当前代码里没有实际接入。
 
@@ -330,6 +335,13 @@ src/
 - `src/components/playground/RightPanel.tsx`（上部花费路径 + 下部 Tab 分区 + 拖拽分割条）
 - `src/components/results/*`
 - 若要补充概念说明，也看 `src/components/shared/ExplainPopover.tsx`
+
+### 修改资源页（FAQ / 外部链接）
+
+- 主入口：`src/app/resources/page.tsx`
+- i18n 词条：`src/lib/i18n/zh.ts` 和 `src/lib/i18n/en.ts`，前缀 `resources.*`
+- FAQ 数据：在页面顶部的 `FAQ_KEYS` 数组中添加 `{ q, a }` 词条键，并在两个 i18n 文件中对应添加翻译
+- 外部链接：在页面 Resource 区域的 `div` 中添加链接卡片，目前为占位占位状态
 
 ### 修改全局视觉或主题
 
