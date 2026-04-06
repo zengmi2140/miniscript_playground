@@ -7,7 +7,7 @@ import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { lineNumbers } from '@codemirror/view';
 import { AlignLeft, Trash2, Copy, Share2, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { buildErrorHighlightExtensions, policyExtensions } from '@/lib/editor/policy-language';
-import { clampHighlightToDoc } from '@/lib/engine/policy-error-highlight';
+import { clampHighlightsToDoc } from '@/lib/engine/policy-error-highlight';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 import { buildShareUrl } from '@/lib/utils/share';
@@ -127,9 +127,17 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
     const view = viewRef.current;
     if (!view) return;
     const len = view.state.doc.length;
-    const r = clampHighlightToDoc(compilationError?.highlight, len);
+    const rawRanges =
+      compilationError?.highlights && compilationError.highlights.length > 0
+        ? compilationError.highlights
+        : compilationError?.highlight
+          ? [compilationError.highlight]
+          : undefined;
+    const ranges = clampHighlightsToDoc(rawRanges, len);
     view.dispatch({
-      effects: highlightCompartment.reconfigure(buildErrorHighlightExtensions(r)),
+      effects: highlightCompartment.reconfigure(
+        buildErrorHighlightExtensions(ranges.length ? ranges : null),
+      ),
     });
   }, [compilationError, highlightCompartment, policy]);
 

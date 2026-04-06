@@ -429,7 +429,7 @@ hover：上移 2px + 阴影加深 + 边框变为 `--border-hover`。
 - 高度自适应（最小 80px，最大 300px）
 - 语法高亮（见 §6.5）
 - 编辑后 500ms 防抖自动编译
-- 编译错误在编辑器下方显示（警告色摘要，随 locale 中英切换）；可展开「技术详情」查看并复制 `raw`；可选 `hints` 列表；若存在 `FriendlyError.highlight`，在 CodeMirror 内对 Policy 文本对应区间做背景标记（启发式，非 IDE 级定位）
+- 编译错误在编辑器下方显示（警告色摘要，随 locale 中英切换）；可展开「技术详情」查看并复制 `raw`；可选 `hints` 列表；若存在 `FriendlyError.highlights`（或兼容字段 `highlight`），在 CodeMirror 内对 Policy 文本对应区间做背景标记（启发式，非 IDE 级定位）。`duplicate_key` 等类别可对多处区间标红（例如重复 `pk(角色名)` 时标出每一处角色名）。
 - 工具栏：[格式化] [清空] [复制] [分享🔗]（Build 模式与 Scenario 模式一致，无额外按钮）
 - **Build 模式**下编辑器与可视化画布双向同步：画布操作更新 Policy；用户编辑 Policy 时，若结构仍在构建器支持范围内则回写 `strategyTree`，否则进入「文本主导」状态（`builderSyncState: 'text-led'`），不强行破坏画布。同步逻辑见 `useBuilderSync`（`src/lib/hooks/useBuilderSync.ts`）。
   - 成功从语义树回写时通过 `updateStrategyTree` 写入，编辑器中的 Policy 与 `serializeStrategyTree(strategyTree)` 对齐为规范串。
@@ -738,13 +738,17 @@ type ResultTab = 'policy' | 'miniscript' | 'script' | 'descriptor' | 'address' |
 
 interface FriendlyError {
   raw: string;
-  category: FriendlyErrorCategory; // engine_init | syntax | unknown_fragment | semantic | timelock | security | limit | miniscript | unknown
+  category: FriendlyErrorCategory; // engine_init | syntax | unknown_fragment | duplicate_key | semantic | timelock | security | limit | miniscript | unknown
   friendly: {
     zh: string;
     en: string;
   };
   hints?: { zh: string[]; en: string[] };
-  /** UTF-16 半开区间 [from, to)，相对应当前 Policy 字符串；用于编辑器装饰；可选 */
+  /** 重复出现的 pk(占位名) 列表；由 policy-preflight 等在升级错误时设置 */
+  duplicateNames?: string[];
+  /** 多段 UTF-16 半开区间 [from, to)，相对应当前 Policy 字符串；优先于 highlight */
+  highlights?: { from: number; to: number }[];
+  /** 第一段区间；与 highlights[0] 对齐，便于旧代码兼容 */
   highlight?: { from: number; to: number };
   line?: number;
   column?: number;
@@ -782,7 +786,7 @@ satisfier(miniscript, opts)     ← @bitcoinerlab/miniscript
 输出 CompilationResult + SpendingPath[]
 ```
 
-编译失败时：`compiler.ts` 调用 `policy-errors.ts` 的 `mapError(raw)` 得到 `FriendlyError`，再调用 `policy-error-highlight.ts` 的 `attachErrorHighlight(policy, err)` 按需写入 `highlight`（启发式区间，见该模块注释）。
+编译失败时：`compiler.ts` 调用 `policy-errors.ts` 的 `mapError(raw)` 得到 `FriendlyError`；再调用 `policy-preflight.ts` 的 `upgradeErrorWithPreflight(policy, err)`（在库仅返回笼统错误时，用轻量扫描将「同一 `pk(占位名)` 多次出现」升级为 `duplicate_key` 并保持 `raw` 不变）；最后调用 `policy-error-highlight.ts` 的 `attachErrorHighlight(policy, err)` 按需写入 `highlights` / `highlight`（启发式区间，见各模块注释）。
 
 **Descriptor 与地址生成（使用 @bitcoinerlab/descriptors）：**
 

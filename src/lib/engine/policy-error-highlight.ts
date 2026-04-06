@@ -1,4 +1,8 @@
 import { extractTokenFromRaw } from './policy-errors';
+import {
+  findAllWordRanges,
+  findDuplicatePkPlaceholders,
+} from './policy-preflight';
 import type { FriendlyError } from './types';
 
 /** Matches library messages that indicate parenthesis problems (aligned with mapError). */
@@ -57,6 +61,25 @@ export function clampHighlightToDoc(
   return clampRange(hl.from, hl.to, docLen);
 }
 
+/** Clamp every range; drop invalid after clamp. */
+export function clampHighlightsToDoc(
+  ranges: { from: number; to: number }[] | undefined,
+  docLen: number,
+): { from: number; to: number }[] {
+  if (!ranges?.length) return [];
+  const out: { from: number; to: number }[] = [];
+  for (const r of ranges) {
+    const c = clampRange(r.from, r.to, docLen);
+    if (c) out.push(c);
+  }
+  return out;
+}
+
+function sortRanges(ranges: { from: number; to: number }[]): { from: number; to: number }[] {
+  return [...ranges].sort((a, b) => a.from - b.from);
+}
+
+/** Single-range heuristic (unknown_fragment, paren syntax). */
 export function computeErrorHighlight(
   policy: string,
   error: FriendlyError,
@@ -79,11 +102,43 @@ export function computeErrorHighlight(
   return null;
 }
 
+/**
+ * All highlight ranges for the policy. `duplicate_key` marks every occurrence of duplicate placeholder names.
+ */
+export function computeErrorHighlights(
+  policy: string,
+  error: FriendlyError,
+): { from: number; to: number }[] {
+  const len = policy.length;
+
+  if (error.category === 'duplicate_key') {
+    const names =
+      error.duplicateNames && error.duplicateNames.length > 0
+        ? error.duplicateNames
+        : findDuplicatePkPlaceholders(policy);
+    const ranges: { from: number; to: number }[] = [];
+    for (const name of names) {
+      for (const r of findAllWordRanges(policy, name)) {
+        const c = clampRange(r.from, r.to, len);
+        if (c) ranges.push(c);
+      }
+    }
+    return sortRanges(ranges);
+  }
+
+  const one = computeErrorHighlight(policy, error);
+  return one ? [one] : [];
+}
+
 export function attachErrorHighlight(
   policy: string,
   error: FriendlyError,
 ): FriendlyError {
-  const highlight = computeErrorHighlight(policy, error);
-  if (!highlight) return error;
-  return { ...error, highlight };
+  const highlights = computeErrorHighlights(policy, error);
+  if (!highlights.length) return error;
+  return {
+    ...error,
+    highlights,
+    highlight: highlights[0],
+  };
 }

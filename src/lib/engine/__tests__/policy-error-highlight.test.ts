@@ -4,6 +4,7 @@ import {
   attachErrorHighlight,
   clampHighlightToDoc,
   computeErrorHighlight,
+  computeErrorHighlights,
   findParenHighlight,
   isParenRelatedRaw,
 } from '../policy-error-highlight';
@@ -83,5 +84,20 @@ describe('attachErrorHighlight', () => {
     });
     const out = attachErrorHighlight('or(foo(),pk(A))', err);
     expect(out.highlight).toEqual({ from: 3, to: 6 });
+    expect(out.highlights).toEqual([{ from: 3, to: 6 }]);
+  });
+
+  it('marks every duplicate_key name occurrence', () => {
+    const policy = 'thresh(3,pk(Alice),pk(Bob),pk(Alice))';
+    const err = fe({
+      raw: '[compile error]',
+      category: 'duplicate_key',
+      duplicateNames: ['Alice'],
+    });
+    const hl = computeErrorHighlights(policy, err);
+    expect(hl).toHaveLength(2);
+    const out = attachErrorHighlight(policy, err);
+    expect(out.highlights).toHaveLength(2);
+    expect(out.highlight).toEqual(out.highlights![0]);
   });
 });

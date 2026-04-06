@@ -157,7 +157,7 @@ src/
     6. 调用 `satisfier()` 枚举花费路径
     7. 交给 `analyzeSpendingPaths(...)` 做结构化分析
   - 输出 `CompilationResult` 含 `policy`、`policyWithKeys`、`miniscript`、`miniscriptWithKeys` 等。`policy`/`miniscript` 保留角色名供路径图解析；`policyWithKeys`/`miniscriptWithKeys` 含真实公钥供右栏 Tab 展示。
-  - 错误经 `policy-errors.ts` 的 `mapError` 映射为 `FriendlyError`（`category`、`friendly` zh/en、`hints` 等），再由 `policy-error-highlight.ts` 的 `attachErrorHighlight(policy, err)` 尝试附加 `highlight` 区间。
+  - 错误经 `policy-errors.ts` 的 `mapError` 映射为 `FriendlyError`（`category`、`friendly` zh/en、`hints` 等）；再经 `policy-preflight.ts` 的 `upgradeErrorWithPreflight(policy, err)` 在适当时将「重复 `pk(占位名)`」升级为 `duplicate_key`（保留库 `raw`）；最后由 `policy-error-highlight.ts` 的 `attachErrorHighlight(policy, err)` 附加 `highlights`（多段）或单段 `highlight`。
   - **Descriptor 与构建**：从 `@bitcoinerlab/descriptors/dist/descriptors` 导入 `DescriptorsFactory`（避免包主入口拉入 Ledger PSBT 等）；`next.config.mjs` 与 `vitest.config.ts` 将 `@ledgerhq/ledger-bitcoin` 别名为 `src/lib/shims/ledger-bitcoin-stub.js`，不依赖真实 Ledger SDK。详见 `SPEC.md`「关键实现细节」第 5 条。
 
 ### 语义树与路径图（scenario 模式）
@@ -360,7 +360,7 @@ src/
 - `src/components/playground/PolicyEditor.tsx`（编辑器组件，现位于中栏顶部；错误摘要、可折叠 `raw`、hints、Compartment 错误装饰）
 - `src/components/playground/CenterPanel.tsx`（编辑器的容器/折叠逻辑）
 - `src/lib/editor/policy-language.ts`（CodeMirror 高亮规则、`buildErrorHighlightExtensions`、`.cm-policy-error-highlight` 主题）
-- `src/lib/engine/policy-errors.ts`、`src/lib/engine/policy-error-highlight.ts`（错误文案与启发式区间）
+- `src/lib/engine/policy-errors.ts`、`src/lib/engine/policy-preflight.ts`、`src/lib/engine/policy-error-highlight.ts`（错误文案、重复占位预检与启发式区间）
 
 ### 修改右侧输出面板
 

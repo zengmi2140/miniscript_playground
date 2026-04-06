@@ -60,6 +60,26 @@ describe('compiler', () => {
     expect(result!.address).toBeTruthy();
   });
 
+  it('duplicate pk placeholder: duplicate_key, raw preserved, multi-highlight', async () => {
+    const policy = 'thresh(3,pk(Alice),pk(Bob),pk(Alice))';
+    const { result, error } = await compile(policy, [], 'wsh');
+
+    expect(result).toBeNull();
+    expect(error).not.toBeNull();
+    expect(error!.category).toBe('duplicate_key');
+    expect(error!.raw).toBe('[compile error]');
+    expect(error!.duplicateNames).toEqual(['Alice']);
+    expect(error!.friendly.zh).toContain('Alice');
+    expect(error!.highlights?.length).toBeGreaterThanOrEqual(2);
+    if (error!.highlights) {
+      for (const r of error!.highlights) {
+        expect(r.from).toBeGreaterThanOrEqual(0);
+        expect(r.to).toBeGreaterThan(r.from);
+        expect(r.to).toBeLessThanOrEqual(policy.length);
+      }
+    }
+  });
+
   it('returns friendly error for invalid policy', async () => {
     const policy = 'invalid_garbage!!!()';
     const { result, error } = await compile(policy, [], 'wsh');
