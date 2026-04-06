@@ -74,14 +74,15 @@ export const policyTheme = EditorView.theme({
 
 const policyErrorMark = Decoration.mark({ class: 'cm-policy-error-highlight' });
 
-/** Compartment content: empty or a StateField that paints one error range. */
+/** Compartment content: empty or a StateField that paints one or more error ranges. */
 export function buildErrorHighlightExtensions(
-  range: { from: number; to: number } | null,
+  ranges: { from: number; to: number }[] | null,
 ): Extension[] {
-  if (!range || range.from >= range.to) return [];
+  const valid = ranges?.filter((r) => r.from < r.to) ?? [];
+  if (!valid.length) return [];
   const field = StateField.define<DecorationSet>({
     create() {
-      return Decoration.set([policyErrorMark.range(range.from, range.to)]);
+      return Decoration.set(valid.map((r) => policyErrorMark.range(r.from, r.to)));
     },
     update(deco, tr) {
       return deco.map(tr.changes);

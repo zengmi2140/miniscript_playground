@@ -39,6 +39,12 @@ describe('mapError', () => {
     expect(err.hints?.en?.length).toBeGreaterThan(0);
   });
 
+  it('maps library duplicate key phrasing to duplicate_key', () => {
+    const err = mapError('duplicate key in policy: pk');
+    expect(err.category).toBe('duplicate_key');
+    expect(err.friendly.zh).toContain('重复');
+  });
+
   it('maps generic fallback without embedding full raw in summary', () => {
     const long = 'X'.repeat(200);
     const err = mapError(long);
