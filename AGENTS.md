@@ -144,7 +144,7 @@ src/
 
 ### 可视化构建（build /「自己动手」模式）
 
-- `src/lib/builder/tree-to-flow.ts`：将 `StrategyNode` 转为 React Flow 图；**递归 TB 布局**（子树宽度自下而上、节点自上而下，父在直接子行上水平居中；**`all`/`any` 未满员时**有虚拟「+ 添加条件」；**门限分组若已有树内子 placeholder 槽则不再挂虚拟「+」**）。Flow 节点数据用 `addChildSlotKind`：`virtual`（`add_child:父组 id`）与 `treePlaceholder`（子占位节点 id）。可选 `labels.addConditionLine` 由 `BuilderCanvas` 注入以统一「+ 添加条件」文案。节点上叠加满足态；与 `types.ts`、`serialize.ts`、`node-ops.ts`、`path-highlighting.ts`、`status.ts` 等配合。
+- `src/lib/builder/tree-to-flow.ts`：将 `StrategyNode` 转为 React Flow 图；**递归 TB 布局**（子树宽度自下而上、节点自上而下，父在直接子行上水平居中；**`all`/`any` 未满员时**有虚拟「+ 添加条件」；**门限分组若已有树内子 placeholder 槽则不再挂虚拟「+」**）。Flow 节点数据用 `addChildSlotKind`：`virtual`（`add_child:父组 id`）与 `treePlaceholder`（子占位节点 id）。可选 `labels.addConditionLine` 由 `BuilderCanvas` 注入以统一「+ 添加条件」文案。节点满足态由 **`status.ts` 的 `computeBuilderStatus` 唯一计算**（`builderTreeToFlow` 内转为 `Map` 再渲染），与 `types.ts`、`serialize.ts`、`node-ops.ts`、`path-highlighting.ts` 等配合。**不设** `src/lib/builder/index.ts` barrel；请从具体子模块导入。
 - `src/components/builder/BuilderCanvas.tsx`：build 模式主画布；在画布容器内右上角挂载 `BuilderPopover`（选中节点编辑）与 `OperatorSwitchPopover`（`operatorSwitchNodeId` 对应的 Group 操作符切换），二者互斥；向 `builderTreeToFlow` 传入 `labels.addConditionLine`；`OperatorSwitchPopover` 的 `realChildCount` 使用 `countRealChildren`（与 `childCount` 一致）。只读态由 `builderSyncState !== 'synced'` 控制；嵌套超过 5 层时显示黄色警告 toast；从 threshold 切到 AND/OR 且子节点被裁剪为两个时显示底部提示 toast。
 - `src/components/builder/AddChildOptions.tsx`：「添加条件」浮层内签名 / 时间锁 / 嵌套组按钮的纯 UI；由 `BuilderPopover` 在 `add-child` 模式下渲染，`onPick` 对接 `handleAddChildType`（内部区分 `convertChildPlaceholder` 与 `addChildNode`）。
 - `src/components/builder/BuilderNodes.tsx`：`BuilderAddChildNode` 按 `addChildSlotKind` 设置 `selectedBuilderNodeId`（不再依赖 `isAddButton`）。

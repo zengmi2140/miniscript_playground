@@ -66,6 +66,19 @@ describe('computeBuilderStatus', () => {
       const statusMap = computeBuilderStatus(tree, new Set(), 5000);
       expect(statusMap['time-1']).toBe('satisfied');
     });
+
+    it('absolute timelock (`after`) stays pending in MVP (not fully simulated)', () => {
+      const tree: StrategyNode = {
+        id: 'time-abs',
+        kind: 'timelock',
+        mode: 'absolute',
+        value: 1_000_000,
+        unit: 'blocks',
+      };
+
+      expect(computeBuilderStatus(tree, new Set(), 0)['time-abs']).toBe('pending');
+      expect(computeBuilderStatus(tree, new Set(), 2_000_000)['time-abs']).toBe('pending');
+    });
   });
 
   describe('group(all) nodes', () => {

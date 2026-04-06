@@ -6,12 +6,13 @@
  */
 
 import type { Node, Edge } from '@xyflow/react';
+import { computeBuilderStatus, type BuilderNodeStatus } from './status';
 import type { StrategyNode } from './types';
 import { blocksToHumanTime } from './types';
 
 export type BuilderNodeType = 'builderRoot' | 'builderOperator' | 'builderCondition' | 'builderPlaceholder' | 'builderAddChild';
 
-export type BuilderNodeStatus = 'satisfied' | 'pending' | 'missing';
+export type { BuilderNodeStatus };
 
 export interface BuilderFlowNodeData {
   nodeType: BuilderNodeType;
@@ -61,93 +62,8 @@ export function resetFlowNodeIdCounter(): void {
   flowNodeIdCounter = 0;
 }
 
-/**
- * Compute status for a strategy node based on available conditions
- */
-function computeNodeStatus(
-  node: StrategyNode,
-  availableKeys: Set<string>,
-  currentTimeBlocks: number,
-  statusMap: Map<string, BuilderNodeStatus>
-): BuilderNodeStatus {
-  switch (node.kind) {
-    case 'placeholder':
-      // Placeholders are always in pending state (waiting for user input)
-      return 'pending';
-
-    case 'signature':
-      return availableKeys.has(node.roleId) ? 'satisfied' : 'missing';
-
-    case 'timelock':
-      if (node.mode === 'relative') {
-        return currentTimeBlocks >= node.value ? 'satisfied' : 'pending';
-      }
-      // Absolute timelock - always pending in MVP
-      return 'pending';
-
-    case 'hashlock':
-      // Hashlocks are always missing in MVP (no hash toggle support)
-      return 'missing';
-
-    case 'group': {
-      // Filter out placeholders when computing group status
-      const realChildren = node.children.filter((c) => c.kind !== 'placeholder');
-      const childStatuses = realChildren.map(
-        (child) => statusMap.get(child.id) ?? 'missing'
-      );
-
-      // Empty group = pending (waiting for children)
-      if (childStatuses.length === 0) return 'pending';
-
-      switch (node.op) {
-        case 'all':
-          if (childStatuses.every((s) => s === 'satisfied')) return 'satisfied';
-          if (childStatuses.some((s) => s === 'pending')) return 'pending';
-          return 'missing';
-
-        case 'any':
-          if (childStatuses.some((s) => s === 'satisfied')) return 'satisfied';
-          if (childStatuses.some((s) => s === 'pending')) return 'pending';
-          return 'missing';
-
-        case 'threshold': {
-          const k = node.threshold ?? 1;
-          const satisfiedCount = childStatuses.filter((s) => s === 'satisfied').length;
-          const pendingCount = childStatuses.filter((s) => s === 'pending').length;
-          if (satisfiedCount >= k) return 'satisfied';
-          if (satisfiedCount + pendingCount >= k) return 'pending';
-          return 'missing';
-        }
-
-        default:
-          return 'missing';
-      }
-    }
-
-    default:
-      return 'missing';
-  }
-}
-
-/**
- * Recursively compute status for all nodes in the tree (bottom-up)
- */
-function computeAllStatuses(
-  node: StrategyNode,
-  availableKeys: Set<string>,
-  currentTimeBlocks: number,
-  statusMap: Map<string, BuilderNodeStatus>
-): void {
-  // Process children first (bottom-up)
-  if (node.kind === 'group') {
-    for (const child of node.children) {
-      computeAllStatuses(child, availableKeys, currentTimeBlocks, statusMap);
-    }
-  }
-
-  // Then compute this node's status
-  const status = computeNodeStatus(node, availableKeys, currentTimeBlocks, statusMap);
-  statusMap.set(node.id, status);
+function builderStatusRecordToMap(record: Record<string, BuilderNodeStatus>): Map<string, BuilderNodeStatus> {
+  return new Map(Object.entries(record));
 }
 
 /**
@@ -471,9 +387,9 @@ export function builderTreeToFlow(
   const addConditionLine =
     labels?.addConditionLine ?? (locale === 'zh' ? '+ 添加条件' : '+ Add Condition');
 
-  // Compute statuses bottom-up
-  const statusMap = new Map<string, BuilderNodeStatus>();
-  computeAllStatuses(tree, availableKeys, currentTimeBlocks, statusMap);
+  const statusMap = builderStatusRecordToMap(
+    computeBuilderStatus(tree, availableKeys, currentTimeBlocks)
+  );
 
   const ctx: BuildContext = {
     nodes: [],
