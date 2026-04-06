@@ -35,7 +35,9 @@
 | 样式 | Tailwind CSS + shadcn/ui |
 | i18n | 自定义轻量 Context（无第三方依赖） |
 
-Descriptor 库使用 `@bitcoinerlab/descriptors/dist/descriptors` 入口，并通过构建别名避免打入 Ledger 硬件钱包 SDK；说明见 `SPEC.md`「关键实现细节」第 5 条。
+Descriptor 库使用 `@bitcoinerlab/descriptors/dist/descriptors` 入口，并通过构建别名避免打入 Ledger 硬件钱包 SDK；说明见 [`SPEC.md`](SPEC.md) §5.1「关键实现细节」第 5 条。
+
+视觉与设计 token（色板、字体、Scenario 路径图节点尺寸等）见 [`DESIGN.md`](DESIGN.md)。
 
 ## 设计约束
 
@@ -56,6 +58,8 @@ npm run dev
 启动后访问终端输出的地址（通常是 http://localhost:3000）。
 
 ## 项目结构
+
+完整文件树与说明见 [`SPEC.md`](SPEC.md) §8.2；以下为简版：
 
 ```
 src/

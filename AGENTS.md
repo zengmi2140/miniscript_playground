@@ -2,9 +2,10 @@
 
 ## Document Priority
 
-- 判断产品目标、需求、交互规格：以 `SPEC.md` 为准。
+- 判断产品目标、需求、交互规格：以 `SPEC.md` 为准；**视觉与设计 token** 以 `DESIGN.md` 为准。
 - 判断当前实现现状：以实际代码为准。
 - 判断仓库结构、关键入口、修改落点、已知实现限制：以 `AGENTS.md` 为准。
+- **依赖版本**以 `package.json` / lockfile 为准；文档中的版本列为选型说明。
 - 如果 `SPEC.md` 与当前代码不一致，应理解为“需求与实现之间仍有差距”，不要把它当作文档互相冲突。
 
 ## 1. 项目一句话
@@ -21,18 +22,9 @@ Miniscript Lab 是一个 **场景优先、以花费路径为中心** 的 Bitcoin
 
 ## 3. 技术栈
 
-- 框架：Next.js 14 App Router + React 18
-- 语言：TypeScript strict
-- 状态管理：Zustand
-- 编辑器：CodeMirror 6
-- 可视化：React Flow (`@xyflow/react`)；**scenario** 路径图用 Dagre TB（`src/lib/flow/tree-to-flow.ts`），**build** 策略树用自实现递归 TB 布局（`src/lib/builder/tree-to-flow.ts`，非 Dagre）
-- 动画：framer-motion
-- 样式：Tailwind CSS + 少量 shadcn/ui 基础设施
-- Bitcoin 相关库：
-  - `@bitcoinerlab/miniscript-policies`
-  - `@bitcoinerlab/miniscript`
-  - `@bitcoinerlab/descriptors`
-  - `bitcoinjs-lib`
+- 框架：Next.js 14 App Router + React 18；语言：TypeScript strict；状态：Zustand。
+- 可视化：React Flow（`@xyflow/react`）；**scenario** 路径图用 Dagre TB（`src/lib/flow/tree-to-flow.ts`），**build** 策略树用自实现递归 TB（`src/lib/builder/tree-to-flow.ts`）。
+- 其余依赖、版本说明与「不使用的库」清单：**以 [`SPEC.md`](SPEC.md) §8.1 为准**。
 
 ## 4. 运行与验证
 
@@ -76,35 +68,13 @@ npm run test
 
 ## 6. 目录地图
 
+以下为**文件夹级**导航；**完整文件树与说明**以 [`SPEC.md`](SPEC.md) §8.2 为准。
+
 ```text
 src/
-  app/              Next.js 路由、布局、动态 OG、globals.css
-    playground/
-      page.tsx          纯 Server Component，dynamic 加载 PlaygroundClient
-      PlaygroundClient.tsx  客户端组件，含所有 hooks 和三栏布局
-  components/
-    providers.tsx   Theme + I18n 根 Provider
-    ui/             shadcn 基础组件（如 button）
-    builder/        build 模式：可视化策略树画布（BuilderCanvas、节点、BuilderPopover/AddChildOptions/OperatorSwitchPopover、同步横幅）
-    flow/           scenario 模式：花费路径图与 React Flow 节点/边
-    home/           首页组件（HomepageHero、HomepageHowItWorks、HomepageFeatures）
-    layout/         顶部导航（Header）
-    playground/     三栏布局（ThreeColumnLayout）、左/中/右各面板
-    results/        右侧结果 tabs
-    scenarios/      首页场景卡片
-    shared/         代码块、tooltip、popover 等通用组件
-  lib/
-    engine/         编译、路径分析、Miniscript 解析、时间工具、类型
-    builder/        可视化构建：StrategyNode、序列化、tree-to-flow（递归 TB）、路径高亮、节点操作
-    editor/         CodeMirror Policy 语法高亮
-    flow/           语义树 -> React Flow 图（scenario 路径图，Dagre TB）
-    glossary/       术语解释
-    hooks/          useCompiler、useBuilderSync（build 同步）
-    i18n/           轻量双语系统
-    scenarios/      预设场景和标签
-    stores/         Zustand 单一主 store
-    theme/          深浅色主题
-    utils/          分享、存储、class merge
+  app/           Next.js 路由、布局、动态 OG、globals.css
+  components/    ui、builder、flow、home、layout、playground、results、scenarios、shared
+  lib/           engine、builder、editor、flow、glossary、hooks、i18n、scenarios、stores、theme、utils
 ```
 
 ## 7. 核心运行链路
@@ -152,7 +122,7 @@ src/
     7. 交给 `analyzeSpendingPaths(...)` 做结构化分析
   - 输出 `CompilationResult` 含 `policy`、`policyWithKeys`、`miniscript`、`miniscriptWithKeys` 等。`policy`/`miniscript` 保留角色名供路径图解析；`policyWithKeys`/`miniscriptWithKeys` 含真实公钥供右栏 Tab 展示。
   - 错误经 `policy-errors.ts` 的 `mapError` 映射为 `FriendlyError`（`category`、`friendly` zh/en、`hints` 等）；再经 `policy-preflight.ts` 的 `upgradeErrorWithPreflight(policy, err)` 在适当时将「重复 `pk(占位名)`」升级为 `duplicate_key`（保留库 `raw`）；最后由 `policy-error-highlight.ts` 的 `attachErrorHighlight(policy, err)` 附加 `highlights`（多段）或单段 `highlight`。
-  - **Descriptor 与构建**：从 `@bitcoinerlab/descriptors/dist/descriptors` 导入 `DescriptorsFactory`（避免包主入口拉入 Ledger PSBT 等）；`next.config.mjs` 与 `vitest.config.ts` 将 `@ledgerhq/ledger-bitcoin` 别名为 `src/lib/shims/ledger-bitcoin-stub.js`，不依赖真实 Ledger SDK。详见 `SPEC.md`「关键实现细节」第 5 条。
+  - **Descriptor 与构建**：从 `@bitcoinerlab/descriptors/dist/descriptors` 导入 `DescriptorsFactory`（避免包主入口拉入 Ledger PSBT 等）；`next.config.mjs` 与 `vitest.config.ts` 将 `@ledgerhq/ledger-bitcoin` 别名为 `src/lib/shims/ledger-bitcoin-stub.js`，不依赖真实 Ledger SDK。详见 `SPEC.md` §5.1「关键实现细节」第 5 条。
 
 ### 语义树与路径图（scenario 模式）
 
@@ -185,7 +155,7 @@ src/
 - **节点包裹**：`wrapNodeInGroup(tree, nodeId, wrapperOp, wrapperThreshold?)` 将任意节点（签名、时间锁、Group）包裹进新的父级 Group，原节点成为第一个子节点，同时添加 placeholder 子槽；包裹为门限时对默认/显式 k 做与单真实子节点数一致的钳制。UI 入口为所有节点浮层底部的「包裹进新组」三按钮。
 - **子占位填写 vs 追加**：`convertChildPlaceholder` 替换树内子槽；`addChildNode` / `addSignatureChild` 等向父组追加；勿对 placeholder id 调用 `addChildNode`。
 - **嵌套深度检测**：`computeTreeDepth(tree)` 计算最大嵌套层数；包裹操作后若深度超过 5 层，`BuilderCanvas` 会显示 4 秒自动消失的警告 toast。
-- 产品与 build 模式边界以 `SPEC.md` §4.2 为准。
+- 产品与 build 模式边界以 `SPEC.md` §3.2 为准。
 
 ### 花费路径分析
 
@@ -262,9 +232,7 @@ src/
   - `src/lib/theme/context.tsx`
   - 默认 dark，localStorage key 为 `miniscript-lab-theme`
 
-- 设计 token：
-  - `src/app/globals.css`
-  - `tailwind.config.js`
+- 设计 token 与视觉规格：[`DESIGN.md`](DESIGN.md)；实现：`src/app/globals.css`、`tailwind.config.js`。
 
 ## 10. 当前真实限制与容易误判的点
 
@@ -300,7 +268,7 @@ src/
    - 根节点直接显示顶层条件逻辑类型（都需要/任选一/k-of-n），而非通用的"花费条件"。
    - 单一叶子条件的策略不再创建根节点，直接显示条件节点。
 
-10. **build 模式**（自己动手）已实现为 MVP：受约束策略树 + Policy 双向同步；并非任意拖线流程图。不支持的结构会进入 `text-led`，详见 `useBuilderSync.ts` 与 `SPEC.md` §4.2。
+10. **build 模式**（自己动手）已实现为 MVP：受约束策略树 + Policy 双向同步；并非任意拖线流程图。不支持的结构会进入 `text-led`，详见 `useBuilderSync.ts` 与 `SPEC.md` §3.2。
 
 11. **渐进式加载**：`playground/page.tsx` 直接 import `PlaygroundClient`（服务端渲染三栏框架 HTML，用户进入页面立即看到完整框架）；`PlaygroundContent` 移除了 `mode === 'loading' → null` 逻辑；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载，期间显示带 spinner 骨架屏；`layout.tsx` 加 `<link rel="prefetch">` 提前获取 Playground 页面；首页 `requestIdleCallback` 预热所有 Playground 模块（三栏组件、两个画布、编译器），同 Tab 内来回切换命中浏览器模块缓存无需重新加载，刷新后命中 HTTP 缓存（Next.js 文件名含 hash）极快恢复。
 
@@ -364,6 +332,7 @@ src/
 
 ### 修改全局视觉或主题
 
+- [`DESIGN.md`](DESIGN.md)（色板、字体、组件与 Scenario 节点尺寸）
 - `src/app/globals.css`
 - `tailwind.config.js`
 - `src/lib/theme/context.tsx`
@@ -423,8 +392,9 @@ src/
 | 文档 | 用途 |
 |------|------|
 | `README.md` | 项目介绍、快速运行、面向访客的概览 |
-| `SPEC.md` | 产品与体验层唯一 SSOT（页面、交互、设计系统、引擎行为） |
-| `CLAUDE.md` | Claude Code 自动注入的短指针；详细说明以本文件与 `SPEC.md` 为准 |
+| `SPEC.md` | 产品与体验层 SSOT（页面、交互、引擎与数据规格等） |
+| `DESIGN.md` | 视觉与设计系统（色板、字体、组件、Scenario 节点尺寸） |
+| `CLAUDE.md` | Claude Code 自动注入的短指针；详细说明以本文件、`SPEC.md`、`DESIGN.md` 为准 |
 
 ---
 
