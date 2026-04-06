@@ -49,8 +49,9 @@ export function computeBuilderStatus(
           // Relative timelock: satisfied if currentTimeBlocks >= required blocks
           status = currentTimeBlocks >= node.value ? 'satisfied' : 'pending';
         } else {
-          // Absolute timelock (not editable in MVP, but we handle it)
-          status = currentTimeBlocks >= node.value ? 'satisfied' : 'pending';
+          // Absolute timelock (`after()`): not fully simulated in MVP — always pending
+          // (see path-analyzer / scenario flow; slider 主要对 older 有效)
+          status = 'pending';
         }
         break;
       }

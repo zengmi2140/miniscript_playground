@@ -228,7 +228,7 @@
 
 **Build 模式（`playgroundMode === 'build'`）：可视化策略树画布**
 
-- 中栏 **不再** 单独展示与 scenario 相同的那张「花费路径图」；改为 **受约束的策略树编辑器**（`BuilderCanvas`，`src/components/builder/*`），在同一 React Flow 画布上编辑结构并叠加满足态（已满足 / 等待 / 缺失）。布局由 `src/lib/builder/tree-to-flow.ts` 负责：**自下而上计算子树宽度、自上而下放置**，父节点在**整行直接子节点（含未满员时的虚拟「+ 添加条件」）**的水平包围盒上居中；**不**使用 Dagre，以避免仅平移父节点时与兄弟子树重叠等问题。
+- 中栏 **不再** 单独展示与 scenario 相同的那张「花费路径图」；改为 **受约束的策略树编辑器**（`BuilderCanvas`，`src/components/builder/*`），在同一 React Flow 画布上编辑结构并叠加满足态（已满足 / 等待 / 缺失）。**满足态计算**以 `src/lib/builder/status.ts` 的 `computeBuilderStatus` 为唯一实现；`src/lib/builder/tree-to-flow.ts` 在生成节点前调用它并将结果用于连线「是否已满足」与节点着色。布局由 `tree-to-flow.ts` 负责：**自下而上计算子树宽度、自上而下放置**，父节点在**整行直接子节点（含未满员时的虚拟「+ 添加条件」）**的水平包围盒上居中；**不**使用 Dagre，以避免仅平移父节点时与兄弟子树重叠等问题。
 - **`all`（都需要）与 `any`（任选一）分组**在 `strategyTree` 中**最多两个直接子节点**（子占位符占槽）；满员则**不**再渲染「+ 添加条件」，且 `node-ops` 不向该父节点追加第三子。`threshold`（门限）分组仍允许多子。Policy 字符串由 `serializeStrategyTree`（`src/lib/builder/serialize.ts`）输出为**嵌套二元** `and`/`or`，与 Miniscript Policy 语法一致。从编译结果回写画布时，`importFromSemanticTree`（`src/lib/builder/from-semantic-tree.ts`）将语义树里 N 叉的 `and`/`or` **折叠**为嵌套二叉分组。用户将节点从 **threshold** 切换为 **AND/OR** 且子节点多于 2 个时，**仅保留前两个子条件**（画布底部可显示提示 toast）。
 - 领域模型为 `StrategyNode`（`src/lib/builder/types.ts`），与 `MiniscriptNode` 分离；MVP 支持签名、`all` / `any` / 阈值组、相对时间锁 `older()` 等；`after()` 与哈希锁在类型与未来扩展上预留，首版 UI 可不开放编辑。
 - 右栏花费路径列表与 scenario 一致；在 build 模式下点击路径卡片可 **高亮** 画布上与该路径相关的分支（`path-highlighting.ts`）。
@@ -1065,8 +1065,8 @@ miniscript-lab/
 │   │   │   ├── time-utils.ts                # 时间锁编码/解码/人类可读转换
 │   │   │   └── types.ts                     # 核心引擎类型（§4 的部分内容）
 │   │   │
-│   │   ├── builder/                         # 可视化构建：StrategyNode、序列化、路径高亮
-│   │   │   └── types.ts, tree-to-flow.ts, serialize.ts, node-ops.ts, ...
+│   │   ├── builder/                         # 可视化构建：StrategyNode、序列化、满足态（status.ts）、路径高亮
+│   │   │   └── types.ts, status.ts, tree-to-flow.ts, serialize.ts, node-ops.ts, ...（无 index barrel）
 │   │   │
 │   │   ├── flow/                            # Scenario：MiniscriptNode → React Flow（与 components/flow 配合）
 │   │   │   └── tree-to-flow.ts
