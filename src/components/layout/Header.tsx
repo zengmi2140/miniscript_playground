@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils/cn';
 const navItems = [
   { key: 'nav.scenarios', path: '/' },
   { key: 'nav.playground', path: '/playground' },
-  { key: 'nav.compare', path: '/compare' },
+  { key: 'nav.compare', path: '/resources' },
 ] as const;
 
 export function Header() {
@@ -43,7 +43,6 @@ export function Header() {
                 item.path === '/'
                   ? pathname === '/'
                   : pathname.startsWith(item.path);
-              const isComingSoon = item.path === '/compare';
 
               return (
                 <Link
@@ -57,11 +56,6 @@ export function Header() {
                   )}
                 >
                   {t(item.key)}
-                  {isComingSoon && (
-                    <span className="ml-1.5 text-[10px] italic text-text-muted">
-                      {t('nav.comingSoon')}
-                    </span>
-                  )}
                   {isActive && (
                     <span className="absolute bottom-0 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-btc-500" />
                   )}
@@ -109,7 +103,6 @@ export function Header() {
                 item.path === '/'
                   ? pathname === '/'
                   : pathname.startsWith(item.path);
-              const isComingSoon = item.path === '/compare';
 
               return (
                 <Link
@@ -124,9 +117,6 @@ export function Header() {
                   )}
                 >
                   {t(item.key)}
-                  {isComingSoon && (
-                    <span className="text-[10px] italic text-text-muted">{t('nav.comingSoon')}</span>
-                  )}
                 </Link>
               );
             })}
