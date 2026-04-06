@@ -217,7 +217,7 @@ export const en: Record<string, string> = {
 
   // FAQ items
   'resources.faq.q1': 'What is Miniscript, and how does it differ from Bitcoin Script?',
-  'resources.faq.a1': '**Miniscript is a structured subset of Bitcoin Script**, using composable policy functions like `pk()`, `and()`, `or()`, and `thresh()` to describe spending conditions.
+  'resources.faq.a1': `**Miniscript is a structured subset of Bitcoin Script**, using composable policy functions like \`pk()\`, \`and()\`, \`or()\`, and \`thresh()\` to describe spending conditions.
 
 Bitcoin Script is the low-level scripting language of the Bitcoin network, hard to write and audit. Miniscript is compiled into on-chain scripts by tools automatically.
 
@@ -225,21 +225,21 @@ Core advantages:
 - Clear semantics: high-level policy functions replace low-level opcodes
 - Composable: policies can nest and combine flexibly
 - Formally verifiable: compiler verifies script safety
-- Safety-checked compilation: results undergo thorough review',
+- Safety-checked compilation: results undergo thorough review`,
 
   'resources.faq.q5': 'What is a Descriptor (output descriptor)? Why do we need it?',
-  'resources.faq.a5': '**A Descriptor is a complete description of "how to generate a Bitcoin address"**, e.g., `wsh(thresh(2,pk(A),pk(B),pk(C)))` means use SegWit v0 P2WSH wrapping a 2-of-3 multisig script.
+  'resources.faq.a5': `**A Descriptor is a complete description of "how to generate a Bitcoin address"**, e.g., \`wsh(thresh(2,pk(A),pk(B),pk(C)))\` means use SegWit v0 P2WSH wrapping a 2-of-3 multisig script.
 
 It encodes the address type (P2PKH / P2WPKH / P2WSH / P2TR, etc.) and script content, allowing wallets to reconstruct addresses precisely.
 
 Why we need it:
 - Precise recovery: wallets can regenerate addresses and spending logic from Descriptor
 - Standardization: unified format adopted by the community for easy exchange and storage
-- No memorization: users don\'t need to remember low-level opcodes and script details
-- Cross-tool compatibility: follows SLIP-0380 standard, supported by many wallets',
+- No memorization: users don't need to remember low-level opcodes and script details
+- Cross-tool compatibility: follows SLIP-0380 standard, supported by many wallets`,
 
   'resources.faq.q2': 'What is a Policy, and how does it relate to Miniscript?',
-  'resources.faq.a2': '**Policy is a higher-level strategy description language**, closer to business logic, e.g., `or(pk(Alice), and(pk(Bob), older(144)))`.
+  'resources.faq.a2': `**Policy is a higher-level strategy description language**, closer to business logic, e.g., \`or(pk(Alice), and(pk(Bob), older(144)))\`.
 
 Three-layer abstraction:
 
@@ -250,12 +250,12 @@ Three-layer abstraction:
 Workflow:
 - Users only write Policy
 - Tools automatically compile to optimal Miniscript
-- Further compiled to on-chain Script',
+- Further compiled to on-chain Script`,
 
   'resources.faq.q9': 'What is a Spending Path?',
-  'resources.faq.a9': '**A spending path is one specific combination of conditions that satisfies a policy**.
+  'resources.faq.a9': `**A spending path is one specific combination of conditions that satisfies a policy**.
 
-Example: policy `or(pk(Alice), and(pk(Bob), older(144)))` has two paths:
+Example: policy \`or(pk(Alice), and(pk(Bob), older(144)))\` has two paths:
 
 - Path 1: Alice signs (condition satisfied)
 - Path 2: Bob signs + wait 144 blocks
@@ -263,41 +263,41 @@ Example: policy `or(pk(Alice), and(pk(Bob), older(144)))` has two paths:
 The condition simulator:
 - Toggle signatures: simulate specific party signing
 - Drag time slider: adjust block height, test timelocks
-- Real-time feedback: shows which path is available and what\'s missing',
+- Real-time feedback: shows which path is available and what's missing`,
 
   'resources.faq.q3': 'What is the difference between `older()` and `after()`?',
-  'resources.faq.a3': '**Two timelocks differ in how they\'re calculated**.
+  'resources.faq.a3': `**Two timelocks differ in how they're calculated**.
 
-`older(n)` - Relative timelock:
-- Based on `nSequence` field
+\`older(n)\` - Relative timelock:
+- Based on \`nSequence\` field
 - Means "at least n blocks must pass since this UTXO was locked"
 - Common for inheritance recovery and backup scenarios
 
-`after(n)` - Absolute timelock:
-- Based on `nLockTime` field
+\`after(n)\` - Absolute timelock:
+- Based on \`nLockTime\` field
 - Means "can only spend after Bitcoin block height n is reached"
 - Common for contracts that unlock at specific times
 
 Choose based on:
 - Relative timelocks are more flexible as they count from confirmation
-- Absolute timelocks are clearer, specifying exact block height',
+- Absolute timelocks are clearer, specifying exact block height`,
 
   'resources.faq.q4': 'What is thresh(), and how is it different from and() / or()?',
-  'resources.faq.a4': '**`thresh()` is a universal threshold operator** meaning "at least k of N conditions must be satisfied to spend".
+  'resources.faq.a4': `**\`thresh()\` is a universal threshold operator** meaning "at least k of N conditions must be satisfied to spend".
 
 Basic relationships:
 
-- `and(a, b)` ≈ `thresh(2, a, b)` (both must be satisfied)
-- `or(a, b)` ≈ `thresh(1, a, b)` (either one suffices)
-- `thresh(2, pk(Alice), pk(Bob), pk(Carol))` = any two of three can sign
+- \`and(a, b)\` ≈ \`thresh(2, a, b)\` (both must be satisfied)
+- \`or(a, b)\` ≈ \`thresh(1, a, b)\` (either one suffices)
+- \`thresh(2, pk(Alice), pk(Bob), pk(Carol))\` = any two of three can sign
 
-Why we need `thresh()`:
+Why we need \`thresh()\`:
 - Flexibility: supports any k-of-N combination without separate operators
 - Expressiveness: describes more complex threshold conditions
-- Efficiency: compiler optimizes specially for different k values',
+- Efficiency: compiler optimizes specially for different k values`,
 
   'resources.faq.q6': 'What is P2WSH? How is it different from P2PKH and P2WPKH?',
-  'resources.faq.a6': '**The three address formats differ in script size and Witness handling**.
+  'resources.faq.a6': `**The three address formats differ in script size and Witness handling**.
 
 P2PKH (Legacy format):
 - Full script stored in scriptSig
@@ -311,14 +311,14 @@ P2WSH (SegWit v0 script-hash format):
 - Ideal for complex multisig or timelock scripts
 - Witness data separate from transaction body
 - Script stored as hash, saves space
-- Miniscript\'s default supported format
+- Miniscript's default supported format
 
 Notes:
-- Miniscript Lab\'s MVP currently only supports P2WSH
-- Taproot (P2TR) will be supported in a future version',
+- Miniscript Lab's MVP currently only supports P2WSH
+- Taproot (P2TR) will be supported in a future version`,
 
   'resources.faq.q7': 'Can the addresses generated by this tool be used on mainnet?',
-  'resources.faq.a7': '**Absolutely not**. Miniscript Lab is a purely educational tool, all addresses are testnet-only.
+  'resources.faq.a7': `**Absolutely not**. Miniscript Lab is a purely educational tool, all addresses are testnet-only.
 
 Key restrictions:
 - Only Bitcoin Testnet / Signet networks
@@ -334,10 +334,10 @@ Correct use cases:
 Warnings:
 - Never use generated addresses for mainnet funds
 - Never import real private keys into this tool
-- This tool is for education only',
+- This tool is for education only`,
 
   'resources.faq.q8': 'What is the difference between the visual builder (canvas mode) and writing Policy directly?',
-  'resources.faq.a8': '**Both approaches are fundamentally equivalent** — canvas operations generate Policy text in real time and vice versa.
+  'resources.faq.a8': `**Both approaches are fundamentally equivalent** — canvas operations generate Policy text in real time and vice versa.
 
 When to use each:
 
@@ -345,7 +345,7 @@ Canvas mode (Visual builder):
 - Intuitively understand policy structure and hierarchy
 - Avoid syntax errors
 - Perfect for beginners and quick prototyping
-- Limitation: doesn\'t yet support `after()` and hashlocks
+- Limitation: doesn't yet support \`after()\` and hashlocks
 
 Text editing mode (Policy editor):
 - Faster and more flexible
@@ -356,60 +356,60 @@ Text editing mode (Policy editor):
 Special case:
 - When Policy contains unsupported syntax, canvas enters "read-only snapshot mode"
 - You can continue editing Policy text
-- Sync button retries parsing',
+- Sync button retries parsing`,
 
   'resources.faq.q10': 'Why are some paths labeled "Malleable"?',
-  'resources.faq.a10': '**Malleability means transaction Witness data can be modified by a third party without changing transaction semantics**.
+  'resources.faq.a10': `**Malleability means transaction Witness data can be modified by a third party without changing transaction semantics**.
 
 What is malleability:
 - A third party can modify Witness stack data
 - This changes the transaction ID (txid)
 - But transaction semantics (which UTXO was spent) stay the same
 
-SegWit\'s improvement:
+SegWit's improvement:
 - SegWit segregates Witness data
 - Solves main transaction ID malleability
 - But some complex Miniscript structures may have Witness-level malleability
 
 In this tool:
 - Malleability is marked as a warning (not a critical error)
-- Doesn\'t affect basic functionality verification
+- Doesn't affect basic functionality verification
 - Educational for understanding the issue
 
 Production recommendations:
 - Should avoid malleable paths
 - Use formal verification tools to check scripts
-- Full audit before deployment',
+- Full audit before deployment`,
 
   // New FAQ items (11-18)
   'resources.faq.q11': 'What are the basic operators supported by Policy?',
-  'resources.faq.a11': '**Policy supports core operators** for combining spending conditions.
+  'resources.faq.a11': `**Policy supports core operators** for combining spending conditions.
 
 Signatures and timelocks:
-- `pk(key)` - single key signature
-- `older(n)` - relative timelock (n blocks)
-- `after(n)` - absolute timelock (block height)
+- \`pk(key)\` - single key signature
+- \`older(n)\` - relative timelock (n blocks)
+- \`after(n)\` - absolute timelock (block height)
 
 Hashlocks:
-- `sha256(h)`, `hash256(h)` - SHA-256 hashlock
-- `ripemd160(h)`, `hash160(h)` - RIPEMD-160 hashlock
+- \`sha256(h)\`, \`hash256(h)\` - SHA-256 hashlock
+- \`ripemd160(h)\`, \`hash160(h)\` - RIPEMD-160 hashlock
 
 Combination operators:
-- `and(cond1, cond2)` - both conditions required
-- `or(cond1, cond2)` - either condition
-- `thresh(k, cond1, ...)` - k-of-N threshold
-- `andor(cond1, cond2, cond3)` - conditional branching
+- \`and(cond1, cond2)\` - both conditions required
+- \`or(cond1, cond2)\` - either condition
+- \`thresh(k, cond1, ...)\` - k-of-N threshold
+- \`andor(cond1, cond2, cond3)\` - conditional branching
 
 Optimizations:
-- `multi(k, key1, ...)` - direct multisig
-- `just_key(key)` - single-key optimization',
+- \`multi(k, key1, ...)\` - direct multisig
+- \`just_key(key)\` - single-key optimization`,
 
   'resources.faq.q12': 'What are `andor()` and `or_c()`? When should I use them?',
-  'resources.faq.a12': '**`andor()` is a conditional branching form** with semantics "if cond1 is satisfied, then cond2 must also be satisfied; otherwise cond3 must be satisfied".
+  'resources.faq.a12': `**\`andor()\` is a conditional branching form** with semantics "if cond1 is satisfied, then cond2 must also be satisfied; otherwise cond3 must be satisfied".
 
 Real example:
 
-`andor(pk(Alice), pk(Bob), older(52560))` means:
+\`andor(pk(Alice), pk(Bob), older(52560))\` means:
 - Normal case: both Alice and Bob must sign
 - After timeout (52560 blocks): Alice can sign alone
 
@@ -418,89 +418,89 @@ When to use:
 - Backup timeout in multi-party management
 - Prevent lockup when one party is unresponsive
 
-`or_c()` difference:
-- `or_c()` is an alternative conditional encoding
+\`or_c()\` difference:
+- \`or_c()\` is an alternative conditional encoding
 - Different compilation affects Witness size and fees
-- Choose the one that compiles high-frequency paths smaller',
+- Choose the one that compiles high-frequency paths smaller`,
 
   'resources.faq.q13': 'How do I describe common multisig and recovery scenarios in Policy?',
-  'resources.faq.a13': '**Common scenario examples**.
+  'resources.faq.a13': `**Common scenario examples**.
 
 Basic multisig:
-- 2-of-2: `and(pk(A), pk(B))`
-- 2-of-3: `thresh(2, pk(A), pk(B), pk(C))`
-- 3-of-5: `thresh(3, pk(A), pk(B), pk(C), pk(D), pk(E))`
+- 2-of-2: \`and(pk(A), pk(B))\`
+- 2-of-3: \`thresh(2, pk(A), pk(B), pk(C))\`
+- 3-of-5: \`thresh(3, pk(A), pk(B), pk(C), pk(D), pk(E))\`
 
 Multisig with recovery:
-- `or(thresh(2, pk(A), pk(B)), older(52560))` means "normally need A and B to sign, but after 1 year either can solo-recover"
+- \`or(thresh(2, pk(A), pk(B)), older(52560))\` means "normally need A and B to sign, but after 1 year either can solo-recover"
 
 Inheritance pattern:
-- `andor(pk(Alice), pk(Bob), or(pk(Carol), older(52560)))` means "Alice and Bob jointly manage, Bob must consent, but if Bob is silent for 1 year Carol takes over"',
+- \`andor(pk(Alice), pk(Bob), or(pk(Carol), older(52560)))\` means "Alice and Bob jointly manage, Bob must consent, but if Bob is silent for 1 year Carol takes over"`,
 
   'resources.faq.q14': 'What is the Miniscript type system? Why do we need B, V, K, W types?',
-  'resources.faq.a14': '**Each Miniscript fragment has a type signature** ensuring correct composition.
+  'resources.faq.a14': `**Each Miniscript fragment has a type signature** ensuring correct composition.
 
 Four types:
-- `B` (Boolean): script can execute as a top-level script
-- `V` (Verify): after execution, leaves a true value on stack
-- `K` (Key): script accepts key or signature parameter
-- `W` (Wrapped): satisfaction mode is non-standard
+- \`B\` (Boolean): script can execute as a top-level script
+- \`V\` (Verify): after execution, leaves a true value on stack
+- \`K\` (Key): script accepts key or signature parameter
+- \`W\` (Wrapped): satisfaction mode is non-standard
 
 Why the type system:
 - Ensure correct composition: not all fragments can nest
 - Prevent errors: types must be compatible
-- Example: `and(B, B)` is valid, but `and(V, V)` is invalid
+- Example: \`and(B, B)\` is valid, but \`and(V, V)\` is invalid
 
 Formal verification:
 - Eliminates hand-written script errors
 - Compiler auto-validates all type constraints
-- Guarantees scripts execute safely',
+- Guarantees scripts execute safely`,
 
   'resources.faq.q15': 'What are Miniscript modifiers?',
-  'resources.faq.a15': '**Modifiers are single-letter annotations** adjusting fragment properties.
+  'resources.faq.a15': `**Modifiers are single-letter annotations** adjusting fragment properties.
 
 Common modifiers:
-- `z:` - zero nullability: ensures no empty values on stack
-- `o:` - one extension: can push arbitrary values
-- `n:` - nonumber: doesn\'t rely on numeric interpretation
-- `d:` - disassembly: includes full witness stack deserialization info
-- `u:` - unsatisfiable: script might be impossible to satisfy
+- \`z:\` - zero nullability: ensures no empty values on stack
+- \`o:\` - one extension: can push arbitrary values
+- \`n:\` - nonumber: doesn't rely on numeric interpretation
+- \`d:\` - disassembly: includes full witness stack deserialization info
+- \`u:\` - unsatisfiable: script might be impossible to satisfy
 
 Purpose:
 - Compiler verifies script safety
 - Checks for stack pollution and type errors
 - Guides compilation optimization
-- Part of fragment type signature',
+- Part of fragment type signature`,
 
   'resources.faq.q16': 'What are common Miniscript fragments and Wrappers?',
-  'resources.faq.a16': '**Fragments are basic building blocks**, Wrappers adjust their properties.
+  'resources.faq.a16': `**Fragments are basic building blocks**, Wrappers adjust their properties.
 
 Common fragments:
-- `pk_k(key)` - minimal single-key checking
-- `pk_h(key)` - hashed key, reduces witness size
-- `multi(k, keys...)` - k-of-N multisig
-- `thresh(k, conds...)` - generic threshold
+- \`pk_k(key)\` - minimal single-key checking
+- \`pk_h(key)\` - hashed key, reduces witness size
+- \`multi(k, keys...)\` - k-of-N multisig
+- \`thresh(k, conds...)\` - generic threshold
 
 Common Wrappers:
-- `c:` - convert verify-type to boolean
-- `v:` - append `OP_VERIFY` suffix
-- `d:` - add deserialization support
-- `s:` - swap top stack items
-- `a:` - add `OP_ADD`
-- `j:` - add `OP_IF` branching
-- `n:` - remove top stack item
+- \`c:\` - convert verify-type to boolean
+- \`v:\` - append \`OP_VERIFY\` suffix
+- \`d:\` - add deserialization support
+- \`s:\` - swap top stack items
+- \`a:\` - add \`OP_ADD\`
+- \`j:\` - add \`OP_IF\` branching
+- \`n:\` - remove top stack item
 
 Optimization tip:
 - Correct fragment and wrapper use significantly reduces script size
 - Lower fees
-- Better witness efficiency',
+- Better witness efficiency`,
 
   'resources.faq.q17': 'What are the script size and opcode limits? How do I optimize?',
-  'resources.faq.a17': '**P2WSH script resource limits**.
+  'resources.faq.a17': `**P2WSH script resource limits**.
 
 Key limits:
 - Max script size 10000 bytes
-- Max 201 opcodes (some like `OP_CHECKSIG` count as 1, others differ)
+- Max 201 opcodes (some like \`OP_CHECKSIG\` count as 1, others differ)
 - Max 1000 witness stack items
 - Max 520 bytes per stack item
 
@@ -511,17 +511,17 @@ Compiler optimization strategies:
 - Choose optimal encoding
 
 2. Weight hints:
-- Use `9@` syntax in `thresh()`
-- Example: `thresh(2, 9@pk(A), pk(B), pk(C))`
+- Use \`9@\` syntax in \`thresh()\`
+- Example: \`thresh(2, 9@pk(A), pk(B), pk(C))\`
 - Compiler prioritizes high-weight (frequent) paths for smaller encoding
 
 Practical tips:
 - Assign higher weights to common paths
 - Avoid deep nesting
-- Use wrappers to optimize fragment size',
+- Use wrappers to optimize fragment size`,
 
   'resources.faq.q18': 'Can I use this tool in production?',
-  'resources.faq.a18': '**Absolutely not**. Miniscript Lab is an educational tool only.
+  'resources.faq.a18': `**Absolutely not**. Miniscript Lab is an educational tool only.
 
 Severe limitations:
 - Only Bitcoin Testnet / Signet
@@ -549,6 +549,6 @@ For mainnet deployment:
 4. Documentation:
 - Keep all Descriptors
 - Back up recovery keys
-- Document script design rationale',
+- Document script design rationale`,
 };
 
