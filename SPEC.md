@@ -99,23 +99,17 @@
 
 原导航中的「对比」标签已更名为「Resource 资源」并指向此路由。页面由两个区域组成：
 
-**FAQ 区域**：展示 10 条 Miniscript 常见问题与解答，覆盖以下主题：
-1. Miniscript vs Bitcoin Script 基础概念
-2. Policy vs Miniscript 的关系
-3. `older()` vs `after()` 时间锁区别
-4. `thresh()` vs `and()` / `or()` 的用法
-5. Descriptor（输出描述符）是什么
-6. P2WSH vs P2PKH / P2WPKH 地址格式
-7. 地址仅用于测试网的安全提示
-8. 可视化构建器（画布模式）与文本编辑的区别
-9. 花费路径（Spending Path）的含义
-10. 可延展性（Malleability）的含义与影响
+**FAQ 区域**：展示 18 条 Miniscript 常见问题与解答，分为四大部分：
+- **基础概念**（Q1-Q5）：Miniscript 定义与优势、三层抽象关系、时间锁原理、哈希锁、Descriptor
+- **Policy 操作符**（Q6-Q9）：地址格式区别、工具安全性声明、画布 vs 文本、花费路径概念
+- **高级话题**（Q10-Q14）：可延展性、基本操作符列表、条件分支、多签实例、类型系统
+- **优化与部署**（Q15-Q18）：修饰符、常见片段、资源限制、生产环境建议
 
 每条 FAQ 以手风琴折叠形式展示，支持展开/收起。答案中的内联代码用 backtick 包裹，渲染为等宽字体 + `btc-500` 色。
 
 **Resource 资源区域**：预留外部链接区域，初始显示占位提示文字（`resources.links.placeholder`），后续由维护者填充相关工具、规范、教程的外部链接。
 
-实现：`src/app/resources/page.tsx`（`'use client'` 组件）。i18n：`resources.*`（含 `resources.faq.*`、`resources.links.*`，共 23 个词条）。风格遵循设计系统，使用 `surface-base`/`surface-elevated`/`btc-500` 等语义 token，`rounded-2xl` 卡片，折叠区域 `ChevronDown` 旋转动画。
+实现：`src/app/resources/page.tsx`（`'use client'` 组件）。i18n：`resources.*`（含 `resources.faq.*`、`resources.links.*`，共 51 个词条）。风格遵循设计系统，使用 `surface-base`/`surface-elevated`/`btc-500` 等语义 token，`rounded-2xl` 卡片，折叠区域 `ChevronDown` 旋转动画。
 
 
 
@@ -125,7 +119,7 @@
 
 - **产品策略**：完整 Playground（三栏工作台 + Build 画布）以**桌面端 / 宽视口**为设计目标；窄视口下不提供完整界面，仅展示全屏说明（`MobileFallback`）与返回场景入口等引导。
 - **实现**：`PlaygroundClient` 使用 `matchMedia('(min-width: 768px)')` 分支；窄视口渲染 `MobileFallback`（文案键 `playground.mobile.*`）；首页在 `md` 断点以下于 Hero 与底部 CTA 展示 `home.playground.desktopHint`，与 Playground 内说明一致。
-- **用户可见文案**：不出现像素数字，表述为建议在桌面端或更大屏幕以获得完整体验。
+- **用户可见文案**：���出现像素数字，表述为建议在桌面端或更大屏幕以获得完整体验。
 
 #### 渐进式加载架构
 
@@ -225,7 +219,7 @@
 - 若策略根为 thresh(k,...) 或编译后退化为 multi(k,...) → 根节点显示 "k-of-n"
 - 若策略为单一叶子条件 → 直接显示该条件节点（无根节点）
 
-这样用户从图的顶部就能直接看到花费所需的逻辑关系，无需通过实线/虚线判断。
+这样用���从图的顶部就能直接看到花费所需的逻辑关系，无需通过实线/虚线判断。
 
 其他节点：
 
@@ -304,7 +298,7 @@
 │ 时间: ◀━━━━━━━●━━━━━━━━━━━━━━━━▶         │
 │       T0     30天              1年        │
 │       当前: 第 4,320 区块 ≈ 30 天          │
-└──────────────────────────────────────────┘
+└─────────────────────��────────────────────┘
 ```
 
 - 条件开关：根据 Policy 中出现的 key 和 hash 自动生成
@@ -495,7 +489,7 @@ interface PlaygroundState {
 
 // ===== 可视化构建（build 模式）：Zustand store 在 PlaygroundState 之上另含
 // strategyTree、builderSyncState、selectedBuilderNodeId、operatorSwitchNodeId、lastBuilderPolicySnapshot、builderDepthWarning。
-// operatorSwitchNodeId：当前在画布右上角展示「切换操作符」浮层所对应的 Group 节点 id；与 selectedBuilderNodeId 互斥。
+// operatorSwitchNodeId：当前在画布右上角展示「切换操作符��浮层所对应的 Group 节点 id；与 selectedBuilderNodeId 互斥。
 // StrategyNode、BuilderSyncState 等见 src/lib/builder/types.ts
 // 相关 actions：setOperatorSwitchNodeId、switchNodeOperator、wrapNode、clearDepthWarning =====
 
@@ -765,7 +759,7 @@ satisfier(miniscript, opts)     ← @bitcoinerlab/miniscript
 }
 ```
 
-**场景 4: 遗产继承**
+**场景 4: 遗��继承**
 
 ```typescript
 {
@@ -1006,7 +1000,7 @@ const GLOSSARY: Record<string, { zh: string; en: string; explain_zh: string; exp
 | 状态管理       | zustand                           | latest               | 轻量 store                                                    |
 | 图标         | lucide-react                      | latest               | 统一图标库                                                       |
 | Miniscript | @bitcoinerlab/miniscript          | latest               | 编译 + satisfier                                              |
-| Policy 编译  | @bitcoinerlab/miniscript-policies | latest               | Policy → Miniscript                                         |
+| Policy ���译  | @bitcoinerlab/miniscript-policies | latest               | Policy → Miniscript                                         |
 | Descriptor | @bitcoinerlab/descriptors         | latest               | descriptor 解析 + 地址生成（`dist/descriptors` 入口与 Ledger stub，见 §5.1 关键实现细节第 5 条） |
 | 比特币基础库    | bitcoinjs-lib                     | latest               | @bitcoinerlab/descriptors 的底层依赖，提供网络定义和脚本编码              |
 | 字体         | Plus Jakarta Sans + IBM Plex Mono | via next/font/google |                                                             |
