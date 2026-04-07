@@ -69,6 +69,12 @@ export const en: Record<string, string> = {
   'home.scenarios.title': 'Start with a Real-World Scenario',
   'home.scenarios.subtitle': 'Each scenario comes with an explanation, a complete Policy, and an interactive spending path diagram.',
 
+  'home.wallets.label': 'Ecosystem',
+  'home.wallets.title': 'Wallets Supporting Miniscript',
+  'home.wallets.subtitle': 'These software and hardware wallets have native Miniscript support, ready for real-world use with complex spending conditions.',
+  'home.wallets.software': 'Software Wallets',
+  'home.wallets.hardware': 'Hardware Wallets',
+
   'home.cta.title': 'Ready to Design Your Own?',
   'home.cta.subtitle': 'Open the Playground to write any Policy freely, or use the visual builder to compose from scratch.',
   'home.cta.playground': 'Open Blank Playground',
