@@ -140,7 +140,7 @@ export const en: Record<string, string> = {
   'builder.action.addTimelock': 'Add Timelock',
   'builder.action.addGroup': 'Add nested group',
   'playground.left.diyActive': 'Building',
-  'nav.scenarios': 'Scenarios',
+  'nav.scenarios': 'Home',
   'nav.playground': 'Playground',
   'nav.compare': 'Resources',
   'nav.comingSoon': 'Soon',
