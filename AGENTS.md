@@ -48,7 +48,7 @@ npm run test
 
 - `/`（首页：场景画廊 + 产品着陆内容）
   - 入口：`src/app/page.tsx`（Server Component）
-  - 组件：`HomepageHero`、`HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageFeatures`、`HomepageHowItWorks`、`ScenarioGallery`（`src/components/scenarios/*` 等）
+  - 组件：`HomepageHero`、`HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageFeatures`、`HomepageHowItWorks`、`HomepageWallets`、`ScenarioGallery`（`src/components/scenarios/*` 等）
   - **首页预加载**：`requestIdleCallback` 预热 Playground 相关模块，减少进入 `/playground` 的等待
   - **窄屏提示**：`md` 以下在 Hero 与底部 CTA 展示 `home.playground.desktopHint`，与 `/playground` 的 `MobileFallback` 一致（桌面优先）
 
@@ -150,7 +150,7 @@ src/
 
 ### 可视化构建（build /「自己动手」模式）
 
-- `src/lib/builder/tree-to-flow.ts`：将 `StrategyNode` 转为 React Flow 图；**递归 TB 布局**（子树宽度自下而上、节点自上而下，父在直接子行上水平居中；**`all`/`any` 未满员时**有虚拟「+ 添加条件」；**门限分组若已有树内子 placeholder 槽则不再挂虚拟「+」**）。Flow 节点数据用 `addChildSlotKind`：`virtual`（`add_child:父组 id`）与 `treePlaceholder`（子占位节点 id）。可选 `labels.addConditionLine` 由 `BuilderCanvas` 注入以统一「+ 添加条件」文案。节点满足态由 **`status.ts` 的 `computeBuilderStatus` 唯一计算**（`builderTreeToFlow` 内转为 `Map` 再渲染），与 `types.ts`、`serialize.ts`、`node-ops.ts`、`path-highlighting.ts` 等配合。**不设** `src/lib/builder/index.ts` barrel；请从具体子模块导入。
+- `src/lib/builder/tree-to-flow.ts`：将 `StrategyNode` 转为 React Flow 图；**递归 TB 布局**（子树宽度自下而上、节点自上而下，父在直接子行上水平居中；**`all`/`any` 未满员时**有虚拟「+ 添加条件」；**门限分组若已有树内子 placeholder 槽则不再挂虚拟「+」**）。Flow 节点数据用 `addChildSlotKind`：`virtual`（`add_child:父组 id`）与 `treePlaceholder`（子占位节点 id）。可选 `labels.addConditionLine` 由 `BuilderCanvas` 注入以统一「+ 添加条件」文案。节点满足态由 **`status.ts` 的 `computeBuilderStatus`` 唯一计算`**（`builderTreeToFlow` 内转为 `Map` 再渲染），与 `types.ts`、`serialize.ts`、`node-ops.ts`、`path-highlighting.ts` 等配合。**不设** `src/lib/builder/index.ts` barrel；请从具体子模块导入。
 - `src/components/builder/BuilderCanvas.tsx`：build 模式主画布；在画布容器内右上角挂载 `BuilderPopover`（选中节点编辑）与 `OperatorSwitchPopover`（`operatorSwitchNodeId` 对应的 Group 操作符切换），二者互斥；向 `builderTreeToFlow` 传入 `labels.addConditionLine`；`OperatorSwitchPopover` 的 `realChildCount` 使用 `countRealChildren`（与 `childCount` 一致）。只读态由 `builderSyncState !== 'synced'` 控制；嵌套超过 5 层时显示黄色警告 toast；从 threshold 切到 AND/OR 且子节点被裁剪为两个时显示底部提示 toast。
 - `src/components/builder/AddChildOptions.tsx`：「添加条件」浮层内签名 / 时间锁 / 嵌套组按钮的纯 UI；由 `BuilderPopover` 在 `add-child` 模式下渲染，`onPick` 对接 `handleAddChildType`（内部区分 `convertChildPlaceholder` 与 `addChildNode`）。
 - `src/components/builder/BuilderNodes.tsx`：`BuilderAddChildNode` 按 `addChildSlotKind` 设置 `selectedBuilderNodeId`（不再依赖 `isAddButton`）。
@@ -278,7 +278,7 @@ src/
 
 11. **渐进式加载**：`playground/page.tsx` 直接 import `PlaygroundClient`（服务端渲染三栏框架 HTML，用户进入页面立即看到完整框架）；`PlaygroundContent` 移除了 `mode === 'loading' → null` 逻辑；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载，期间显示带 spinner 骨架屏；`layout.tsx` 加 `<link rel="prefetch">` 提前获取 Playground 页面；首页 `requestIdleCallback` 预热所有 Playground 模块（三栏组件、两个画布、编译器），同 Tab 内来回切换命中浏览器模块缓存无需重新加载，刷新后命中 HTTP 缓存（Next.js 文件名含 hash）极快恢复。
 
-12. **首页设计**：新增 `HomepageMiniscriptExplainer`（标题区定义"什么是 Miniscript"，下方三卡片纵向堆叠对比传统 Script vs Miniscript，代码块与左侧文本在 `md` 断点用 `items-center` 对齐）、`HomepageMission`（纯居中文本说明"我们为什么做这个"，无 CTA 按钮）。首页完整流程：Hero → 科普区 → 使命区 → 使用流程 → 核心功能 → 场景库 → 底部 CTA。
+12. **首页设计**：新增 `HomepageMiniscriptExplainer`（标题区定义"什么是 Miniscript"，下方三卡片纵向堆叠对比传统 Script vs Miniscript，代码块与左侧文本在 `md` 断点用 `items-center` 对齐）、`HomepageMission`（纯居中文本说明"我们为什么做这个"，无 CTA 按钮）、`HomepageWallets`（展示已支持 Miniscript 的软件/硬件钱包，卡片含 Logo、名称、官网链接）。首页完整流程：Hero → 科普区 → 使命区 → 使用流程 → 核心功能 → 场景库 → 钱包支持 → 底部 CTA。
 
 ## 11. 常见改动从哪里入手
 
@@ -347,82 +347,26 @@ src/
 - 每条 FAQ 的答案支持富文本格式：`**粗体**` (核心定义)、`- 列表` (要点)、双换行 (段落)、backtick 代码
 
 **答案排版增强**：
-- `renderAnswer()` 函数解析富文本：加粗文本渲染为 `font-semibold text-text-primary`、列表项左侧添加 `btc-500` 符号装饰
-- 段落间隔：`my-3` 和 `mb-4`，列表项用 `flex` 布局对齐
-- 代码片段保持原有 inline code 样式
+- `src/components/resources/MarkdownAnswer.tsx`（或同等答案渲染组件）负责富文本解析
+- FAQ 项使用 `Accordion`/`Collapsible` 风格，默认只展开一个
+- `resources.links.placeholder` 用于资源区占位文案，视觉上置于 FAQ 之后
 
-**外部链接**：在页面 Resource 区域的 `div` 中添加链接卡片，目前为占位状态
+### 修改首页（Landing）
 
-### 修改全局视觉或主题
+- 主入口：`src/app/page.tsx`
+- 首页采用 `Hero -> Miniscript Explainer -> Mission -> HowItWorks -> Features -> Scenarios -> Wallets -> CTA` 的顺序
+- 导航中的首页标签为「首页」/ `Home`，对应 `nav.scenarios`
+- `HomepageWallets` 用于展示已支持 Miniscript 的钱包，包含软件钱包与硬件钱包分组
+- 视觉保持与现有首页一致：深色主题、橙色强调、卡片化 section、统一 hover 效果
 
-- [`DESIGN.md`](DESIGN.md)（色板、字体、组件与 Scenario 节点尺寸）
-- `src/app/globals.css`
-- `tailwind.config.js`
-- `src/lib/theme/context.tsx`
+### 修改首页文案
 
-### 修改分享、恢复、持久化
+- 需要同步中英文词条：`home.*`、`nav.scenarios`、`footer.*`
+- 首页区域新增钱包支持时，同步补充 `home.wallets.*`
+- 导航、底部 CTA、移动端提示均应保持双语一致
 
-- `src/app/playground/PlaygroundClient.tsx`
-- `src/lib/utils/storage.ts`
-- `src/lib/utils/share.ts`
+### 修改设计系统
 
-## 12. 测试覆盖现状
-
-引擎与工具测试在 `src/lib/engine/__tests__/`：
-
-- `compiler.test.ts`
-- `mapError.test.ts`
-- `policy-error-highlight.test.ts`
-- `miniscript-parser.test.ts`
-- `time-utils.test.ts`
-
-可视化构建相关补充测试（非穷尽）：
-
-- `src/lib/stores/__tests__/playground-store-builder.test.ts`
-- `src/lib/builder/__tests__/`（含 `serialize`、`templates`、`from-semantic-tree` 等）
-- `src/lib/hooks/__tests__/useBuilderSync.test.ts`、`src/lib/hooks/__tests__/useCompiler.test.ts`
-- `src/lib/utils/__tests__/storage-share-builder.test.ts`
-- `src/components/playground/__tests__/LeftPanelBuildEntry.test.tsx`
-- `src/components/builder/__tests__/`（如 `BuilderPopover`）
-- `src/lib/playground/__tests__/add-next-key-variable.test.ts`
-- `src/components/results/__tests__/PathsTabSelection.test.tsx`
-
-这意味着：
-
-- 编译管线和时间工具有基本覆盖；构建器与同步逻辑有部分单元测试。
-- 大量 UI、i18n、React Flow 交互仍依赖手动验证。
-- 如果改动 UI 逻辑，至少要自己跑一遍 Playground 的关键路径（含 scenario 与 **自己动手** build 流程）。
-
-## 13. AI 工具改动本项目时的工作准则
-
-1. 先判断改动属于哪一层：场景数据、store、编译引擎、语义树、可视化、结果输出、样式。
-2. 不要把它当成钱包项目处理；这里是教学 playground。
-3. 任何涉及地址、context、network 的改动，都要再次确认“不生成主网地址”这条约束。
-4. 任何新增语法或条件类型，都要同步考虑：
-   - 编辑器高亮
-   - 编译错误提示
-   - 语义树解析
-   - 路径分析
-   - 中栏模拟控件
-   - 右栏结果展示
-   - glossary / 文案 / 测试
-5. 如果某项功能涉及 `after()`、`P2TR`、`compare`，优先确认当前只是部分实现或未实现，不要在旧假设上继续堆代码。
-
-## 14. 文档索引（本仓库）
-
-以下由 **`AGENTS.md`（本文件）** 引用；**`SPEC.md` 不引用本文件**，避免规格依赖助手文档。
-
-| 文档 | 用途 |
-|------|------|
-| `README.md` | 项目介绍、快速运行、面向访客的概览 |
-| `SPEC.md` | 产品与体验层 SSOT（页面、交互、引擎与数据规格等） |
-| `DESIGN.md` | 视觉与设计系统（色板、字体、组件、Scenario 节点尺寸） |
-| `CLAUDE.md` | Claude Code 自动注入的短指针；详细说明以本文件、`SPEC.md`、`DESIGN.md` 为准 |
-
----
-
-如果你是 AI IDE，请把这个仓库理解成：
-
-> 一个以 Zustand 为状态中心、以 bitcoinerlab 编译链路为计算核心、以 React Flow 为教学可视化载体的 Next.js 客户端应用。
-
-主工作面在 `/playground`，主风险点在 `compiler.ts`、`path-analyzer.ts`、`miniscript-parser.ts`、`lib/flow/tree-to-flow.ts`（scenario）与 **`lib/builder/*` + `useBuilderSync.ts`（build）**，主产品约束是“纯前端、本地确定性、只做教学、不碰主网生产用途”。
+- 主入口：`DESIGN.md`
+- 色板、卡片层级、字体、圆角、页面节奏、首页 section 背景交替规则都应优先查看此文件
+- 新的首页 section 应遵循 `bg-surface-base` / `bg-surface-card` 的交替节奏与边框体系
