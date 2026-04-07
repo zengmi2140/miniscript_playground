@@ -5,32 +5,45 @@ import { ChevronDown, BookOpen, ExternalLink, HelpCircle, Link2 } from 'lucide-r
 import { useI18n } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils/cn';
 
-const FAQ_KEYS = [
-  // Foundation - 基础概念
-  { q: 'resources.faq.q1', a: 'resources.faq.a1' },
-  { q: 'resources.faq.q5', a: 'resources.faq.a5' },
-  { q: 'resources.faq.q2', a: 'resources.faq.a2' },
-  { q: 'resources.faq.q9', a: 'resources.faq.a9' },
-
-  // Language Basics - 语言基础
-  { q: 'resources.faq.q3', a: 'resources.faq.a3' },
-  { q: 'resources.faq.q4', a: 'resources.faq.a4' },
-  { q: 'resources.faq.q11', a: 'resources.faq.a11' },
-  { q: 'resources.faq.q12', a: 'resources.faq.a12' },
-  { q: 'resources.faq.q13', a: 'resources.faq.a13' },
-
-  // Technical Details - 技术细节
-  { q: 'resources.faq.q14', a: 'resources.faq.a14' },
-  { q: 'resources.faq.q15', a: 'resources.faq.a15' },
-  { q: 'resources.faq.q16', a: 'resources.faq.a16' },
-  { q: 'resources.faq.q17', a: 'resources.faq.a17' },
-  { q: 'resources.faq.q10', a: 'resources.faq.a10' },
-
-  // Tool & Safety - 工具相关
-  { q: 'resources.faq.q6', a: 'resources.faq.a6' },
-  { q: 'resources.faq.q7', a: 'resources.faq.a7' },
-  { q: 'resources.faq.q8', a: 'resources.faq.a8' },
-  { q: 'resources.faq.q18', a: 'resources.faq.a18' },
+const FAQ_SECTIONS = [
+  {
+    title: 'resources.faq.section.start',
+    items: [
+      { q: 'resources.faq.q1', a: 'resources.faq.a1' },
+      { q: 'resources.faq.q2', a: 'resources.faq.a2' },
+      { q: 'resources.faq.q9', a: 'resources.faq.a9' },
+      { q: 'resources.faq.q5', a: 'resources.faq.a5' },
+    ],
+  },
+  {
+    title: 'resources.faq.section.language',
+    items: [
+      { q: 'resources.faq.q3', a: 'resources.faq.a3' },
+      { q: 'resources.faq.q4', a: 'resources.faq.a4' },
+      { q: 'resources.faq.q11', a: 'resources.faq.a11' },
+      { q: 'resources.faq.q12', a: 'resources.faq.a12' },
+    ],
+  },
+  {
+    title: 'resources.faq.section.practice',
+    items: [
+      { q: 'resources.faq.q13', a: 'resources.faq.a13' },
+      { q: 'resources.faq.q8', a: 'resources.faq.a8' },
+      { q: 'resources.faq.q6', a: 'resources.faq.a6' },
+      { q: 'resources.faq.q10', a: 'resources.faq.a10' },
+    ],
+  },
+  {
+    title: 'resources.faq.section.safety',
+    items: [
+      { q: 'resources.faq.q7', a: 'resources.faq.a7' },
+      { q: 'resources.faq.q14', a: 'resources.faq.a14' },
+      { q: 'resources.faq.q15', a: 'resources.faq.a15' },
+      { q: 'resources.faq.q16', a: 'resources.faq.a16' },
+      { q: 'resources.faq.q17', a: 'resources.faq.a17' },
+      { q: 'resources.faq.q18', a: 'resources.faq.a18' },
+    ],
+  },
 ] as const;
 
 function FaqItem({ question, answer }: { question: string; answer: string }) {
@@ -154,9 +167,18 @@ export default function ResourcesPage() {
           </p>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-border-subtle bg-surface-base">
-          {FAQ_KEYS.map(({ q, a }) => (
-            <FaqItem key={q} question={t(q)} answer={t(a)} />
+        <div className="space-y-4">
+          {FAQ_SECTIONS.map((section) => (
+            <div key={section.title} className="overflow-hidden rounded-2xl border border-border-subtle bg-surface-base">
+              <div className="border-b border-border-subtle px-6 py-4">
+                <h3 className="text-sm font-semibold text-text-primary">{t(section.title)}</h3>
+              </div>
+              <div>
+                {section.items.map(({ q, a }) => (
+                  <FaqItem key={q} question={t(q)} answer={t(a)} />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </section>
