@@ -48,8 +48,8 @@ npm run test
 
 - `/`（首页：场景画廊 + 产品着陆内容）
   - 入口：`src/app/page.tsx`（Server Component）
-  - 组件：`HomepageHero`、`HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageHowItWorks`、`HomepageFeatures`、`ScenarioGallery`、`HomepageWallets`
-  - 首页顺序：Hero → Miniscript Explainer → Mission → HowItWorks → Features → Scenarios → Wallets → Bottom CTA
+  - 组件：`HomepageHero`、`HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageHowItWorks`、`HomepageFeatures`、`HomepageWallets`、`ScenarioGallery`（`src/components/scenarios/*` 等）
+  - **首页顺序**：Hero → Miniscript Explainer → Mission → HowItWorks → Features → Wallets → Scenarios → Bottom CTA
   - **首页预加载**：`requestIdleCallback` 预热 Playground 相关模块，减少进入 `/playground` 的等待
   - **窄屏提示**：`md` 以下在 Hero 与底部 CTA 展示 `home.playground.desktopHint`，与 `/playground` 的 `MobileFallback` 一致（桌面优先）
 
@@ -272,14 +272,14 @@ src/
    - `Network` 类型只有 `'testnet' | 'signet'`。
 
 9. 路径图根节点已与第一层操作符合并。
-   - 根节点直接显示顶层条件逻辑类型（都需要/任选一/k-of-n），而非通用的"花费条件"。
+   - 根节点直接显示顶层条件逻辑类型（都需要 / 任选一 / k-of-n），而非通用的"花费条件"。
    - 单一叶子条件的策略不再创建根节点，直接显示条件节点。
 
 10. **build 模式**（自己动手）已实现为 MVP：受约束策略树 + Policy 双向同步；并非任意拖线流程图。不支持的结构会进入 `text-led`，详见 `useBuilderSync.ts` 与 `SPEC.md` §3.2。
 
 11. **渐进式加载**：`playground/page.tsx` 直接 import `PlaygroundClient`（服务端渲染三栏框架 HTML，用户进入页面立即看到完整框架）；`PlaygroundContent` 移除了 `mode === 'loading' → null` 逻辑；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载，期间显示带 spinner 骨架屏；`layout.tsx` 加 `<link rel="prefetch">` 提前获取 Playground 页面；首页 `requestIdleCallback` 预热所有 Playground 模块（三栏组件、两个画布、编译器），同 Tab 内来回切换命中浏览器模块缓存无需重新加载，刷新后命中 HTTP 缓存（Next.js 文件名含 hash）极快恢复。
 
-12. **首页设计**：新增 `HomepageMiniscriptExplainer`（标题区定义"什么是 Miniscript"，下方三卡片纵向堆叠对比传统 Script vs Miniscript，代码块与左侧文本在 `md` 断点用 `items-center` 对齐）、`HomepageMission`（纯居中文本说明"我们为什么做这个"，无 CTA 按钮）、`HomepageWallets`（展示已支持 Miniscript 的软件/硬件钱包，采用两条横向 marquee，Logo + 名称的单色胶囊样式，悬停暂停、两侧渐隐）。首页完整流程：Hero → 科普区 → 使命区 → 使用流程 → 核心功能 → 场景库 → 钱包支持 → 底部 CTA。
+12. **首页设计**：新增 `HomepageMiniscriptExplainer`（标题区定义"什么是 Miniscript"，下方三卡片纵向堆叠对比传统 Script vs Miniscript，代码块与左侧文本在 `md` 断点用 `items-center` 对齐）、`HomepageMission`（纯居中文本说明"我们为什么做这个"，无 CTA 按钮）、`HomepageWallets`（展示已支持 Miniscript 的软件/硬件钱包，卡片含 Logo、名称、官网链接，采用两条横向 marquee，悬停暂停，两侧渐隐）。首页完整流程：Hero → 科普区 → 使命区 → 使用流程 → 核心功能 → 生态支持 → 场景库 → 底部 CTA。
 
 ## 11. 常见改动从哪里入手
 
@@ -355,7 +355,7 @@ src/
 ### 修改首页（Landing）
 
 - 主入口：`src/app/page.tsx`
-- 首页采用 `Hero -> Miniscript Explainer -> Mission -> HowItWorks -> Features -> Scenarios -> Wallets -> CTA` 的顺序
+- 首页采用 `Hero -> Miniscript Explainer -> Mission -> HowItWorks -> Features -> Wallets -> Scenarios -> CTA` 的顺序
 - 导航中的首页标签为「首页」/ `Home`，对应 `nav.scenarios`
 - `HomepageWallets` 用于展示已支持 Miniscript 的钱包，采用两条 marquee 展示软件钱包与硬件钱包
 - 视觉保持与现有首页一致：深色主题、橙色强调、卡片化 section、统一 hover 效果

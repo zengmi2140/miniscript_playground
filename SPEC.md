@@ -49,7 +49,7 @@
 ---
 
 
-> **视觉与设计系统**（色板、字体、组件、Scenario 路径图节点尺寸）见 [`DESIGN.md`](DESIGN.md)。
+> **视觉与设计系统**（色板、字体、Scenario 路径图节点尺寸）见 [`DESIGN.md`](DESIGN.md)。
 
 ---
 
@@ -87,11 +87,11 @@
 
 ### 3.1 首页（`/`）
 
-产品着陆页：顶部 `Header`、Hero（「把 Bitcoin 的花费条件讲清楚」）、Miniscript 科普区（三卡片对比传统 Script / Policy）、使命区「我们为什么做这个」、「三步理解」流程、核心能力 2×2、**场景库**（6 张场景卡片）、**钱包支持区**（已支持 Miniscript 的软件钱包与硬件钱包列表）、底部 CTA；另有「或者自己写」入口。实现：`src/app/page.tsx`（Server Component）；组件：`HomepageHero`、`HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageFeatures`、`HomepageHowItWorks`、`HomepageWallets`、`ScenarioGallery`。i18n：`home.hero.*`、`home.explainer.*`、`home.how.*`、`home.features.*`、`home.wallets.*`、`home.cta.*`。
+产品着陆页：顶部 `Header`、Hero（「把 Bitcoin 的花费条件讲清楚」）、Miniscript 科普区（三卡片对比传统 Script / Policy）、使命区「我们为什么做这个」、「三步理解」流程、核心能力 2×2、**钱包支持区**（已支持 Miniscript 的软件钱包与硬件钱包列表）、**场景库**（6 张场景卡片）、底部 CTA；另有「或者自己写」入口。实现：`src/app/page.tsx`（Server Component）；组件：`HomepageHero`、`HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageFeatures`、`HomepageHowItWorks`、`HomepageWallets`、`ScenarioGallery`。i18n：`home.hero.*`、`home.explainer.*`、`home.how.*`、`home.features.*`、`home.wallets.*`、`home.cta.*`。
 
 **场景卡片**：顶色条 4px（语义色）、Lucide 图标 32px、标题、一句话描述、条件类型 tag；桌面 3 列 / 平板 2 列 / 手机 1 列；hover 上移 + 阴影；点击 `/playground?scenario=<id>`。
 
-**钱包支持区**：展示当前已支持 Miniscript 的钱包生态，分为软件钱包与硬件钱包两组；每项包含 Logo、名称与官网链接，点击外链在新标签页打开。该区块位于场景库之后、底部 CTA 之前，作为“生态支持”信息补充。
+**钱包支持区**：展示当前已支持 Miniscript 的钱包生态，分为软件钱包与硬件钱包两组；每项包含 Logo、名称与官网链接，点击外链在新标签页打开。该区块位于核心功能之后、场景库之前，作为“生态支持”信息补充。
 
 **导航文案**：首页对应导航项由「场景」调整为「首页」，并同步中英文词条（`nav.scenarios` → 首页 / Home）。
 
@@ -180,7 +180,7 @@
 **区域 A: 场景选择器**
 
 - 场景列表（卡片形式，点击切换场景）
-- 第一个位置为 **「自己动手」** 入口卡片（可点击；`playgroundMode === 'build'` 时呈激活态）。点击后进入 **可视化构建（build）模式**（`playgroundMode: 'build'`）：清空当前场景-derived 状态，中央画布以根占位节点（虚线「选择策略类型」）为首屏；用户点击根占位后在右侧浮窗选择策略类型（单签、门限、AND、OR），**不继承**用户此前在场景模式下的 Policy / 角色变量 / 编译结果。从场景模式切换到普通预设场景仍通过下方场景卡片完成（`loadScenario` 会回到 `scenario` 模式）。
+- 第一个位置为 **「自己动手」** 入口卡片（可点击；`playgroundMode === 'build'` 时呈激活态）。点击后进入 **可视化构建（build）模式**（`playgroundMode: 'build'`）：清空当前场景-derived 状态，中���画布以根占位节点（虚线「选择策略类型」）为首屏；用户点击根占位后在右侧浮窗选择策略类型（单签、门限、AND、OR），**不继承**用户此前在场景模式下的 Policy / 角色变量 / 编译结果。从场景模式切换到普通预设场景仍通过下方场景卡片完成（`loadScenario` 会回到 `scenario` 模式）。
 - 通过分享链接 `?s=` 恢复的 **build** 会话可携带已有 Policy；与从场景模式**主动**点「自己动手」进入时的空白 scratch（清空场景派生状态）不同。
 - 切换场景（非「自己动手」）时自动填充 Policy 和 Key 变量
 
