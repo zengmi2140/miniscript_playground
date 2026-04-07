@@ -69,6 +69,12 @@ export const zh: Record<string, string> = {
   'home.scenarios.title': '从真实场景开始探索',
   'home.scenarios.subtitle': '每个场景都配有解释说明、完整 Policy 和交互式花费路径图。',
 
+  'home.wallets.label': '生态支持',
+  'home.wallets.title': '已支持 Miniscript 的钱包',
+  'home.wallets.subtitle': '这些软件钱包和硬件钱包已原生支持 Miniscript，可直接用于管理复杂的花费条件。',
+  'home.wallets.software': '软件钱包',
+  'home.wallets.hardware': '硬件钱包',
+
   'home.cta.title': '准备好自己设计了吗？',
   'home.cta.subtitle': '在 Playground 里自由输入任意 Policy，或者用可视化构建器从零搭建。',
   'home.cta.playground': '打开空白 Playground',
