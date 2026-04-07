@@ -48,7 +48,8 @@ npm run test
 
 - `/`（首页：场景画廊 + 产品着陆内容）
   - 入口：`src/app/page.tsx`（Server Component）
-  - 组件：`HomepageHero`、`HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageFeatures`、`HomepageHowItWorks`、`HomepageWallets`、`ScenarioGallery`（`src/components/scenarios/*` 等）
+  - 组件：`HomepageHero`、`HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageHowItWorks`、`HomepageFeatures`、`ScenarioGallery`、`HomepageWallets`
+  - 首页顺序：Hero → Miniscript Explainer → Mission → HowItWorks → Features → Scenarios → Wallets → Bottom CTA
   - **首页预加载**：`requestIdleCallback` 预热 Playground 相关模块，减少进入 `/playground` 的等待
   - **窄屏提示**：`md` 以下在 Hero 与底部 CTA 展示 `home.playground.desktopHint`，与 `/playground` 的 `MobileFallback` 一致（桌面优先）
 
@@ -110,7 +111,7 @@ src/
 ### 自动编译
 
 - `src/lib/hooks/useCompiler.ts`
-  - 监听 policy、keyVariables、network、模拟条件变����。
+  - 监听 policy、keyVariables、network、模拟条件变���。
   - 500ms debounce 后调用 `compile(...)`。
   - 用 generation counter 丢弃过期异步结果。
   - Policy 为空或仅空白时同步清空 `compilationResult`、`semanticTree`、`spendingPaths`（避免右栏仍显示上一份策略）；`compile` 抛错时同样清空上述派生结果。
@@ -223,7 +224,7 @@ src/
     - 左列导航只显示文字标签（policy / miniscript / script / descriptor / address / warnings），当前选中项用左侧竖线 + 浅色背景 + 加粗文字高亮。
     - 右列内容区根据当前 Tab 渲染对应组件（统一在 `src/components/results/*Tab.tsx` 中）。
     - **右栏所有 Tab 统一为「可复制的真实输出」**：Policy Tab 展示 `policyWithKeys`，Miniscript Tab 展示 `miniscriptWithKeys`，均含真实公钥（非 Alice 等角色名），便于用户复制到钱包或链上工具。中栏 Policy 编辑器和路径图已用角色名直观展示，右栏专注技术输出。
-    - 带 glossary 的 Tab（policy / miniscript / descriptor）在标签上��停 2 秒后，会在右侧内容区域内弹出术语解释卡片，内容来自 `src/lib/glossary/data.ts`。
+    - 带 glossary 的 Tab（policy / miniscript / descriptor）在标签上悬停 2 秒后，会在右侧内容区域内弹出术语解释卡片，内容来自 `src/lib/glossary/data.ts`。
 
 - 对应 Tab 组件都在 `src/components/results/`。
 
@@ -278,7 +279,7 @@ src/
 
 11. **渐进式加载**：`playground/page.tsx` 直接 import `PlaygroundClient`（服务端渲染三栏框架 HTML，用户进入页面立即看到完整框架）；`PlaygroundContent` 移除了 `mode === 'loading' → null` 逻辑；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载，期间显示带 spinner 骨架屏；`layout.tsx` 加 `<link rel="prefetch">` 提前获取 Playground 页面；首页 `requestIdleCallback` 预热所有 Playground 模块（三栏组件、两个画布、编译器），同 Tab 内来回切换命中浏览器模块缓存无需重新加载，刷新后命中 HTTP 缓存（Next.js 文件名含 hash）极快恢复。
 
-12. **首页设计**：新增 `HomepageMiniscriptExplainer`（标题区定义"什么是 Miniscript"，下方三卡片纵向堆叠对比传统 Script vs Miniscript，代码块与左侧文本在 `md` 断点用 `items-center` 对齐）、`HomepageMission`（纯居中文本说明"我们为什么做这个"，无 CTA 按钮）、`HomepageWallets`（展示已支持 Miniscript 的软件/硬件钱包，卡片含 Logo、名称、官网链接）。首页完整流程：Hero → 科普区 → 使命区 → 使用流程 → 核心功能 → 场景库 → 钱包支持 → 底部 CTA。
+12. **首页设计**：新增 `HomepageMiniscriptExplainer`（标题区定义"什么是 Miniscript"，下方三卡片纵向堆叠对比传统 Script vs Miniscript，代码块与左侧文本在 `md` 断点用 `items-center` 对齐）、`HomepageMission`（纯居中文本说明"我们为什么做这个"，无 CTA 按钮）、`HomepageWallets`（展示已支持 Miniscript 的软件/硬件钱包，采用两条横向 marquee，Logo + 名称的单色胶囊样式，悬停暂停、两侧渐隐）。首页完整流程：Hero → 科普区 → 使命区 → 使用流程 → 核心功能 → 场景库 → 钱包支持 → 底部 CTA。
 
 ## 11. 常见改动从哪里入手
 
@@ -326,7 +327,7 @@ src/
 ### 修改 Policy 编辑器
 
 - `src/components/playground/PolicyEditor.tsx`（编辑器组件，现位于中栏顶部；错误摘要、可折叠 `raw`、hints、Compartment 错误装饰）
-- `src/components/playground/CenterPanel.tsx`（���辑器的容器/折叠逻辑）
+- `src/components/playground/CenterPanel.tsx`（编辑器的容器/折叠逻辑）
 - `src/lib/editor/policy-language.ts`（CodeMirror 高亮规则、`buildErrorHighlightExtensions`、`.cm-policy-error-highlight` 主题）
 - `src/lib/engine/policy-errors.ts`、`src/lib/engine/policy-preflight.ts`、`src/lib/engine/policy-error-highlight.ts`（错误文案、重复占位预检与启发式区间）
 
@@ -356,14 +357,8 @@ src/
 - 主入口：`src/app/page.tsx`
 - 首页采用 `Hero -> Miniscript Explainer -> Mission -> HowItWorks -> Features -> Scenarios -> Wallets -> CTA` 的顺序
 - 导航中的首页标签为「首页」/ `Home`，对应 `nav.scenarios`
-- `HomepageWallets` 用于展示已支持 Miniscript 的钱包，包含软件钱包与硬件钱包分组
+- `HomepageWallets` 用于展示已支持 Miniscript 的钱包，采用两条 marquee 展示软件钱包与硬件钱包
 - 视觉保持与现有首页一致：深色主题、橙色强调、卡片化 section、统一 hover 效果
-
-### 修改首页文案
-
-- 需要同步中英文词条：`home.*`、`nav.scenarios`、`footer.*`
-- 首页区域新增钱包支持时，同步补充 `home.wallets.*`
-- 导航、底部 CTA、移动端提示均应保持双语一致
 
 ### 修改设计系统
 
