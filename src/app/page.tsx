@@ -49,6 +49,8 @@ export default function ScenariosPage() {
       <HomepageHowItWorks />
       <HomepageFeatures />
 
+      <HomepageWallets />
+
       <section id="scenarios" className="mx-auto w-full max-w-5xl px-4 py-12 md:py-16">
         <div className="mb-8 text-center md:mb-10">
           <span className="mb-3 inline-block rounded-full border border-btc-500/20 bg-btc-500/10 px-3 py-1 text-xs font-medium text-btc-500">
@@ -63,8 +65,6 @@ export default function ScenariosPage() {
         </div>
         <ScenarioGallery />
       </section>
-
-      <HomepageWallets />
 
       <section className="border-t border-border-subtle bg-surface-card py-12 md:py-16">
         <div className="mx-auto max-w-5xl px-4 text-center">

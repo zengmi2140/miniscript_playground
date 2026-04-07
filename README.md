@@ -20,10 +20,8 @@
 - **GlossaryTooltip** — 悬停节点查看 `pk`、`older`、`after`、`sha256` 等操作符的双语解释
 - **双语支持** — 中文 / English 完整双语，一键切换
 - **分享链接** — 将 Policy、变量、模式等编码为 `?s=` 参数，一键复制分享；通过该链接可还原会话
-- **钱包支持** — 首页新增“已支持 Miniscript 的钱包”板块，展示软件钱包与硬件钱包的 Logo、名称和官网链接
+- **钱包支持** — 首页新增“已支持 Miniscript 的钱包”板块，展示软件钱包和硬件钱包的 Logo、名称和官网链接
 - **首页导航** — 顶部导航将原“场景”调整为“首页”/ Home
-- **首页结构** — 首页顺序为 Hero → Miniscript Explainer → Mission → HowItWorks → Features → Scenarios → Wallets → CTA
-- **钱包展示样式** — 钱包支持区改为双行横向 marquee，统一单色 pill 样式，支持悬停暂停与两侧渐隐
 
 ## 技术栈
 
