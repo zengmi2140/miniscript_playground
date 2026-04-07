@@ -144,7 +144,7 @@ export const zh: Record<string, string> = {
   'builder.confirm.cancel': '取消',
   'builder.confirm.confirm': '确认删除',
   'playground.left.diyActive': '正在构建',
-  'nav.scenarios': '场景',
+  'nav.scenarios': '首页',
   'nav.playground': 'Playground',
   'nav.compare': '资源',
   'nav.comingSoon': '即将推出',
