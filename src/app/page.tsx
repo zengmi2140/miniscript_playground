@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Key, Users, ShieldCheck, Heart, Vault, Lock, Code2, GitBranch, Layers, Zap } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
 import { ScenarioGallery } from '@/components/scenarios/ScenarioGallery';
 import { HomepageHero } from '@/components/home/HomepageHero';
@@ -15,22 +15,15 @@ import { HomepageWallets } from '@/components/home/HomepageWallets';
 export default function ScenariosPage() {
   const { t } = useI18n();
 
-  // Prefetch all Playground modules while the user browses the homepage.
-  // Using requestIdleCallback so this never competes with homepage rendering.
-  // After the first download, the browser caches every chunk — subsequent
-  // visits to /playground are instant even after a normal refresh (HTTP cache).
   useEffect(() => {
     const prefetch = () => {
-      // Core canvas components (heavy — ReactFlow, lucide icons)
       import('@/components/flow/PathMap');
       import('@/components/builder/BuilderCanvas');
       import('@/components/builder/BuilderNodes');
-      // Three-column shell and panels (lightweight but must hydrate fast)
       import('@/components/playground/ThreeColumnLayout');
       import('@/components/playground/LeftPanel');
       import('@/components/playground/RightPanel');
       import('@/components/playground/CenterPanel');
-      // Compiler hook (initialises WASM)
       import('@/lib/hooks/useCompiler');
     };
 
@@ -56,7 +49,6 @@ export default function ScenariosPage() {
       <HomepageHowItWorks />
       <HomepageFeatures />
 
-      {/* Scenario Gallery */}
       <section id="scenarios" className="mx-auto w-full max-w-5xl px-4 py-12 md:py-16">
         <div className="mb-8 text-center md:mb-10">
           <span className="mb-3 inline-block rounded-full border border-btc-500/20 bg-btc-500/10 px-3 py-1 text-xs font-medium text-btc-500">
@@ -72,10 +64,8 @@ export default function ScenariosPage() {
         <ScenarioGallery />
       </section>
 
-      {/* Wallets Section */}
       <HomepageWallets />
 
-      {/* Bottom CTA */}
       <section className="border-t border-border-subtle bg-surface-card py-12 md:py-16">
         <div className="mx-auto max-w-5xl px-4 text-center">
           <h2 className="mb-3 text-xl font-bold text-text-primary md:text-2xl">
@@ -106,7 +96,6 @@ export default function ScenariosPage() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-border-subtle py-8">
         <div className="mx-auto max-w-5xl px-4 text-center">
           <p className="text-xs text-text-muted">{t('footer.description')}</p>
