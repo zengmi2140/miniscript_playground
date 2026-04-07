@@ -123,7 +123,7 @@ function WalletCard({ wallet }: { wallet: Wallet }) {
       href={wallet.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col items-center gap-3 rounded-xl border border-border-default bg-surface-base p-4 text-center transition-all hover:-translate-y-0.5 hover:border-border-hover hover:bg-surface-card hover:shadow-lg hover:shadow-black/20"
+      className="group flex flex-col items-center gap-3 rounded-xl border border-border-default bg-surface-card p-4 text-center transition-all hover:-translate-y-0.5 hover:border-border-hover hover:shadow-lg hover:shadow-black/20"
     >
       <div className={`flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl ${wallet.accentBg}`}>
         {!logoFailed ? (
@@ -177,7 +177,7 @@ export function HomepageWallets() {
   const { t } = useI18n();
 
   return (
-    <section className="border-b border-border-subtle bg-surface-card py-14 md:py-20">
+    <section className="border-b border-border-subtle bg-surface-base py-14 md:py-20">
       <div className="mx-auto max-w-5xl px-4">
         <div className="mb-10 text-center md:mb-14">
           <span className="mb-3 inline-block rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-400">
