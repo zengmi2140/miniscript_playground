@@ -10,6 +10,7 @@ import { HomepageMiniscriptExplainer } from '@/components/home/HomepageMiniscrip
 import { HomepageMission } from '@/components/home/HomepageMission';
 import { HomepageFeatures } from '@/components/home/HomepageFeatures';
 import { HomepageHowItWorks } from '@/components/home/HomepageHowItWorks';
+import { HomepageWallets } from '@/components/home/HomepageWallets';
 
 export default function ScenariosPage() {
   const { t } = useI18n();
@@ -70,6 +71,9 @@ export default function ScenariosPage() {
         </div>
         <ScenarioGallery />
       </section>
+
+      {/* Wallets Section */}
+      <HomepageWallets />
 
       {/* Bottom CTA */}
       <section className="border-t border-border-subtle bg-surface-card py-12 md:py-16">
