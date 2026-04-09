@@ -28,12 +28,17 @@ export const zh: Record<string, string> = {
   'home.explainer.mission.desc': 'Miniscript 工具分散、文档密集，而且钱包开发者和高级用户之间有很高的学习门槛。Miniscript Lab 把编译、路径分析和可视化构建放到一个交互式平台里，让任何人都能真正理解比特币花费条件。',
 
   'home.explainer.comparison.old.title': '原始 Bitcoin Script（难以阅读）',
-  'home.explainer.comparison.old.example': `OP_2\n<Alice> <Bob> <Carol>\nOP_3 OP_CHECKMULTISIG`,
+  'home.explainer.comparison.old.example': `OP_2
+<Alice> <Bob> <Carol>
+OP_3 OP_CHECKMULTISIG`,
   'home.explainer.comparison.old.problem1': '操作码栈不直观 —— 即使专家也要逐字节追踪才能理解意图',
   'home.explainer.comparison.old.problem2': '稍复杂一点的条件就几乎不可能手写正确 —— 一个字节写错就可能永久锁币',
 
   'home.explainer.comparison.new.title': 'Miniscript Policy（一眼可读）',
-  'home.explainer.comparison.new.example': `or(\n  thresh(2, pk(Alice), pk(Bob), pk(Carol)),\n  and(pk(Alice), older(52560))\n)`,
+  'home.explainer.comparison.new.example': `or(
+  thresh(2, pk(Alice), pk(Bob), pk(Carol)),
+  and(pk(Alice), older(52560))
+)`,
   'home.explainer.comparison.new.advantage1': '结构就是语义：or / and / thresh 直接映射意图',
   'home.explainer.comparison.new.advantage2': '自动编译成最优脚本 —— 工具验证安全性，不需要手写低级代码',
 
@@ -71,7 +76,7 @@ export const zh: Record<string, string> = {
 
   'home.wallets.label': '生态支持',
   'home.wallets.title': '已支持 Miniscript 的钱包',
-  'home.wallets.subtitle': '这些软件钱包和硬件钱包已原生支持 Miniscript，可直接用于管理复杂的花费条件。',
+  'home.wallets.subtitle': '以下软硬钱包均已原生支持 Miniscript，可用于管理复杂的花费条件。',
   'home.wallets.software': '软件钱包',
   'home.wallets.hardware': '硬件钱包',
 
@@ -172,11 +177,11 @@ export const zh: Record<string, string> = {
   'playground.paths.malleable': '可变性风险',
   'playground.address.warning': '此地址仅用于测试网，请勿在主网使用。',
   'resources.toolsDoc.title': '工具与文档',
-  'resources.toolsDoc.subtitle': '官方站点、参考实现、在线 Playground 和 SDK。',
+  'resources.toolsDoc.subtitle': '官方网站、参考实现、在线 Playground 和 SDK。',
   'resources.reading.title': '推荐阅读',
   'resources.reading.subtitle': '更深入的文章，后续会持续补充。',
   'resources.reading.placeholder': '文章列表正在整理中，请稍后再来。',
   'resources.links.bdk.desc': '应用中常用的钱包 SDK；文档和示例覆盖 Descriptor、PSBT 和 Miniscript 相关流程。',
   'resources.links.miniscript.desc': 'Miniscript 官方站点：语言说明、在线编译器、分析器、类型系统与使用说明。',
-  'resources.links.rust.desc': '广泛使用的 Rust 实现，适合嵌入应用和脚本工具。',
+  'resources.links.rust.desc': '广泛使用的 Rust 实现。',
 };
