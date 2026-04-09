@@ -17,7 +17,7 @@ export function IntroApplicationsSection() {
   return (
     <section
       id="applications"
-      className="border-t border-border-subtle bg-surface-base py-16 md:py-24"
+      className="bg-surface-base py-16 md:py-24"
     >
       <div className="mx-auto max-w-6xl px-4">
         <h2 className="mb-4 text-center text-3xl font-bold tracking-tight text-text-primary md:text-4xl">
@@ -91,7 +91,7 @@ export function IntroApplicationsSection() {
 
           <div className="space-y-4">
             <div className="overflow-hidden rounded-xl border border-border-default bg-surface-card">
-              <div className="border-b border-border-subtle bg-surface-elevated px-6 py-3">
+              <div className="bg-surface-elevated px-6 py-3">
                 <p className="text-sm font-medium uppercase tracking-widest text-text-muted">
                   Layer 1: Policy
                 </p>
@@ -108,7 +108,7 @@ export function IntroApplicationsSection() {
             </div>
 
             <div className="overflow-hidden rounded-xl border border-border-default bg-surface-card">
-              <div className="border-b border-border-subtle bg-surface-elevated px-6 py-3">
+              <div className="bg-surface-elevated px-6 py-3">
                 <p className="text-sm font-medium uppercase tracking-widest text-text-muted">
                   Layer 2: Miniscript
                 </p>
@@ -125,7 +125,7 @@ export function IntroApplicationsSection() {
             </div>
 
             <div className="overflow-hidden rounded-xl border border-border-default bg-surface-card">
-              <div className="border-b border-border-subtle bg-surface-elevated px-6 py-3">
+              <div className="bg-surface-elevated px-6 py-3">
                 <p className="text-sm font-medium uppercase tracking-widest text-text-muted">
                   Layer 3: Bitcoin Script
                 </p>

@@ -1,6 +1,6 @@
 export function IntroWhyMattersSection() {
   return (
-    <section className="border-t border-border-subtle bg-surface-base py-16 md:py-24">
+    <section className="bg-surface-base py-16 md:py-24">
       <div className="mx-auto max-w-4xl px-4">
         <h2 className="mb-12 text-center text-3xl font-bold tracking-tight text-text-primary md:text-4xl">
           Why Miniscript Matters
