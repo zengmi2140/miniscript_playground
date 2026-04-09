@@ -27,7 +27,7 @@ export function IntroApplicationsSection() {
           从 Policy 到最终脚本：实时查看真实应用场景的完整编译演化过程。
         </p>
 
-        <div className="mb-12 flex flex-wrap gap-3">
+        <div className="mb-12 flex flex-wrap items-center justify-center gap-3">
           {INTRO_APPLICATION_EXAMPLES.map((example, idx) => (
             <button
               key={example.title}

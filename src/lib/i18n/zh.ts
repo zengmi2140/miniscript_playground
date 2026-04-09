@@ -76,8 +76,7 @@ export const zh: Record<string, string> = {
   'home.wallets.hardware': '硬件钱包',
 
   'home.cta.title': '准备好自己设计了吗？',
-  'home.cta.subtitle': '在 Playground 里自由输入任意 Policy，或者用可视化构建器从零搭建。',
-  'home.cta.playground': '打开空白 Playground',
+  'home.cta.subtitle': '在 Playground 里用可视化画布搭建策略，实时看到 Policy、Miniscript 与花费路径。',
   'home.cta.build': '用画布搭建策略',
   'intro.applications.tryIt': '上手一试',
   'home.playground.desktopHint': 'Playground 建议在桌面端打开以获得完整体验。',

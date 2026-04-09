@@ -46,7 +46,7 @@ npm run test
 
 ## 5. 路由与页面职责
 
-- `/`（首页：Miniscript 通识着陆 + 钱包区 + CTA）
+- `/`（首页：Miniscript 通识着陆 + 钱包区 + 页尾单一画布 CTA）
   - 入口：`src/app/page.tsx`（`'use client'`）
   - **顺序**：`HomepageHero` → `IntroChallengeSection` → `IntroCoreConceptsSection` → `IntroApplicationsSection` → `IntroLimitationsSection` → `IntroWhyMattersSection` → `HomepageWallets` → Bottom CTA + footer（组件见 `src/components/intro/*`）
   - **不再使用于首页**：`HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageHowItWorks`、`HomepageFeatures`、`ScenarioGallery`（Playground 左栏场景列表由 `LeftPanel` 实现；`ScenarioGallery` 保留在仓库，当前未挂载）
@@ -59,7 +59,7 @@ npm run test
 - `/playground`
   - 三栏 Playground，是项目主界面。
   - 入口组件：`src/app/playground/page.tsx`（直接 import `PlaygroundClient`）
-  - 客户端组件：`src/app/playground/PlaygroundClient.tsx`（含 `'use client'`，负责读取 URL 分享参数 `?s=`、场景参数 `?scenario=`；首屏调用 `clearSession()` 清理遗留的 `miniscript-lab-session` 键、**不再**从 localStorage 恢复 Playground 会话；并挂载 `useCompiler`、`useBuilderSync`）
+  - 客户端组件：`src/app/playground/PlaygroundClient.tsx`（含 `'use client'`，负责读取 URL 分享参数 `?s=`、场景参数 `?scenario=`、**`?mode=build`**（无有效 `s` 且无 `scenario` 时调用 `enterBuildMode()` 进入 build）；首屏调用 `clearSession()` 清理遗留的 `miniscript-lab-session` 键、**不再**从 localStorage 恢复 Playground 会话；并挂载 `useCompiler`、`useBuilderSync`）
   - **视口与窄屏**：`PlaygroundClient` 内 `matchMedia('(min-width: 768px)')` 判定；窄视口只渲染 `MobileFallback`（`playground.mobile.*` i18n），引导用户在桌面端或更大屏幕使用；用户可见文案**不写像素数字**。`mode === 'loading'` 时先渲染三栏再解析媒体查询，可能出现极短暂的三栏闪现再切到 fallback（已知可接受）。
   - **渐进式加载架构**：服务端渲染三栏框架 HTML 用户立即看到完整框架；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载显示 spinner 骨架屏；`layout.tsx` 加 `<link rel="prefetch">` 让浏览器提前获取文档；scenario 模式停留 2 秒后后台预加载 Builder 代码。
 
@@ -292,7 +292,7 @@ src/
 
 11. **渐进式加载**：`playground/page.tsx` 直接 import `PlaygroundClient`（服务端渲染三栏框架 HTML，用户进入页面立即看到完整框架）；`PlaygroundContent` 移除了 `mode === 'loading' → null` 逻辑；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载，期间显示带 spinner 骨架屏；`layout.tsx` 加 `<link rel="prefetch">` 提前获取 Playground 页面；首页 `requestIdleCallback` 预热所有 Playground 模块（三栏组件、两个画布、编译器），同 Tab 内来回切换命中浏览器模块缓存无需重新加载，刷新后命中 HTTP 缓存（Next.js 文件名含 hash）极快恢复。
 
-12. **首页设计**：着陆页为 Miniscript 通识长文：Hero → `IntroChallengeSection` / `IntroCoreConceptsSection` / `IntroApplicationsSection` / `IntroLimitationsSection` / `IntroWhyMattersSection`（`src/components/intro/*`）→ `HomepageWallets`（两条横向 marquee）→ 底部 CTA。旧版区块 `HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageHowItWorks`、`HomepageFeatures` 仍在仓库中但**未**挂在首页；Playground 左栏场景列表由 `LeftPanel` 渲染（`ScenarioGallery` 组件保留在仓库，当前未挂载）。
+12. **首页设计**：着陆页为 Miniscript 通识长文：Hero → `IntroChallengeSection` / `IntroCoreConceptsSection` / `IntroApplicationsSection` / `IntroLimitationsSection` / `IntroWhyMattersSection`（`src/components/intro/*`）→ `HomepageWallets`（两条横向 marquee）→ **底部单一 CTA**（橙色主按钮「用画布搭建策略」/`home.cta.build` → `/playground?mode=build`）。旧版区块 `HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageHowItWorks`、`HomepageFeatures` 仍在仓库中但**未**挂在首页；Playground 左栏场景列表由 `LeftPanel` 渲染（`ScenarioGallery` 组件保留在仓库，当前未挂载）。
 
 13. **`htlc-atomic` 教学展示**：store 与编译使用真实 `hash160` 摘要（常量 `HTLC_TEACHING_HASH160_DIGEST`，`src/lib/playground/htlc-display-mask.ts`）；中栏 Policy、路径图、条件面板仅展示 `HEX`，右栏 Tab 为真实输出。`PolicyEditor` 须用 `onDocChangeRef` 避免场景切换时陈旧闭包写入占位符导致编译失败（详见 §8）。
 
@@ -373,14 +373,14 @@ src/
 ### 修改首页（Landing）
 
 - 主入口：`src/app/page.tsx`
-- 首页采用 `Hero -> Intro 各节 -> Wallets -> CTA` 的顺序（Intro 区块在 `src/components/intro/*`）
+- 首页采用 `Hero -> Intro 各节 -> Wallets -> 底部单一 CTA（画布入口）` 的顺序（Intro 区块在 `src/components/intro/*`）
 - 导航中的首页标签为「首页」/ `Home`，对应 `nav.scenarios`
 - `HomepageWallets` 用于展示已支持 Miniscript 的钱包，采用两条 marquee 展示软件钱包与硬件钱包
 - 视觉保持与现有首页一致：深色主题、橙色强调、卡片化 section、统一 hover 效果
 
 ### 修改通识区块组件（原「介绍」页内容）
 
-- 区块与数据：`src/components/intro/*`、`src/components/intro/data.ts`（Applications 每条示例的 `playgroundScenarioId`：`string` 时 `/playground?scenario=<id>`；`null` 时仅 `/playground`。已与预设对齐的示例：`multisig-2of3`、`multisig-or-timelock`、`recoverykey`、`htlc-atomic`（原子交换）、`dlc-simple`（DLC 简化）、`batch-payment`（批量支付，角色 Alice/Bob/Charlie）。**「支付通道」** 卡片仍为 `playgroundScenarioId: null`（Policy 与当前编译器可编译预设未对齐，仅教学示意）。**「原子交换」** 卡片三列 Policy / Miniscript / Script 使用 `HEX` 作为 hash160 摘要占位；Playground 中栏与路径图见 §8，右栏仍为真实输出。预设全表见 `src/lib/scenarios/data.ts`：当前 **8** 条预设（上述 + `degrading-multisig`、`vault-hot-cold`），**不含** `single-key`、`2fa-recovery`。）
+- 区块与数据：`src/components/intro/*`、`src/components/intro/data.ts`（Applications 当前 **6** 条卡片；每条 `playgroundScenarioId` 均为预设 id，跳转 `/playground?scenario=<id>`。示例：`multisig-2of3`、`multisig-or-timelock`、`recoverykey`、`htlc-atomic`（原子交换）、`dlc-simple`（DLC 简化）、`batch-payment`（批量支付，角色 Alice/Bob/Charlie）。**「原子交换」** 卡片三列 Policy / Miniscript / Script 使用 `HEX` 作为 hash160 摘要占位；Playground 中栏与路径图见 §8，右栏仍为真实输出。预设全表见 `src/lib/scenarios/data.ts`：当前 **8** 条预设（上述 + `degrading-multisig`、`vault-hot-cold`），**不含** `single-key`、`2fa-recovery`。）
 - 规格以 [`SPEC.md`](SPEC.md) §3.1 为准；`/intro` 仅重定向，不再单独维护着陆内容
 
 ### 修改设计系统
