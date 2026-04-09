@@ -17,4 +17,4 @@ npm run build && npm run lint && npm run test
 
 Do not duplicate long architecture lists here; keep them in `AGENTS.md`.
 
-**预设与首页 Applications**：左栏 `SCENARIOS` 条数、`htlc-atomic` 中栏展示与 `HEX` 占位、右栏真实输出等，以 **`AGENTS.md`**（§8、§10.13、§11）与 **`SPEC.md`** §3.1 为准。
+**预设与首页 Applications**：左栏 `SCENARIOS` 条数、`htlc-atomic` 中栏展示与 `HEX` 占位、右栏真实输出等，以 **`AGENTS.md`**（§8、§10.13、§11）与 **`SPEC.md`** §3.1 为准。首页页尾主 CTA 为单一橙色按钮，进入 `/playground?mode=build`（build / 画布）。
