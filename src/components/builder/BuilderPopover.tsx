@@ -20,6 +20,7 @@ import {
   createDefaultKeyVariables,
   createSignatureNode,
   createTimelockNode,
+  collectRoleIds,
 } from '@/lib/builder/node-ops';
 import { TIMELOCK_PRESETS, blocksToHumanTime, type TimelockPresetKey } from '@/lib/builder/types';
 import type { StrategyNode } from '@/lib/builder/types';
@@ -143,10 +144,15 @@ export function BuilderPopover() {
       if (replacePlaceholder) {
         let newTree: StrategyNode;
         if (type === 'signature') {
-          const roleId = keyVariables.length > 0 ? keyVariables[0].name : 'Signer1';
-          if (keyVariables.length === 0) {
-            const newKey = createDefaultKeyVariables(1)[0];
+          const usedRoles = collectRoleIds(strategyTree);
+          const unusedKv = keyVariables.find(kv => !usedRoles.has(kv.name));
+          let roleId: string;
+          if (unusedKv) {
+            roleId = unusedKv.name;
+          } else {
+            const newKey = createNextKeyVariable(keyVariables);
             addKeyVariable(newKey);
+            roleId = newKey.name;
           }
           newTree = convertChildPlaceholder(strategyTree, targetNodeId, 'signature', { roleId });
         } else if (type === 'timelock') {
@@ -174,10 +180,15 @@ export function BuilderPopover() {
 
       let newTree: StrategyNode;
       if (type === 'signature') {
-        const roleId = keyVariables.length > 0 ? keyVariables[0].name : 'Signer1';
-        if (keyVariables.length === 0) {
-          const newKey = createDefaultKeyVariables(1)[0];
+        const usedRoles = collectRoleIds(strategyTree);
+        const unusedKv = keyVariables.find(kv => !usedRoles.has(kv.name));
+        let roleId: string;
+        if (unusedKv) {
+          roleId = unusedKv.name;
+        } else {
+          const newKey = createNextKeyVariable(keyVariables);
           addKeyVariable(newKey);
+          roleId = newKey.name;
         }
         newTree = addSignatureChild(strategyTree, parentIdForAdd, roleId);
       } else if (type === 'timelock') {
