@@ -145,21 +145,6 @@ export function IntroApplicationsSection() {
             </div>
           </div>
         </div>
-
-        <div className="grid gap-8 rounded-xl border border-border-default bg-surface-card p-8 md:grid-cols-3">
-          <div>
-            <p className="mb-2 text-3xl font-semibold text-btc-500">20-40%</p>
-            <p className="text-sm text-text-muted">平均脚本大小减少</p>
-          </div>
-          <div>
-            <p className="mb-2 text-3xl font-semibold text-btc-500">7+</p>
-            <p className="text-sm text-text-muted">真实应用场景示例</p>
-          </div>
-          <div>
-            <p className="mb-2 text-3xl font-semibold text-btc-500">完整</p>
-            <p className="text-sm text-text-muted">从 Policy 到 Script</p>
-          </div>
-        </div>
       </div>
     </section>
   );

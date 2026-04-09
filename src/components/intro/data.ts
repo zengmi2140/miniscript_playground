@@ -59,7 +59,7 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
   },
   {
     title: '原子交换（HTLC）',
-    description: '哈希时间锁合约： preimage 路径或约 2 周相对时间锁退款（摘要在展示中用 HEX 代表）',
+    description: '哈希时间锁合约： preimage 路径或约 2 周相对时间锁退款',
     policy:
       'or(\n  and(pk(Alice), hash160(HEX)),\n  and(pk(Bob), older(20160))\n)',
     miniscript:
@@ -74,7 +74,7 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
   },
   {
     title: 'DLC 合约',
-    description: '基于预言机签名的离散对数合约：两种不同的支付路径（教学用纯 pk 组合）',
+    description: '基于预言机签名的离散对数合约：两种不同的支付路径',
     policy:
       'or(\n  and(pk(Alice), pk(Oracle_A)),\n  and(pk(Bob), pk(Oracle_B))\n)',
     miniscript:
