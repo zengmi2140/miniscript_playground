@@ -118,3 +118,9 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
     playgroundScenarioId: 'batch-payment',
   },
 ];
+
+/** Preset ids in the same order as `INTRO_APPLICATION_EXAMPLES`（跳过无预设的卡片，如「支付通道」）— Playground 左栏场景列表与之对齐。 */
+export const APPLICATION_PLAYGROUND_SCENARIO_IDS: string[] =
+  INTRO_APPLICATION_EXAMPLES.map((ex) => ex.playgroundScenarioId).filter(
+    (id): id is string => id != null,
+  );

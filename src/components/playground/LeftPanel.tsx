@@ -1,10 +1,11 @@
 'use client';
 
 import { ChevronDown, ChevronRight, Hammer, Check } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 import { SCENARIOS } from '@/lib/scenarios/data';
+import { sortScenariosForPlayground } from '@/lib/scenarios/playground-order';
 import { cn } from '@/lib/utils/cn';
 import { KeyVariableManager } from './KeyVariableManager';
 import { ContextSelector } from './ContextSelector';
@@ -118,11 +119,19 @@ function CollapsibleSection({ title, defaultOpen, children, pulse }: {
   );
 }
 
+/** 除「自己动手」外，首屏约可见 6 条预设；其余在区域内滚动。 */
+const SCENARIO_LIST_MAX_HEIGHT_CLASS = 'max-h-[min(28rem,55vh)]';
+
 export function LeftPanel() {
   const { t } = useI18n();
   const activeScenarioId = usePlaygroundStore((s) => s.activeScenarioId);
   const loadScenario = usePlaygroundStore((s) => s.loadScenario);
   const policy = usePlaygroundStore((s) => s.policy);
+
+  const orderedScenarios = useMemo(
+    () => sortScenariosForPlayground(SCENARIOS),
+    [],
+  );
 
   const isEmpty = !policy && !activeScenarioId;
 
@@ -138,14 +147,21 @@ export function LeftPanel() {
           isEmpty && 'rounded-button ring-2 ring-btc-500/40 ring-offset-2 ring-offset-surface-card',
         )}>
           <BuildModeCard />
-          {SCENARIOS.map((scenario) => (
-            <ScenarioMiniCard
-              key={scenario.id}
-              scenario={scenario}
-              isActive={activeScenarioId === scenario.id}
-              onSelect={() => loadScenario(scenario.id)}
-            />
-          ))}
+          <div
+            className={cn(
+              'flex flex-col gap-1.5 overflow-y-auto overflow-x-hidden pr-0.5',
+              SCENARIO_LIST_MAX_HEIGHT_CLASS,
+            )}
+          >
+            {orderedScenarios.map((scenario) => (
+              <ScenarioMiniCard
+                key={scenario.id}
+                scenario={scenario}
+                isActive={activeScenarioId === scenario.id}
+                onSelect={() => loadScenario(scenario.id)}
+              />
+            ))}
+          </div>
         </div>
       </CollapsibleSection>
 
