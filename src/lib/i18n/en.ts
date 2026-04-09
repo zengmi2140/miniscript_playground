@@ -232,18 +232,28 @@ export const en: Record<string, string> = {
   'compare.feature.4': 'Export to Markdown / JSON report',
 
   // Resources page
-  'resources.title': 'Resource',
-  'resources.subtitle':
-    'Tools, documentation, and curated articles to help you understand Miniscript and Bitcoin spending conditions.',
   'resources.toolsDoc.title': 'Tools & documentation',
-  'resources.toolsDoc.subtitle': 'Official sites, reference implementations, online playgrounds, and SDKs (open in a new tab).',
+  'resources.toolsDoc.subtitle': 'Official sites, reference implementations, online playgrounds, and SDKs.',
   'resources.reading.title': 'Recommended reading',
   'resources.reading.subtitle': 'In-depth articles—more coming soon.',
   'resources.reading.placeholder': 'Article list is being curated. Check back later.',
-  'resources.links.official.badge': 'Documentation',
-  'resources.links.official.title': 'Official Miniscript',
+  'resources.reading.articles.bdkHidden.title': 'Hidden Powers of Miniscript Policy & Descriptors',
+  'resources.reading.articles.bdkHidden.source': 'Bitcoin Dev Kit blog',
+  'resources.reading.articles.nunchuk101.title': 'Miniscript 101: A Technical Guide',
+  'resources.reading.articles.nunchuk101.source': 'Nunchuk',
+  'resources.reading.articles.bitboxP1.title':
+    'Understanding Bitcoin Miniscript — Part 1: How Bitcoin Script works, and why it is hard',
+  'resources.reading.articles.bitboxP1.source': 'BitBox / Shift Crypto blog',
+  'resources.reading.articles.bitboxP2.title':
+    'Understanding Bitcoin Miniscript — Part 2: What is Miniscript?',
+  'resources.reading.articles.bitboxP2.source': 'BitBox / Shift Crypto blog',
+  'resources.reading.articles.advancingBm.title':
+    'Miniscript: Composable, Analyzable and Smarter Bitcoin Script',
+  'resources.reading.articles.advancingBm.source': 'Advancing Bitcoin 2022 · BTC Transcripts',
+  'resources.links.official.badge': 'Reference',
+  'resources.links.official.title': 'Miniscript',
   'resources.links.official.desc':
-    'The reference Miniscript site by Pieter Wuille: language overview, online compiler, analyzer, type system, and usage notes.',
+    'Documentation and tooling by Pieter Wuille: language overview, online compiler, analyzer, type system, and usage notes.',
   'resources.links.rust.badge': 'Implementation',
   'resources.links.rust.title': 'Rust Miniscript',
   'resources.links.rust.desc':
@@ -256,6 +266,14 @@ export const en: Record<string, string> = {
   'resources.links.minsc.title': 'Minsc',
   'resources.links.minsc.desc':
     'A Miniscript-Policy-based scripting language with variables, functions, and infix syntax; live WASM compiler outputs Policy, Miniscript, script, and addresses (testnet).',
+  'resources.links.bdkPlayground.badge': 'Online tool',
+  'resources.links.bdkPlayground.title': 'BDK Playground',
+  'resources.links.bdkPlayground.desc':
+    'In-browser Policy compiler and descriptor wallet playground: map policy aliases to keys, pick P2SH/P2WSH-style contexts, and edit spending conditions in the visual or policy text field.',
+  'resources.links.miniscriptBuilder.badge': 'Online tool',
+  'resources.links.miniscriptBuilder.title': 'Miniscript Builder',
+  'resources.links.miniscriptBuilder.desc':
+    'Visual node editor (WASM, rust-miniscript, Rete.js)—drag nodes to build policies. Supports multiple networks and address derivation, JSON import/export, and URL sharing of the full editor state.',
   'resources.links.bdk.badge': 'Developer toolkit',
   'resources.links.bdk.title': 'Bitcoin DevKit',
   'resources.links.bdk.desc':
