@@ -9,7 +9,6 @@ import { HomepageWallets } from '@/components/home/HomepageWallets';
 import { IntroChallengeSection } from '@/components/intro/IntroChallengeSection';
 import { IntroCoreConceptsSection } from '@/components/intro/IntroCoreConceptsSection';
 import { IntroApplicationsSection } from '@/components/intro/IntroApplicationsSection';
-import { IntroLimitationsSection } from '@/components/intro/IntroLimitationsSection';
 import { IntroWhyMattersSection } from '@/components/intro/IntroWhyMattersSection';
 
 export default function HomePage() {
@@ -47,7 +46,6 @@ export default function HomePage() {
       <IntroChallengeSection />
       <IntroCoreConceptsSection />
       <IntroApplicationsSection />
-      <IntroLimitationsSection />
       <IntroWhyMattersSection />
 
       <HomepageWallets />
