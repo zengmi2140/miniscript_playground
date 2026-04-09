@@ -236,274 +236,33 @@ export const zh: Record<string, string> = {
   'compare.feature.4': '导出 Markdown / JSON 报告',
 
   // Resources page
-  'resources.title': 'Resource 资源',
-  'resources.subtitle': 'Miniscript 学习资料、工具链接与常见问题解答，帮你更快理解比特币花费条件。',
-  'resources.faq.label': '常见问题',
-  'resources.faq.title': '你可能想知道的问题',
-  'resources.faq.subtitle': '从入门概念到进阶用法，这里汇总了关于 Miniscript 最常见的疑问。',
-  'resources.links.label': '外部资源',
-  'resources.links.title': '推荐阅读与工具',
-  'resources.links.subtitle': '以下资源由社区整理，点击可跳转到相应网站或文档。内容持续补充中。',
-  'resources.links.placeholder': '资源链接即将添加，敬请期待。',
+  'resources.title': '资源',
+  'resources.subtitle': '整理 Miniscript 相关的工具、文档与精读文章，帮你理解比特币花费条件。',
+  'resources.toolsDoc.title': '工具与文档',
+  'resources.toolsDoc.subtitle': '官方站点、参考实现、在线 Playground 与开发套件；在新标签页打开。',
+  'resources.reading.title': '推荐阅读',
+  'resources.reading.subtitle': '精选文章与深度阅读，持续更新。',
+  'resources.reading.placeholder': '文章列表整理中，敬请期待。',
+  'resources.links.official.badge': '官方文档',
+  'resources.links.official.title': 'Official Miniscript',
+  'resources.links.official.desc':
+    'Pieter Wuille 维护的 Miniscript 站点：语言说明、在线编译器与分析工具，含类型系统与常见用法。',
+  'resources.links.rust.badge': '参考实现',
+  'resources.links.rust.title': 'Rust Miniscript',
+  'resources.links.rust.desc':
+    '广泛使用的 Rust 实现：编译器、满足性分析与丰富测试用例，适合阅读源码与在生产环境中集成。',
+  'resources.links.studio.badge': '在线工具',
+  'resources.links.studio.title': 'Miniscript Studio',
+  'resources.links.studio.desc':
+    '浏览器端 Policy / Miniscript 工作台：内置从基础到 Taproot 的示例、Policy 与 Miniscript 参考文档、花费路径分析与可分享链接（本地保存，公钥仅作演示）。',
+  'resources.links.minsc.badge': '语言与 Playground',
+  'resources.links.minsc.title': 'Minsc',
+  'resources.links.minsc.desc':
+    '基于 Miniscript Policy 的合约脚本语言，提供变量、函数与中缀运算符等语法糖；在线 WASM 编译器可生成 Policy、Miniscript、脚本与地址（测试网）。',
+  'resources.links.bdk.badge': '开发者工具',
+  'resources.links.bdk.title': 'Bitcoin DevKit',
+  'resources.links.bdk.desc':
+    '在应用里集成比特币钱包能力时常用的开发套件，文档与示例涵盖 Descriptor、PSBT 等与 Miniscript 相关的实践。',
 
-  // FAQ section headers
-  'resources.faq.section.start': '先建立直觉',
-  'resources.faq.section.language': '语言怎么写',
-  'resources.faq.section.practice': '实际怎么用',
-  'resources.faq.section.safety': '限制与安全',
-
-  // FAQ items
-  'resources.faq.q1': 'Miniscript 是什么？',
-  'resources.faq.a1': `**Miniscript 是用来描述“谁能花、什么时候能花”的语言**。
-
-它不是链上直接执行的脚本，而是先写成更好懂的规则，再由工具编译成 Bitcoin Script。
-
-你可以把它理解成：
-- Bitcoin Script：底层执行语言
-- Miniscript：更容易读懂的中间层
-- 工具：负责把规则变成可用脚本`,
-
-  'resources.faq.q5': 'Descriptor 是什么？',
-  'resources.faq.a5': `**Descriptor 就是“这个地址是怎么生成的”的说明书**。
-
-它会把地址类型和脚本规则写清楚，钱包可以据此重新生成地址、识别花费方式。
-
-简单说：
-- 方便备份和恢复
-- 方便不同钱包之间理解同一套规则
-- 也方便把复杂脚本保存下来`,
-
-  'resources.faq.q2': '什么是 Policy？',
-  'resources.faq.a2': `**Policy 是更像“人话”的规则写法**。
-
-比如：\`or(pk(Alice), and(pk(Bob), older(144)))\`，意思就是“要么 Alice 签，要么 Bob 签并且再等一段时间”。
-
-关系可以这样记：
-- Policy：先写规则
-- Miniscript：工具翻译后的中间形式
-- Script：链上真正执行的脚本`,
-
-  'resources.faq.q9': '什么是花费路径？',
-  'resources.faq.a9': `**花费路径就是“满足这条规则的一种具体办法”**。
-
-比如同一个策略，可能有两条路：
-- Alice 直接签名
-- Bob 签名后再等一段时间
-
-我们把这些可行办法一条条列出来，是为了让你一眼看懂资金怎么花出去。`,
-
-  'resources.faq.q3': '`older()` 和 `after()` 有什么区别？',
-  'resources.faq.a3': `**一个看“过了多久”，一个看“到了没到某个区块”**。
-
-\`older(n)\` 是相对时间锁：从这笔资金确认后，至少再等 n 个区块。
-
-\`after(n)\` 是绝对时间锁：区块高度到了 n 才能花。
-
-记法：
-- 要“等一段时间”用 \`older()\`
-- 要“到某个点再解锁”用 \`after()\``,
-
-  'resources.faq.q4': '什么是 thresh()？',
-  'resources.faq.a4': `**\`thresh()\` 表示“满足 k 个条件就行”**。
-
-例如：
-- \`thresh(2, a, b, c)\` = 3 个条件里满足任意 2 个
-- \`and(a, b)\` 可以理解成 2 个都要满足
-- \`or(a, b)\` 可以理解成 2 个里满足 1 个就行
-
-它的作用是把多签、备份恢复、门限控制这些场景说得更直接。`,
-
-  'resources.faq.q6': '什么是 P2WSH？',
-  'resources.faq.a6': `**P2WSH 是适合复杂脚本的 SegWit 地址格式**。
-
-你可以把它理解成：Miniscript 这类多签、时间锁规则，通常会放进 P2WSH 里。
-
-和其他格式比：
-- P2PKH：老式，较少用于复杂脚本
-- P2WPKH：适合单签
-- P2WSH：适合复杂条件和多签`,
-
-  'resources.faq.q7': '这个工具能用于主网吗？',
-  'resources.faq.a7': `**不能**。这里是教学工具，只做测试网和概念演示。
-
-它不会处理真实私钥，也不会连接主网。
-
-所以请记住：
-- 只用于学习和测试
-- 不要拿来存主网资金
-- 不要导入真实密钥`,
-
-  'resources.faq.q8': '画布和直接写 Policy 有什么区别？',
-  'resources.faq.a8': `**本质上是同一件事，只是入口不同**。
-
-画布适合先看结构，再慢慢理解规则；
-Policy 文本适合熟悉语法后直接写。
-
-如果某些语法画布暂时不支持，它会先保留一份只读快照，方便你继续看和改文本。`,
-
-  'resources.faq.q10': '为什么有些路径会标成“可延展”？',
-  'resources.faq.a10': `**这表示见证数据还有被改写的空间**。
-
-简单理解：交易想表达的意思没变，但附带数据可能被别人动过，导致交易 ID 变化。
-
-在这里它只是提醒你“这条路要更小心”，不是说它一定不能用。`,
-
-  // New FAQ items (11-18)
-  'resources.faq.q11': 'Policy 里常见的操作符有哪些？',
-  'resources.faq.a11': `最常见的就这几类：
-
-- \`pk()\`：一个人签名
-- \`older()\` / \`after()\`：时间锁
-- \`and()\` / \`or()\`：并且 / 或者
-- \`thresh()\`：满足几个就行
-- \`andor()\`：先看条件，再分支
-
-这些就是你在这里最常会见到的“积木”。`,
-
-  'resources.faq.q12': '什么是 `andor()` 和 `or_c()`？何时使用它们？',
-  'resources.faq.a12': `**\`andor()\` 是条件分支的一种形式**，语义为"如果 cond1 满足，则 cond2 也必须满足；否则 cond3 必须满足"。
-
-实际例子：
-
-\`andor(pk(Alice), pk(Bob), older(52560))\` 表示：
-- 常规情况：Alice 和 Bob 都要签名
-- 超时情况（超过 52560 个区块）：Alice 可单独签名
-
-何时使用：
-- 资金恢复路径
-- 多人管理中的超时备份
-- 防止某一方失联导致资金锁定
-
-\`or_c()\` 的区别：
-- \`or_c()\` 是另一种条件分支编码
-- 编译策略不同，影响 Witness 大小和费用
-- 选择建议：常用路径应编译得更小`,
-
-  'resources.faq.q13': '多签和恢复场景一般怎么写？',
-  'resources.faq.a13': `可以先记住两个最常见的例子：
-
-- 2-of-2：\`and(pk(A), pk(B))\`
-- 2-of-3：\`thresh(2, pk(A), pk(B), pk(C))\`
-- 3-of-5：\`thresh(3, pk(A), pk(B), pk(C), pk(D), pk(E))\`
-
-带恢复路径的多签：
-- \`or(thresh(2, pk(A), pk(B)), older(52560))\` 表示"常规时期需要 A、B 二人签，但若 52560 个区块（约 1 年）无动作则任意一人可独自恢复"
-
-遗产继承模式：
-- \`andor(pk(Alice), pk(Bob), or(pk(Carol), older(52560)))\` 表示"Alice 和 Bob 联合管理，Bob 必须同意，但若 Bob 失联 1 年则 Carol 可接管"`,
-
-  'resources.faq.q14': 'Miniscript 的类型系统是什么？为什么需要 B、V、K、W 四种类型？',
-  'resources.faq.a14': `**每个 Miniscript 片段都有一个类型签名**，确保正确组合。
-
-四种类型：
-- \`B\` (Boolean)：脚本可作为顶级脚本执行
-- \`V\` (Verify)：脚本执行后在栈顶留下真值
-- \`K\` (Key)：脚本接受密钥或签名参数
-- \`W\` (Wrapped)：脚本的满足方式是非标准的
-
-为什么需要类型系统：
-- 保证脚本正确组合：不是所有片段都可以嵌套
-- 防止错误组合：类型必须兼容
-- 例子：\`and(B, B)\` 有效，但 \`and(V, V)\` 无效
-
-形式化验证：
-- 消除了手写脚本的错误
-- 编译器自动验证所有类型约束
-- 确保最终脚本安全可执行`,
-
-  'resources.faq.q15': 'Miniscript 中的修饰符（Modifiers）是什么？',
-  'resources.faq.a15': `**修饰符是片段前的单字母标记**，调整脚本的性质。
-
-常见修饰符：
-- \`z:\` - 零删除：脚本确保栈上没有空值
-- \`o:\` - 一扩展：脚本可以在栈上推入任意值
-- \`n:\` - 无数字：脚本不依赖栈上的数字解释
-- \`d:\` - 代码可解析：脚本包含 witness 栈的完整反序列化信息
-- \`u:\` - 无满足：脚本可能无法满足
-
-作用：
-- 编译器验证脚本的安全性
-- 检查栈污染和类型错误
-- 优化脚本编译结果
-- 指导编译过程中的决策`,
-
-  'resources.faq.q16': '什么是常见的 Miniscript 片段和 Wrapper？',
-  'resources.faq.a16': `**片段是基本的脚本构建块**，Wrapper 调整它们的属性。
-
-常见片段：
-- \`pk_k(key)\` - 最小化的单签检查
-- \`pk_h(key)\` - 哈希公钥，减小 witness 大小
-- \`multi(k, keys...)\` - k-of-N 多签
-- \`thresh(k, conds...)\` - 通用门限
-
-常见 Wrapper：
-- \`c:\` - 将验证型转为布尔型
-- \`v:\` - 添加 \`OP_VERIFY\` 后缀
-- \`d:\` - 添加反序列化支持
-- \`s:\` - 交换栈顶两元素
-- \`a:\` - 添加 \`OP_ADD\`
-- \`j:\` - 添加 \`OP_IF\` 分支
-- \`n:\` - 删除栈顶元素
-
-优化建议：
-- 正确使用片段和 wrapper 能显著减小脚本大小
-- 减少手续费
-- 提高 Witness 效率`,
-
-  'resources.faq.q17': '脚本大小、操作码数等有什么限制？如何优化？',
-  'resources.faq.a17': `**P2WSH 脚本的资源限制**。
-
-主要限制：
-- 脚本最大 10000 字节
-- 操作码最多 201 个（某些操作码如 \`OP_CHECKSIG\` 计数为 1，其他不同）
-- Witness 栈最多 1000 项
-- 单个 stack item 最大 520 字节
-
-编译器优化策略：
-
-1. 结构优化：
-- 常用分支编译为更紧凑的脚本结构
-- 选择最优的编码方式
-
-2. 权重指示符：
-- 在 \`thresh()\` 中使用 \`9@\` 语法
-- 例如：\`thresh(2, 9@pk(A), pk(B), pk(C))\`
-- 编译器优先优化高权重（更常用）的路径
-
-实践建议：
-- 为常见路径设置更高的权重
-- 避免深度嵌套
-- 使用 wrapper 优化片段大小`,
-
-  'resources.faq.q18': '这个工具可以用于生产环境吗？',
-  'resources.faq.a18': `**绝对不可以**。Miniscript Lab 仅是教育工具。
-
-严重限制：
-- 仅支持 Bitcoin Testnet / Signet
-- 不连接实际区块链网络
-- 不处理私钥或真实签名
-- 无法进行真实交易
-
-如果计划主网部署：
-
-1. 使用生产级工具链：
-- 专业钱包软件
-- libminiscript C++ 库
-- 经过充分审计的工具
-
-2. 安全检查：
-- 进行充分的安全审计
-- 形式化验证脚本
-- 多方 code review
-
-3. 渐进式部署：
-- 先在测试网小额测试
-- 逐步增加资金规模
-- 妥善备份所有密钥
-
-4. 文档保存：
-- 保留所有 Descriptor
-- 备份恢复密钥
-- 记录脚本设计意图`,
 };
 
