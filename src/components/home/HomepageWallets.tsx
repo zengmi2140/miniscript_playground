@@ -94,7 +94,7 @@ export function HomepageWallets() {
           <h2 className="mb-3 text-2xl font-bold text-text-primary md:text-3xl">
             {t('home.wallets.title')}
           </h2>
-          <p className="mx-auto max-w-xl text-sm text-text-secondary md:text-base text-pretty">
+          <p className="mx-auto max-w-xl text-sm text-text-secondary md:text-base">
             {t('home.wallets.subtitle')}
           </p>
         </div>
