@@ -23,7 +23,7 @@ export function IntroCoreConceptsSection() {
   return (
     <section
       id="concepts"
-      className="border-t border-border-subtle bg-surface-base py-16 md:py-24"
+      className="bg-surface-base py-16 md:py-24"
     >
       <div className="mx-auto max-w-6xl px-4">
         <h2 className="mb-4 text-center text-3xl font-bold tracking-tight text-text-primary md:text-4xl">
@@ -34,7 +34,7 @@ export function IntroCoreConceptsSection() {
         </p>
 
         <div className="space-y-12">
-          <div className="border-b border-border-subtle pb-12">
+          <div className="pb-12">
             <h3 className="mb-4 text-2xl font-semibold text-text-primary">Policy</h3>
             <p className="mb-6 max-w-3xl leading-relaxed text-text-secondary">
               高级、人类可读的策略描述。用自然语言的方式表达谁可以花费资金以及如何花费。Policy
@@ -50,7 +50,7 @@ export function IntroCoreConceptsSection() {
             </p>
           </div>
 
-          <div className="border-b border-border-subtle pb-12">
+          <div className="pb-12">
             <h3 className="mb-4 text-2xl font-semibold text-text-primary">Miniscript</h3>
             <p className="mb-6 max-w-3xl leading-relaxed text-text-secondary">
               高级 Policy 和底层 Bitcoin Script 之间的桥梁。Miniscript
