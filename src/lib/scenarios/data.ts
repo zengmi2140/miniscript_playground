@@ -1,13 +1,18 @@
 import type { Scenario, KeyVariable } from '@/lib/engine/types';
+import { HTLC_TEACHING_HASH160_DIGEST } from '@/lib/playground/htlc-display-mask';
 
 export const DEFAULT_TEST_KEYS: Record<string, string> = {
   Alice: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
   Bob: '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5',
   Charlie: '02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9',
+  /** 简化 DLC 教学：预言机侧公钥占位 */
+  Oracle_A: '024f355bdcb7cc0af728ef3cceb9615d90684bb5b2cba8862724862592b0a7f6',
+  Oracle_B: '021b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f',
   User: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
   Service: '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5',
   Owner: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
   Heir: '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5',
+  Main: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
   Hot: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
   Cold: '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5',
   Recovery: '02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9',
@@ -22,22 +27,6 @@ function kv(name: string, policyName?: string): KeyVariable {
 }
 
 export const SCENARIOS: Scenario[] = [
-  {
-    id: 'single-key',
-    icon: 'Key',
-    title: { zh: '个人单签', en: 'Single Key' },
-    description: {
-      zh: '只有你一个人可以花这笔钱。最简单的情况。',
-      en: 'Only you can spend. The simplest case.',
-    },
-    explanation: {
-      zh: '这是最基础的比特币花费条件：一把私钥对应一个公钥，用这把私钥签名就能花费。优点是简单，缺点是私钥丢了就永远无法恢复。',
-      en: 'The most basic Bitcoin spending condition: one private key corresponds to one public key. Sign with the private key to spend. Simple but no recovery if the key is lost.',
-    },
-    policy: 'pk(Alice)',
-    keyVariables: [kv('Alice')],
-    context: 'wsh',
-  },
   {
     id: 'multisig-2of3',
     icon: 'Users',
@@ -55,35 +44,35 @@ export const SCENARIOS: Scenario[] = [
     context: 'wsh',
   },
   {
-    id: '2fa-recovery',
-    icon: 'ShieldCheck',
-    title: { zh: '2FA + 超时恢复', en: '2FA with Timeout Recovery' },
+    id: 'multisig-or-timelock',
+    icon: 'Users',
+    title: { zh: '多签 + 时间锁定', en: 'Multisig + Timelock' },
     description: {
-      zh: '平时双重验证花费；服务商失联 30 天后你可以自己恢复。',
-      en: 'Two-factor to spend normally; self-recovery after 30 days if service goes offline.',
+      zh: '需要 Alice 与 Bob 同时签名，或由 Charlie 在时间锁满足后单独花费。',
+      en: 'Requires Alice and Bob together, or Charlie alone after the timelock.',
     },
     explanation: {
-      zh: '日常花费需要你和 2FA 服务商同时签名（双保险）。但如果服务商倒闭或失联，等待 30 天（约 4,320 个区块）后，你可以独自签名恢复资金。Policy 中的 99@ 是编译器优化提示，不影响实际花费逻辑。',
-      en: 'Daily spending requires both your signature and the 2FA service (double safety). If the service goes offline, after 30 days (~4,320 blocks), you can recover funds alone.',
+      zh: '由 `or` 连接两条路径：协作多签路径，或 Charlie 与 `after(1000)` 时间条件。与首页 Applications 教程一致。',
+      en: 'Two spending paths: cooperative multisig, or Charlie with an `after(1000)` timelock. Matches the Applications walkthrough.',
     },
-    policy: 'and(pk(User),or(99@pk(Service),older(4320)))',
-    keyVariables: [kv('User'), kv('Service')],
+    policy: 'or(and(pk(Alice),pk(Bob)),and(pk(Charlie),after(1000)))',
+    keyVariables: [kv('Alice'), kv('Bob'), kv('Charlie')],
     context: 'wsh',
   },
   {
-    id: 'inheritance',
+    id: 'recoverykey',
     icon: 'Heart',
-    title: { zh: '遗产继承', en: 'Inheritance Plan' },
+    title: { zh: '恢复密钥', en: 'Recovery Key' },
     description: {
-      zh: '平时你自己花；一年不活跃后，继承人也能花。',
-      en: 'You spend normally; after 1 year of inactivity, your heir can access funds.',
+      zh: '正常情况用主密钥签名；紧急情况下可用恢复密钥配合时间锁花费。',
+      en: 'Spend with the main key normally; in emergencies use the recovery key with a timelock.',
     },
     explanation: {
-      zh: '这是一个简单的继承方案：你随时可以用自己的私钥花费资金。但如果你有 1 年（约 52,560 个区块）没有移动这笔 UTXO，继承人就获得花费权。注意：你需要每年至少"刷新"一次（把钱转给自己的新地址），以重置计时器。',
-      en: 'Simple inheritance: you can spend anytime with your key. After 1 year (~52,560 blocks) of inactivity, the heir gains spending rights. You need to "refresh" at least annually.',
+      zh: '主路径是 `pk(Main)`：日常花费只需主密钥。另一条路径是恢复密钥加上 `after(10000)` 时间条件——在紧急或主密钥不可用时，等待时间满足后可用 Recovery 单独花费。与首页 Applications「恢复密钥」示例一致。',
+      en: 'Primary path is `pk(Main)` for day-to-day spending. The alternate path combines the recovery key with an `after(10000)` timelock so Recovery can spend after the condition is met. Matches the Applications “Recovery Key” example.',
     },
-    policy: 'or(99@pk(Owner),and(pk(Heir),older(52560)))',
-    keyVariables: [kv('Owner'), kv('Heir')],
+    policy: 'or(pk(Main),and(pk(Recovery),after(10000)))',
+    keyVariables: [kv('Main'), kv('Recovery')],
     context: 'wsh',
   },
   {
@@ -116,6 +105,54 @@ export const SCENARIOS: Scenario[] = [
     },
     policy: 'or(99@and(pk(Hot),pk(Cold)),and(pk(Recovery),older(17280)))',
     keyVariables: [kv('Hot'), kv('Cold'), kv('Recovery')],
+    context: 'wsh',
+  },
+  {
+    id: 'htlc-atomic',
+    icon: 'Lock',
+    title: { zh: '原子交换（HTLC）', en: 'Atomic Swap (HTLC)' },
+    description: {
+      zh: '哈希锁路径或超时退款路径；摘要为固定教学值。',
+      en: 'Hashlock path or timeout refund; digest is a fixed teaching value.',
+    },
+    explanation: {
+      zh: '演示 HTLC：`hash160(<20 字节摘要 hex>)` 与 `older(20160)`（约 2 周）二选一。摘要为固定测试值，不输入原像。与首页 Applications「原子交换」一致。',
+      en: 'HTLC demo: `hash160(<20-byte digest hex>)` vs `older(20160)` (~2 weeks). Fixed digest for teaching; no preimage entry. Matches the Applications “Atomic Swap” card.',
+    },
+    policy: `or(and(pk(Alice),hash160(${HTLC_TEACHING_HASH160_DIGEST})),and(pk(Bob),older(20160)))`,
+    keyVariables: [kv('Alice'), kv('Bob')],
+    context: 'wsh',
+  },
+  {
+    id: 'dlc-simple',
+    icon: 'ShieldCheck',
+    title: { zh: 'DLC（简化）', en: 'DLC (simplified)' },
+    description: {
+      zh: '两条互斥路径，各需一方与预言机侧公钥；非完整 DLC 协议。',
+      en: 'Two paths, each with a party and an oracle key — not a full DLC.',
+    },
+    explanation: {
+      zh: '教学用纯 `pk` 组合：Alice+Oracle_A 或 Bob+Oracle_B。真实 DLC 含适配器签名与 attestations，此处不模拟。',
+      en: 'Teaching-only `pk` paths: Alice+Oracle_A or Bob+Oracle_B. Real DLCs use adaptor sigs and attestations — not modeled here.',
+    },
+    policy: 'or(and(pk(Alice),pk(Oracle_A)),and(pk(Bob),pk(Oracle_B)))',
+    keyVariables: [kv('Alice'), kv('Bob'), kv('Oracle_A'), kv('Oracle_B')],
+    context: 'wsh',
+  },
+  {
+    id: 'batch-payment',
+    icon: 'Users',
+    title: { zh: '批量支付', en: 'Batch-style conditions' },
+    description: {
+      zh: '两组条件同时满足：Alice/Bob 二选一，且 Charlie 或绝对时间锁。',
+      en: 'Both branches must pass: Alice or Bob, and Charlie or an absolute timelock.',
+    },
+    explanation: {
+      zh: '与首页 Applications「批量支付」一致：`and(or(...), or(...))`。角色名为 Alice、Bob、Charlie，对应默认测试公钥表。',
+      en: 'Matches Applications “Batch payment”: `and(or(...), or(...))` with Alice, Bob, Charlie from the default test keys.',
+    },
+    policy: 'and(or(pk(Alice),pk(Bob)),or(pk(Charlie),after(500)))',
+    keyVariables: [kv('Alice'), kv('Bob'), kv('Charlie')],
     context: 'wsh',
   },
 ];

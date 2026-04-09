@@ -14,6 +14,12 @@
 3. **诚实** -- 不要花哨装饰，每个视觉元素都传递信息
 4. **分层** -- 默认只展示一层抽象，底层细节"可达"但不"扑面而来"
 
+### 首页通识区（`/`）
+
+首屏与 **HomepageHero**、**HomepageWallets**、底部 CTA 与全站一致；中间各节（Challenge、Core Concepts、Technical Stack、Applications 等，实现为 `src/components/intro/*`）使用与全站一致的 **surface / border / btc-500 / text-*** token。大节标题与引导句可采用 **居中** 排版以区分于 Playground 工作台；正文卡片与代码块仍遵循 §4 间距与圆角。
+
+**Applications「原子交换」**：Policy / Miniscript / Bitcoin Script 三列以 **`HEX`** 表示 hash160 摘要占位（非具体 hex）；Playground 中栏与路径图在 `htlc-atomic` 预设下语义一致（`--semantic-hashlock` 仍用于哈希条件节点与 chip）。
+
 ---
 
 ## 2. 色彩系统

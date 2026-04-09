@@ -3,7 +3,7 @@ export const en: Record<string, string> = {
   'home.hero.title': 'Bitcoin Spending Conditions, Made Clear',
   'home.hero.subtitle': 'Understand Miniscript through real spending scenarios — from multisig to timelocks, from concepts to working scripts.',
   'home.hero.desc': 'Behind every Bitcoin UTXO is a set of rules that determines who can spend it and when. Miniscript Lab helps you understand those rules.',
-  'home.hero.cta.primary': 'Browse Scenarios',
+  'home.hero.cta.primary': 'View applications',
   'home.hero.cta.secondary': 'Open Playground',
   'home.hero.card.label': 'Spending Path Analysis',
   'home.hero.card.path1': 'Alice + Bob sign',
@@ -41,8 +41,8 @@ export const en: Record<string, string> = {
   'home.how.title': 'Three Steps to Any Spending Policy',
   'home.how.subtitle': 'From scenario selection to a complete on-chain script — with visual feedback every step of the way.',
   'home.how.step1.title': 'Choose a Scenario',
-  'home.how.step1.desc': 'Start from a real use case: single key, team multisig, inheritance, 2FA backup recovery...',
-  'home.how.step1.example': '2-of-3 Multisig · Inheritance · 2FA',
+  'home.how.step1.desc': 'Start from a real use case: team multisig, multisig + timelock, recovery key, degrading vault...',
+  'home.how.step1.example': '2-of-3 Multisig · Multisig + Timelock · Recovery Key',
   'home.how.step2.title': 'Write or Build a Policy',
   'home.how.step2.desc': 'Describe the rules in Policy language, or drag and drop condition nodes in the visual builder.',
   'home.how.step2.example': 'thresh(2,pk(A),pk(B),older(4320))',
@@ -79,6 +79,7 @@ export const en: Record<string, string> = {
   'home.cta.subtitle': 'Open the Playground to write any Policy freely, or use the visual builder to compose from scratch.',
   'home.cta.playground': 'Open Blank Playground',
   'home.cta.build': 'Build with Canvas',
+  'intro.applications.tryIt': 'Try it',
   'home.playground.desktopHint': 'For the full experience, open the Playground on a desktop or larger screen.',
 
   // Builder

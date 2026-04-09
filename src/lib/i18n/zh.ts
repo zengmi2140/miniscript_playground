@@ -3,7 +3,7 @@ export const zh: Record<string, string> = {
   'home.hero.title': '把 Bitcoin 的花费条件讲清楚',
   'home.hero.subtitle': '用真实的花费场景理解 Miniscript，从多签到时间锁，从理论到可运行的脚本。',
   'home.hero.desc': '每一个 Bitcoin UTXO 背后，都有一套决定"谁能花、什么时候花"的规则。Miniscript Lab 帮你读懂这套规则。',
-  'home.hero.cta.primary': '从场景开始',
+  'home.hero.cta.primary': '查看应用场景',
   'home.hero.cta.secondary': '打开 Playground',
   'home.hero.card.label': '花费路径分析',
   'home.hero.card.path1': 'Alice + Bob 签名',
@@ -41,8 +41,8 @@ export const zh: Record<string, string> = {
   'home.how.title': '三步理解任意花费策略',
   'home.how.subtitle': '从场景选择到完整链上脚本，每一步都有可视化反馈。',
   'home.how.step1.title': '选择或描述场景',
-  'home.how.step1.desc': '从真实使用场景出发：个人单签、团队多签、遗产继承、双重验证……',
-  'home.how.step1.example': '2-of-3 多签 · 遗产继承 · 2FA',
+  'home.how.step1.desc': '从真实使用场景出发：团队多签、多签与时间锁、恢复密钥、退化金库……',
+  'home.how.step1.example': '2-of-3 多签 · 多签+时间锁 · 恢复密钥',
   'home.how.step2.title': '编写或搭建策略',
   'home.how.step2.desc': '用 Policy 语言描述规则，或在可视化画布上拖拽组合，实时看到 Miniscript 输出。',
   'home.how.step2.example': 'thresh(2,pk(A),pk(B),older(4320))',
@@ -79,6 +79,7 @@ export const zh: Record<string, string> = {
   'home.cta.subtitle': '在 Playground 里自由输入任意 Policy，或者用可视化构建器从零搭建。',
   'home.cta.playground': '打开空白 Playground',
   'home.cta.build': '用画布搭建策略',
+  'intro.applications.tryIt': '上手一试',
   'home.playground.desktopHint': 'Playground 建议在桌面端打开以获得完整体验。',
 
   // Builder

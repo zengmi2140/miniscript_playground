@@ -8,18 +8,30 @@ import { edgeTypes } from './PathEdge';
 import { NodeInternalsSync } from './NodeInternalsSync';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
+import { shouldMaskHtlcTeachingHash160 } from '@/lib/playground/htlc-display-mask';
 
 function PathMapInner() {
   const semanticTree = usePlaygroundStore((s) => s.semanticTree);
+  const activeScenarioId = usePlaygroundStore((s) => s.activeScenarioId);
   const availableKeys = usePlaygroundStore((s) => s.availableKeys);
   const availableHashes = usePlaygroundStore((s) => s.availableHashes);
   const currentTimeBlocks = usePlaygroundStore((s) => s.currentTimeBlocks);
   const { locale } = useI18n();
+  const maskHtlcTeachingHash160 = shouldMaskHtlcTeachingHash160(activeScenarioId);
 
   const { nodes, edges } = useMemo(() => {
     if (!semanticTree) return { nodes: [], edges: [] };
-    return treeToFlow(semanticTree, availableKeys, availableHashes, currentTimeBlocks, locale);
-  }, [semanticTree, availableKeys, availableHashes, currentTimeBlocks, locale]);
+    return treeToFlow(semanticTree, availableKeys, availableHashes, currentTimeBlocks, locale, {
+      maskHtlcTeachingHash160,
+    });
+  }, [
+    semanticTree,
+    availableKeys,
+    availableHashes,
+    currentTimeBlocks,
+    locale,
+    maskHtlcTeachingHash160,
+  ]);
 
   if (!semanticTree) return null;
 

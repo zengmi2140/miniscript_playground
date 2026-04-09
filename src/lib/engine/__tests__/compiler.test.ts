@@ -98,7 +98,7 @@ describe('compiler', () => {
     }
   });
 
-  it('compiles all 6 scenarios successfully', async () => {
+  it('compiles all preset scenarios successfully', async () => {
     for (const scenario of SCENARIOS) {
       const { result, error } = await compile(
         scenario.policy,

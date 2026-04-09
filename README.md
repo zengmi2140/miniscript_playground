@@ -12,7 +12,7 @@
 
 ## 功能特性
 
-- **场景画廊** — 6 个预设场景：个人单签、多签、2FA 双重验证、遗产继承、退化多签金库、保险柜
+- **场景画廊** — 8 个预设场景（另含「自己动手」）：2-of-3 多签、多签 + 时间锁定、恢复密钥（`recoverykey`）、退化多签金库、保险柜、原子交换 HTLC（`htlc-atomic`）、DLC 简化（`dlc-simple`）、批量支付（`batch-payment`）
 - **Playground** — 三栏 IDE，实时编译 Policy → Miniscript → Script → Descriptor → Address
 - **编译错误体验** — 中英文摘要、可展开原始错误与复制、分类与建议（hints）；启发式在 Policy 编辑器内标出可能问题区间（非 IDE 级精度）
 - **花费路径地图** — React Flow 可视化，节点颜色实时反映当前条件满足状态（framer-motion 300ms 过渡动画）
@@ -20,8 +20,9 @@
 - **GlossaryTooltip** — 悬停节点查看 `pk`、`older`、`after`、`sha256` 等操作符的双语解释
 - **双语支持** — 中文 / English 完整双语，一键切换
 - **分享链接** — 将 Policy、变量、模式等编码为 `?s=` 参数，一键复制分享；通过该链接可还原会话
-- **钱包支持** — 首页新增“已支持 Miniscript 的钱包”板块，展示软件钱包和硬件钱包的 Logo、名称和官网链接
-- **首页导航** — 顶部导航将原“场景”调整为“首页”/ Home
+- **钱包支持** — 首页与「介绍」页均展示「已支持 Miniscript 的钱包」板块（软件 / 硬件两组）
+- **首页** — Miniscript 通识长文（挑战与对比、核心概念与技术栈、应用场景与局限等）；Applications 内 **Try it / 上手一试**：有对应预设时跳转 `/playground?scenario=<id>`；`playgroundScenarioId` 为 `null` 时仅进入 `/playground`（详见 `src/components/intro/data.ts`）。「原子交换」卡片三列使用 `HEX` 占位表示 hash160；Playground 中栏与路径图见 `AGENTS.md` §8 / §10.13
+- **首页导航** — 顶栏：首页 / Playground / Resources（`nav.scenarios` 等 i18n）
 
 ## 技术栈
 
@@ -63,17 +64,21 @@ npm run dev
 
 ## 项目结构
 
-完整文件树与说明见 [`SPEC.md`](SPEC.md) §8.2；以下为简版：
+完整规格见 [`SPEC.md`](SPEC.md)；以下为简版：
 
 ```
 src/
 ├── app/                    # Next.js App Router 页面
-│   ├── page.tsx            # 首页
+│   ├── page.tsx            # 首页（通识长页）
+│   ├── intro/              # 旧 /intro 路由，重定向至 /
 │   ├── playground/         # Playground 页
+│   ├── resources/          # FAQ + 资源链接
 │   ├── compare/            # 对比页（Coming Soon）
 │   └── opengraph-image.tsx # 动态 OG 图片
 ├── components/
 │   ├── flow/               # React Flow 节点与路径图
+│   ├── home/               # 首页各区块（Hero、Wallets 等，介绍页复用部分）
+│   ├── intro/              # 介绍页各区块组件
 │   ├── layout/             # Header
 │   ├── playground/         # 三栏布局与各面板
 │   ├── results/            # 右侧结果标签页
@@ -84,6 +89,7 @@ src/
     ├── flow/               # tree-to-flow 转换
     ├── glossary/           # Miniscript 术语词典
     ├── i18n/               # 双语翻译文件
+    ├── playground/         # HTLC 展示遮蔽（htlc-display-mask）、add-next-key-variable 等
     ├── scenarios/          # 预设场景数据
     ├── stores/             # Zustand store
     └── utils/              # 工具函数（share, storage, time）

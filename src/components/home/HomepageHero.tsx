@@ -50,7 +50,7 @@ export function HomepageHero() {
 
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/#scenarios"
+                href="/#applications"
                 className="group inline-flex items-center justify-center gap-2 rounded-button bg-btc-500 px-5 py-2.5 text-sm font-semibold text-text-inverse transition-all hover:bg-btc-400"
               >
                 {t('home.hero.cta.primary')}

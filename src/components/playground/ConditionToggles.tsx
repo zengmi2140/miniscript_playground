@@ -5,11 +5,16 @@ import { Key, Hash, Check, X } from 'lucide-react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils/cn';
+import {
+  HTLC_TEACHING_HASH160_DIGEST,
+  shouldMaskHtlcTeachingHash160,
+} from '@/lib/playground/htlc-display-mask';
 
 export function ConditionToggles() {
   const { t } = useI18n();
+  const activeScenarioId = usePlaygroundStore((s) => s.activeScenarioId);
+  const maskHtlcHash = shouldMaskHtlcTeachingHash160(activeScenarioId);
   const semanticTree = usePlaygroundStore((s) => s.semanticTree);
-  const keyVariables = usePlaygroundStore((s) => s.keyVariables);
   const availableKeys = usePlaygroundStore((s) => s.availableKeys);
   const availableHashes = usePlaygroundStore((s) => s.availableHashes);
   const toggleKey = usePlaygroundStore((s) => s.toggleKey);
@@ -57,7 +62,10 @@ export function ConditionToggles() {
         })}
         {hashes.map((hash) => {
           const isOn = availableHashes.has(hash);
-          const shortHash = hash.slice(0, 8) + '...';
+          const shortHash =
+            maskHtlcHash && hash === HTLC_TEACHING_HASH160_DIGEST
+              ? 'HEX'
+              : hash.slice(0, 8) + '...';
           return (
             <button
               key={`hash-${hash}`}
