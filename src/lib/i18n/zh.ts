@@ -71,7 +71,7 @@ export const zh: Record<string, string> = {
 
   'home.wallets.label': '生态支持',
   'home.wallets.title': '已支持 Miniscript 的钱包',
-  'home.wallets.subtitle': '这些软件钱包和硬件钱包已原生支持 Miniscript，可直接用于管理复杂的花费条件。',
+  'home.wallets.subtitle': '以下钱包已原生支持 Miniscript，可用于管理复杂的花费条件。',
   'home.wallets.software': '软件钱包',
   'home.wallets.hardware': '硬件钱包',
 
