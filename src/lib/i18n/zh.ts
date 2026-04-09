@@ -236,15 +236,24 @@ export const zh: Record<string, string> = {
   'compare.feature.4': '导出 Markdown / JSON 报告',
 
   // Resources page
-  'resources.title': '资源',
-  'resources.subtitle': '整理 Miniscript 相关的工具、文档与精读文章，帮你理解比特币花费条件。',
   'resources.toolsDoc.title': '工具与文档',
-  'resources.toolsDoc.subtitle': '官方站点、参考实现、在线 Playground 与开发套件；在新标签页打开。',
+  'resources.toolsDoc.subtitle': '官方站点、参考实现、在线 Playground 与开发套件。',
   'resources.reading.title': '推荐阅读',
   'resources.reading.subtitle': '精选文章与深度阅读，持续更新。',
   'resources.reading.placeholder': '文章列表整理中，敬请期待。',
-  'resources.links.official.badge': '官方文档',
-  'resources.links.official.title': 'Official Miniscript',
+  'resources.reading.articles.bdkHidden.title': 'Miniscript 和描述符：比特币的隐藏力量',
+  'resources.reading.articles.bdkHidden.source': 'Bitcoin Dev Kit 博客',
+  'resources.reading.articles.nunchuk101.title': 'Miniscript 101：技术指南',
+  'resources.reading.articles.nunchuk101.source': 'Nunchuk',
+  'resources.reading.articles.bitboxP1.title': '理解比特币 Miniscript（一）：Script 何以难用',
+  'resources.reading.articles.bitboxP1.source': 'BitBox / Shift Crypto 博客',
+  'resources.reading.articles.bitboxP2.title': '理解比特币 Miniscript（二）：工作原理',
+  'resources.reading.articles.bitboxP2.source': 'BitBox / Shift Crypto 博客',
+  'resources.reading.articles.advancingBm.title':
+    'Miniscript：可组合、可分析、更智能的比特币脚本',
+  'resources.reading.articles.advancingBm.source': 'Advancing Bitcoin 2022 · BTC Transcripts',
+  'resources.links.official.badge': '参考文档',
+  'resources.links.official.title': 'Miniscript',
   'resources.links.official.desc':
     'Pieter Wuille 维护的 Miniscript 站点：语言说明、在线编译器与分析工具，含类型系统与常见用法。',
   'resources.links.rust.badge': '参考实现',
@@ -259,6 +268,14 @@ export const zh: Record<string, string> = {
   'resources.links.minsc.title': 'Minsc',
   'resources.links.minsc.desc':
     '基于 Miniscript Policy 的合约脚本语言，提供变量、函数与中缀运算符等语法糖；在线 WASM 编译器可生成 Policy、Miniscript、脚本与地址（测试网）。',
+  'resources.links.bdkPlayground.badge': '在线工具',
+  'resources.links.bdkPlayground.title': 'BDK Playground',
+  'resources.links.bdkPlayground.desc':
+    '浏览器内的 Policy 编译与描述符钱包实验台：可将策略中的别名映射到公钥、选择 P2SH / P2WSH 等脚本上下文，并用可视化或 Policy 文本编辑花费条件。',
+  'resources.links.miniscriptBuilder.badge': '在线工具',
+  'resources.links.miniscriptBuilder.title': 'Miniscript Builder',
+  'resources.links.miniscriptBuilder.desc':
+    '基于 WASM 与 rust-miniscript 的可视化节点编辑器（Rete.js），拖拽即可搭建 Policy。支持多网络与地址派生，可 JSON 导入导出，并用链接分享整图状态。',
   'resources.links.bdk.badge': '开发者工具',
   'resources.links.bdk.title': 'Bitcoin DevKit',
   'resources.links.bdk.desc':

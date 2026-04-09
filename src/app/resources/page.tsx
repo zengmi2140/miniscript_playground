@@ -2,6 +2,7 @@
 
 import { BookOpen, ExternalLink } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
+import { RECOMMENDED_READING_ARTICLES } from '@/lib/resources/recommended-reading';
 
 const RESOURCE_LINKS = [
   {
@@ -29,6 +30,18 @@ const RESOURCE_LINKS = [
     descKey: 'resources.links.minsc.desc',
   },
   {
+    href: 'https://bitcoindevkit.org/bdk-cli/playground/playground.html',
+    badgeKey: 'resources.links.bdkPlayground.badge',
+    titleKey: 'resources.links.bdkPlayground.title',
+    descKey: 'resources.links.bdkPlayground.desc',
+  },
+  {
+    href: 'https://miniscript.fun/',
+    badgeKey: 'resources.links.miniscriptBuilder.badge',
+    titleKey: 'resources.links.miniscriptBuilder.title',
+    descKey: 'resources.links.miniscriptBuilder.desc',
+  },
+  {
     href: 'https://bitcoindevkit.org/',
     badgeKey: 'resources.links.bdk.badge',
     titleKey: 'resources.links.bdk.title',
@@ -37,27 +50,11 @@ const RESOURCE_LINKS = [
   },
 ] as const;
 
-/** 在 zh.ts / en.ts 增加词条后在此追加；每条需 `titleKey`，可选 `descKey` */
-const RECOMMENDED_READING_ARTICLES: {
-  href: string;
-  titleKey: string;
-  descKey?: string;
-}[] = [];
-
 export default function ResourcesPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-12 md:py-16">
-      <div className="mb-12 text-center">
-        <h1 className="mb-3 text-balance text-2xl font-bold text-text-primary md:text-3xl">
-          {t('resources.title')}
-        </h1>
-        <p className="mx-auto max-w-xl text-pretty text-sm leading-relaxed text-text-secondary md:text-base">
-          {t('resources.subtitle')}
-        </p>
-      </div>
-
       {/* 工具与文档 */}
       <section className="mb-14">
         <div className="mb-6 text-center">
@@ -119,37 +116,45 @@ export default function ResourcesPage() {
           </p>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-border-subtle bg-surface-base">
-          {RECOMMENDED_READING_ARTICLES.length === 0 ? (
+        {RECOMMENDED_READING_ARTICLES.length === 0 ? (
+          <div className="overflow-hidden rounded-2xl border border-border-subtle bg-surface-base">
             <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-elevated">
                 <BookOpen className="h-6 w-6 text-text-muted" />
               </div>
               <p className="max-w-sm text-sm text-text-muted">{t('resources.reading.placeholder')}</p>
             </div>
-          ) : (
-            <ul className="divide-y divide-border-subtle">
-              {RECOMMENDED_READING_ARTICLES.map((article) => (
-                <li key={article.href}>
-                  <a
-                    href={article.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex flex-col gap-1 px-6 py-5 transition-colors hover:bg-surface-elevated"
+          </div>
+        ) : (
+          <ul className="space-y-3">
+            {RECOMMENDED_READING_ARTICLES.map((article, index) => (
+              <li key={article.titleKey}>
+                <a
+                  href={locale === 'zh' ? article.hrefZh : article.hrefEn}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex gap-3 rounded-xl border border-border-subtle bg-surface-base p-4 transition-all hover:border-btc-500/30 hover:bg-surface-elevated hover:shadow-sm md:gap-4 md:p-5"
+                >
+                  <span
+                    className="hidden w-7 shrink-0 pt-0.5 text-right font-mono text-[11px] text-text-muted/70 sm:block"
+                    aria-hidden
                   >
-                    <span className="flex items-start justify-between gap-3 text-[15px] font-medium text-text-primary">
-                      {t(article.titleKey)}
-                      <ExternalLink className="mt-0.5 h-4 w-4 flex-shrink-0 text-text-muted opacity-60 transition-opacity group-hover:opacity-100" />
-                    </span>
-                    {article.descKey ? (
-                      <p className="text-sm leading-relaxed text-text-secondary">{t(article.descKey)}</p>
-                    ) : null}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="text-pretty text-[15px] font-semibold leading-snug text-text-primary md:text-base">
+                        {t(article.titleKey)}
+                      </h3>
+                      <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-text-muted opacity-50 transition-opacity group-hover:text-btc-500 group-hover:opacity-100" />
+                    </div>
+                    <p className="mt-2 text-xs text-text-muted">{t(article.sourceKey)}</p>
+                  </div>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <footer className="mt-16 border-t border-border-subtle pt-8 text-center">
