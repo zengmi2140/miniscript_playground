@@ -28,11 +28,12 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
   },
   {
     title: '多签 + 时间锁定',
-    description: '需要 Alice 和 Bob 签名，或在 1000 块后 Charlie 可单独花费',
+    description:
+      '需要 Alice 与 Bob 共同签名协作花费，或在输出确认后再经过 1000 个区块，由 Charlie 单独花费',
     policy:
-      'or(\n  and(pk(Alice), pk(Bob)),\n  and(pk(Charlie), after(1000))\n)',
+      'or(\n  and(pk(Alice), pk(Bob)),\n  and(pk(Charlie), older(1000))\n)',
     miniscript:
-      'andor(\n  pk(Alice), pk(Bob),\n  and_v(v:pk(Charlie), after(1000))\n)',
+      'andor(\n  pk(Alice), pk(Bob),\n  and_v(v:pk(Charlie), older(1000))\n)',
     bitcoinScript:
       'OP_NOTIF\n  OP_DUP OP_HASH160 [hash_Bob]\n  OP_EQUALVERIFY OP_CHECKSIG\nOP_ELSE\n  [1000] OP_CHECKSEQUENCEVERIFY OP_DROP\n  [hash_Charlie] OP_EQUALVERIFY\n  OP_CHECKSIG\nOP_ENDIF',
     scriptSize: 'Policy ~80 字节 → Miniscript ~65 字节 → Bitcoin Script 54 字节',
@@ -43,10 +44,11 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
   },
   {
     title: '恢复密钥',
-    description: '正常情况用主密钥签名，紧急情况用恢复密钥（需要延迟）',
-    policy: 'or(\n  pk(Main),\n  and(pk(Recovery), after(10000))\n)',
+    description:
+      '日常用主密钥单独花费；紧急时在输出确认后再经过 10000 个区块，可用恢复密钥单独花费',
+    policy: 'or(\n  pk(Main),\n  and(pk(Recovery), older(10000))\n)',
     miniscript:
-      'andor(\n  pk(Recovery), after(10000),\n  pk(Main)\n)',
+      'andor(\n  pk(Recovery), older(10000),\n  pk(Main)\n)',
     bitcoinScript:
       'OP_NOTIF\n  [10000] OP_CHECKSEQUENCEVERIFY OP_DROP\n  [Recovery] OP_ELSE [Main] OP_ENDIF OP_CHECKSIG',
     scriptSize: 'Policy ~60 字节 → Miniscript ~50 字节 → Bitcoin Script 45 字节',
@@ -102,10 +104,11 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
   },
   {
     title: '批量支付',
-    description: '多个接收者或条件组合：需要多个条件链接',
-    policy: 'and(\n  or(pk(Alice), pk(Bob)),\n  or(pk(Charlie), after(500))\n)',
+    description:
+      '同时满足两组条件：Alice 或 Bob 二选一；Charlie 签名，或在输出确认后再经过 500 个区块',
+    policy: 'and(\n  or(pk(Alice), pk(Bob)),\n  or(pk(Charlie), older(500))\n)',
     miniscript:
-      'and_v(\n  v:or_c(pk(Alice), v:pk(Bob)),\n  or_d(pk(Charlie), after(500))\n)',
+      'and_v(\n  v:or_c(pk(Alice), v:pk(Bob)),\n  or_d(pk(Charlie), older(500))\n)',
     bitcoinScript:
       'OP_DUP OP_IF [Alice] OP_CHECKSIG OP_ELSE [Bob] OP_CHECKSIG OP_ENDIF OP_NOTIF [500] OP_CHECKSEQUENCEVERIFY OP_DROP [Charlie] OP_CHECKSIG OP_ENDIF',
     scriptSize: 'Policy ~85 字节 → Miniscript ~62 字节 → Bitcoin Script 52 字节',
