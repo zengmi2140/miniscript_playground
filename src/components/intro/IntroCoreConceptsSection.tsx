@@ -63,7 +63,7 @@ export function IntroCoreConceptsSection() {
                   核心特点
                 </p>
                 <ul className="space-y-2 text-sm text-text-secondary">
-                  <li>类型系统（V、F、d、u）</li>
+                  <li>类型系统（B、V、K、W 基础类型 + z、o、n、d、u 修饰符）</li>
                   <li>自动脚本优化</li>
                   <li>形式化属性验证</li>
                   <li>编译时安全检查</li>
@@ -97,7 +97,7 @@ export function IntroCoreConceptsSection() {
                   多签示例
                 </p>
                 <code className="break-all font-mono text-sm text-btc-500">
-                  wsh(multi(2,xpub[abcd1234/44h/0h/0h]xpub...,xpub[dcba4321/44h/0h/0h]xpub...))
+                  wsh(multi(2,[abcd1234/44h/0h/0h]xpub...,[dcba4321/44h/0h/0h]xpub...))
                 </code>
               </div>
               <div className="rounded-xl border border-border-default bg-surface-card p-6">
