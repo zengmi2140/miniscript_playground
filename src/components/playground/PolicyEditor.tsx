@@ -1,6 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  maskHash160DigestInPolicy,
+  shouldMaskHtlcTeachingHash160,
+  unmaskHash160DigestInPolicy,
+} from '@/lib/playground/htlc-display-mask';
 import { EditorView, keymap, placeholder as cmPlaceholder } from '@codemirror/view';
 import { Compartment, EditorState } from '@codemirror/state';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
@@ -46,7 +51,13 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const policy = usePlaygroundStore((s) => s.policy);
+  const activeScenarioId = usePlaygroundStore((s) => s.activeScenarioId);
   const setPolicy = usePlaygroundStore((s) => s.setPolicy);
+  const shouldMask = shouldMaskHtlcTeachingHash160(activeScenarioId);
+  const displayPolicy = useMemo(
+    () => (shouldMask ? maskHash160DigestInPolicy(policy) : policy),
+    [shouldMask, policy],
+  );
   const keyVariables = usePlaygroundStore((s) => s.keyVariables);
   const context = usePlaygroundStore((s) => s.context);
   const network = usePlaygroundStore((s) => s.network);
@@ -64,19 +75,25 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
   const onDocChange = useCallback(
     (newDoc: string) => {
       suppressSync.current = true;
-      setPolicy(newDoc);
+      const stored = shouldMask ? unmaskHash160DigestInPolicy(newDoc) : newDoc;
+      setPolicy(stored);
       requestAnimationFrame(() => {
         suppressSync.current = false;
       });
     },
-    [setPolicy],
+    [setPolicy, shouldMask],
   );
+
+  /** updateListener 只在挂载时注册一次，必须用 ref 指向最新的 onDocChange；否则会长期持有 shouldMask=false 的陈旧闭包，切换至 htlc-atomic 时误把 hash160(HEX) 写入 store。 */
+  const onDocChangeRef = useRef(onDocChange);
+  onDocChangeRef.current = onDocChange;
 
   useEffect(() => {
     if (!editorRef.current) return;
 
+    const initialDoc = shouldMask ? maskHash160DigestInPolicy(policy) : policy;
     const state = EditorState.create({
-      doc: policy,
+      doc: initialDoc,
       extensions: [
         lineNumbers(),
         history(),
@@ -84,7 +101,7 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
         cmPlaceholder(t('playground.editor.placeholder')),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
-            onDocChange(update.state.doc.toString());
+            onDocChangeRef.current(update.state.doc.toString());
           }
         }),
         EditorView.lineWrapping,
@@ -112,16 +129,16 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
     if (!view || suppressSync.current) return;
 
     const currentDoc = view.state.doc.toString();
-    if (currentDoc !== policy) {
+    if (currentDoc !== displayPolicy) {
       view.dispatch({
         changes: {
           from: 0,
           to: currentDoc.length,
-          insert: policy,
+          insert: displayPolicy,
         },
       });
     }
-  }, [policy]);
+  }, [displayPolicy]);
 
   useEffect(() => {
     const view = viewRef.current;
@@ -133,23 +150,24 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
         : compilationError?.highlight
           ? [compilationError.highlight]
           : undefined;
-    const ranges = clampHighlightsToDoc(rawRanges, len);
+    // 遮蔽 HEX 时编辑器 doc 与编译所用 policy 长度不一致，错误区间无法对齐，暂不画行内高亮
+    const ranges =
+      shouldMask || !rawRanges ? null : clampHighlightsToDoc(rawRanges, len);
     view.dispatch({
       effects: highlightCompartment.reconfigure(
-        buildErrorHighlightExtensions(ranges.length ? ranges : null),
+        buildErrorHighlightExtensions(ranges?.length ? ranges : null),
       ),
     });
-  }, [compilationError, highlightCompartment, policy]);
+  }, [compilationError, highlightCompartment, policy, shouldMask]);
 
   const handleFormat = useCallback(() => {
     const view = viewRef.current;
     if (!view) return;
-    const formatted = formatPolicy(view.state.doc.toString());
-    view.dispatch({
-      changes: { from: 0, to: view.state.doc.length, insert: formatted },
-    });
+    const display = view.state.doc.toString();
+    const stored = shouldMask ? unmaskHash160DigestInPolicy(display) : display;
+    const formatted = formatPolicy(stored);
     setPolicy(formatted);
-  }, [setPolicy]);
+  }, [setPolicy, shouldMask]);
 
   const handleClear = useCallback(() => {
     const view = viewRef.current;

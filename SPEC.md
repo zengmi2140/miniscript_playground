@@ -60,13 +60,13 @@
 固定在页面顶部，高度 56px。
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│  ₿ Miniscript Lab    [首页]  [Playground]  [Resource 资源]  中/EN │
-└──────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────┐
+│  ₿ Miniscript Lab   [首页] [Playground] [Resource 资源]           中/EN │
+└────────────────────────────────────────────────────────────────────────────┘
 ```
 
 - Logo: `₿` 符号 + "Miniscript Lab" 文字，点击回首页
-- 导航项：**首页**（`/`）、Playground、Resource 资源（`/resources`）
+- 导航项：**首页**（`/`）、Playground（`/playground`）、Resource 资源（`/resources`）
 - 右侧：语言切换（中/EN）、主题切换（日/月图标）
 
 ### 2.2 页面结构
@@ -74,9 +74,11 @@
 
 | 路由                       | 页面               | 描述                        |
 | ------------------------ | ---------------- | ------------------------- |
-| `/`                      | 首页               | 产品着陆页与场景入口                 |
-| `/playground`            | Playground       | 三栏工作台 + 底部抽屉              |
+| `/`                      | 首页               | 产品着陆：Miniscript 通识长页（见 §3.1） |
+| `/intro`                 | 重定向             | **永久**重定向至 `/`（兼容旧书签与外链） |
+| `/playground`            | Playground       | 三栏工作台 + 底部抽屉；**预设场景**从左栏进入（`ScenarioGallery` 仅在 Playground 内使用） |
 | `/playground?s=<base64>` | Playground（分享链接） | 从 URL 恢复状态                |
+| `/playground?scenario=<id>` | Playground（预设场景） | 打开指定预设场景（与左栏 `SCENARIOS` 的 `id` 一致） |
 | `/resources`             | Resource 资源      | FAQ + 外部资源链接（原 `/compare`） |
 | `/compare`               | 对比模式（V2，保留路由）    | 双面板 diff，暂未实现             |
 
@@ -87,17 +89,25 @@
 
 ### 3.1 首页（`/`）
 
-产品着陆页：顶部 `Header`、Hero（「把 Bitcoin 的花费条件讲清楚」）、Miniscript 科普区（三卡片对比传统 Script / Policy）、使命区「我们为什么做这个」、「三步理解」流程、核心能力 2×2、**钱包支持区**（已支持 Miniscript 的软件钱包与硬件钱包列表）、**场景库**（6 张场景卡片）、底部 CTA；另有「或者自己写」入口。实现：`src/app/page.tsx`（Server Component）；组件：`HomepageHero`、`HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageFeatures`、`HomepageHowItWorks`、`HomepageWallets`、`ScenarioGallery`。i18n：`home.hero.*`、`home.explainer.*`、`home.how.*`、`home.features.*`、`home.wallets.*`、`home.cta.*`。
+产品着陆页：顶部 `Header`、`HomepageHero`（「把 Bitcoin 的花费条件讲清楚」）、Miniscript 通识区块（`src/components/intro/*`：The Challenge、Core Concepts 含 Technical Stack、Applications、Limitations & Tradeoffs、Why Miniscript Matters）、**钱包支持区**（`HomepageWallets`）、底部双按钮 CTA、全站 footer。实现：`src/app/page.tsx`（`'use client'`）。
 
-**场景卡片**：顶色条 4px（语义色）、Lucide 图标 32px、标题、一句话描述、条件类型 tag；桌面 3 列 / 平板 2 列 / 手机 1 列；hover 上移 + 阴影；点击 `/playground?scenario=<id>`。
+**Hero 主 CTA**：主按钮锚点 `/#applications`（滚动至 Applications 区块）；次按钮进入 `/playground`。
 
-**钱包支持区**：展示当前已支持 Miniscript 的钱包生态，分为软件钱包与硬件钱包两组；每项包含 Logo、名称与官网链接，点击外链在新标签页打开。该区块位于核心功能之后、场景库之前，作为“生态支持”信息补充。
+**Applications**：多场景标签切换 + Policy / Miniscript / Script 三层示例；各场景标题旁 **「上手一试」/ `Try it`**（`intro.applications.tryIt`）。数据在 `src/components/intro/data.ts`：`playgroundScenarioId` 为字符串时跳转 `/playground?scenario=<id>`（`<id>` 须为 `src/lib/scenarios/data.ts` 中 `SCENARIOS[].id`）；为 `null` 时链接为 `/playground`（无预设加载）。示例顺序前两条为「多重签名」「多签 + 时间锁定」，第三条「恢复密钥」与预设 `recoverykey`（左栏展示为「恢复密钥」，`or(pk(Main),and(pk(Recovery),after(10000)))`）同一 Policy。另有 **原子交换 / DLC / 批量支付** 等卡片与预设 `htlc-atomic`、`dlc-simple`、`batch-payment` 对齐。**「原子交换」** 卡片三列 Policy / Miniscript / Script 使用 **`HEX`** 表示 hash160 摘要占位（非具体 hex）；Playground 中栏与路径图见 `AGENTS.md` §8 / §10.13，右栏技术输出仍为真实摘要。
 
-**导航文案**：首页对应导航项由「场景」调整为「首页」，并同步中英文词条（`nav.scenarios` → 首页 / Home）。
+**Playground 左栏预设 `SCENARIOS`**（不含「自己动手」）当前 **8** 条：`multisig-2of3`（2-of-3 多签）、`multisig-or-timelock`（多签 + 时间锁定）、`recoverykey`（**恢复密钥**，`Main`/`Recovery` + `after(10000)`）、`degrading-multisig`（退化多签金库）、`vault-hot-cold`（保险柜）、`htlc-atomic`（原子交换 HTLC，固定教学 hash160）、`dlc-simple`（DLC 简化，纯 `pk` + `Oracle_A`/`Oracle_B`）、`batch-payment`（批量支付，Alice/Bob/Charlie + `after`）。**已移除**预设：`single-key`（个人单签）、`2fa-recovery`（2FA + 超时恢复）。**历史**：该预设曾使用 `id`：`inheritance`，已改为 `recoverykey`；旧链接 `?scenario=inheritance` 不再加载此预设。退化金库与保险柜仅在 Playground 左栏提供，**不在**首页 Applications 七条卡片中。首页七条里 **「支付通道」** 无对应预设（`playgroundScenarioId: null`）；其余六条与预设 `multisig-2of3`、`multisig-or-timelock`、`recoverykey`、`htlc-atomic`、`dlc-simple`、`batch-payment` 对齐（详见 `src/components/intro/data.ts`）。
+
+**不含**：首页不再展示旧版「科普区 / 使命 / 三步 / 功能」与 **首页场景卡片**（`ScenarioGallery` 仍用于 **Playground 左栏** 场景选择）。
 
 **预加载**：`requestIdleCallback` 预热 Playground 相关模块（三栏、画布、编译器），减少进入 `/playground` 的等待。
 
 **窄屏**：`md` 以下 Hero 与底部 CTA 展示 `home.playground.desktopHint`，与 Playground 内说明一致（桌面优先）。
+
+**i18n**：`home.hero.*`、`home.wallets.*`、`home.cta.*`、`intro.applications.tryIt`；Intro 长文正文目前以组件内中文为主。
+
+#### 旧路由 `/intro`（重定向）
+
+访问 `/intro` **重定向至 `/`**（`src/app/intro/page.tsx`），兼容旧书签与外链。
 
 ### 3.1b Resource 资源页（`/resources`）
 
@@ -119,8 +129,6 @@
 **Resource 资源区域**：预留外部链接区域，初始显示占位提示文字（`resources.links.placeholder`），后续由维护者填充相关工具、规范、教程的外部链接。
 
 实现：`src/app/resources/page.tsx`（`'use client'` 组件，增强的 `renderAnswer()` 函数支持富文本解析）。i18n：`resources.*`（含 `resources.faq.*` 共 66 个词条、`resources.links.*` 共 4 个词条、`resources.faq.section.*` 共 4 个小节标题）。风格遵循设计系统，使用 `surface-base`/`surface-elevated`/`btc-500` 等语义 token，`rounded-2xl` 卡片，折叠区域 `ChevronDown` 旋转动画。
-
-
 
 这是产品的核心页面。
 
