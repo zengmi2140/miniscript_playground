@@ -76,8 +76,8 @@ export const en: Record<string, string> = {
   'home.wallets.hardware': 'Hardware Wallets',
 
   'home.cta.title': 'Ready to Design Your Own?',
-  'home.cta.subtitle': 'Open the Playground to write any Policy freely, or use the visual builder to compose from scratch.',
-  'home.cta.playground': 'Open Blank Playground',
+  'home.cta.subtitle':
+    'Use the visual canvas in the Playground to compose a policy and see Policy, Miniscript, and spending paths in real time.',
   'home.cta.build': 'Build with Canvas',
   'intro.applications.tryIt': 'Try it',
   'home.playground.desktopHint': 'For the full experience, open the Playground on a desktop or larger screen.',

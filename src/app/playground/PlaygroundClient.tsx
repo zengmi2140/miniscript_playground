@@ -61,6 +61,7 @@ function DesktopPlayground() {
   const searchParams = useSearchParams();
   const loadScenario = usePlaygroundStore((s) => s.loadScenario);
   const restoreSession = usePlaygroundStore((s) => s.restoreSession);
+  const enterBuildMode = usePlaygroundStore((s) => s.enterBuildMode);
   const activeScenarioId = usePlaygroundStore((s) => s.activeScenarioId);
   const initialized = useRef(false);
 
@@ -85,6 +86,8 @@ function DesktopPlayground() {
     const scenarioId = searchParams.get('scenario');
     if (scenarioId) {
       loadScenario(scenarioId);
+    } else if (searchParams.get('mode') === 'build') {
+      enterBuildMode();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

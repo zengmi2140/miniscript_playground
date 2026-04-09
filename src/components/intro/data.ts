@@ -88,21 +88,6 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
     playgroundScenarioId: 'dlc-simple',
   },
   {
-    title: '支付通道',
-    description: '链下支付：双方同意或单方面关闭后延迟',
-    policy:
-      'or(\n  thresh(2, pk(Alice), pk(Bob)),\n  and(pk(Alice), older(1000))\n)',
-    miniscript:
-      'or_b(\n  multi(2, pk(Alice), pk(Bob)),\n  and_v(v:pk(Alice), older(1000))\n)',
-    bitcoinScript:
-      'OP_NOTIF\n  [1000] OP_CHECKSEQUENCEVERIFY OP_DROP\n  [Alice] OP_CHECKSIG\nOP_ELSE\n  OP_2 [Alice] [Bob] OP_2 OP_CHECKMULTISIG\nOP_ENDIF',
-    scriptSize: 'Policy ~75 字节 → Miniscript ~58 字节 → Bitcoin Script 48 字节',
-    applicationType: '链下支付通道',
-    realCase: '闪电网络、Stacking、支付处理器',
-    advantage: '几乎无限的链下交易，定期链上结算',
-    playgroundScenarioId: null,
-  },
-  {
     title: '批量支付',
     description:
       '同时满足两组条件：Alice 或 Bob 二选一；Charlie 签名，或在输出确认后再经过 500 个区块',
@@ -119,7 +104,7 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
   },
 ];
 
-/** Preset ids in the same order as `INTRO_APPLICATION_EXAMPLES`（跳过无预设的卡片，如「支付通道」）— Playground 左栏场景列表与之对齐。 */
+/** Preset ids in the same order as `INTRO_APPLICATION_EXAMPLES` — 与首页 Applications 标签顺序一致，供 Playground 左栏对齐。 */
 export const APPLICATION_PLAYGROUND_SCENARIO_IDS: string[] =
   INTRO_APPLICATION_EXAMPLES.map((ex) => ex.playgroundScenarioId).filter(
     (id): id is string => id != null,

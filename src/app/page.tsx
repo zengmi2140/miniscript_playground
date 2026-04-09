@@ -60,20 +60,13 @@ export default function HomePage() {
           <p className="mb-8 text-sm text-text-secondary md:text-base">
             {t('home.cta.subtitle')}
           </p>
-          <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <Link
-              href="/playground"
-              className="group inline-flex items-center gap-2 rounded-button bg-btc-500 px-6 py-3 text-sm font-semibold text-text-inverse transition-all hover:bg-btc-400"
-            >
-              {t('home.cta.playground')}
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
+          <div className="flex justify-center">
             <Link
               href="/playground?mode=build"
-              className="group inline-flex items-center gap-2 rounded-button border border-border-default bg-surface-elevated px-6 py-3 text-sm font-medium text-text-primary transition-all hover:border-border-hover hover:bg-surface-overlay"
+              className="group inline-flex items-center gap-2 rounded-button bg-btc-500 px-6 py-3 text-sm font-semibold text-text-inverse transition-all hover:bg-btc-400"
             >
               {t('home.cta.build')}
-              <ArrowRight className="h-4 w-4 text-text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-text-primary" />
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
           <p className="mt-4 text-xs leading-relaxed text-text-muted md:hidden">
