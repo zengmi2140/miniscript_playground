@@ -89,7 +89,7 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
     title: '支付通道',
     description: '链下支付：双方同意或单方面关闭后延迟',
     policy:
-      'or(\n  thresh(2, pk(Alice), pk(Bob)),\n  and(pk(Alice), after(1000))\n)',
+      'or(\n  thresh(2, pk(Alice), pk(Bob)),\n  and(pk(Alice), older(1000))\n)',
     miniscript:
       'or_b(\n  multi(2, pk(Alice), pk(Bob)),\n  and_v(v:pk(Alice), older(1000))\n)',
     bitcoinScript:
