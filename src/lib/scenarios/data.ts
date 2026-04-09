@@ -116,10 +116,10 @@ export const SCENARIOS: Scenario[] = [
       en: 'Hashlock path or timeout refund; digest is a fixed teaching value.',
     },
     explanation: {
-      zh: '演示 HTLC：`hash160(<20 字节摘要 hex>)` 与 `older(20160)`（约 2 周）二选一。摘要为固定测试值，不输入原像。中栏 Policy 与路径图等对摘要以 `HEX` 占位展示，右栏 Tab 为完整 hex。与首页 Applications「原子交换」一致。',
-      en: 'HTLC demo: `hash160(<20-byte digest hex>)` vs `older(20160)` (~2 weeks). Fixed digest for teaching; no preimage entry. The policy editor and path map show the digest as `HEX`; the right panel tabs show the full hex. Matches the Applications “Atomic Swap” card.',
+      zh: '演示 HTLC：`hash160(<20 字节摘要 hex>)` 与 `older(2016)`（约 2 周）二选一。摘要为固定测试值，不输入原像。中栏 Policy 与路径图等对摘要以 `HEX` 占位展示，右栏 Tab 为完整 hex。与首页 Applications「原子交换」一致。',
+      en: 'HTLC demo: `hash160(<20-byte digest hex>)` vs `older(2016)` (~2 weeks). Fixed digest for teaching; no preimage entry. The policy editor and path map show the digest as `HEX`; the right panel tabs show the full hex. Matches the Applications “Atomic Swap” card.',
     },
-    policy: `or(and(pk(Alice),hash160(${HTLC_TEACHING_HASH160_DIGEST})),and(pk(Bob),older(20160)))`,
+    policy: `or(and(pk(Alice),hash160(${HTLC_TEACHING_HASH160_DIGEST})),and(pk(Bob),older(2016)))`,
     keyVariables: [kv('Alice'), kv('Bob')],
     context: 'wsh',
   },
