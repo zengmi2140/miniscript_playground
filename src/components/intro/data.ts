@@ -61,11 +61,11 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
     title: '原子交换（HTLC）',
     description: '哈希时间锁合约： preimage 路径或约 2 周相对时间锁退款',
     policy:
-      'or(\n  and(pk(Alice), hash160(HEX)),\n  and(pk(Bob), older(20160))\n)',
+      'or(\n  and(pk(Alice), hash160(HEX)),\n  and(pk(Bob), older(2016))\n)',
     miniscript:
-      'andor(\n  pk(Alice), hash160(HEX),\n  and_v(v:pk(Bob), older(20160))\n)',
+      'andor(\n  pk(Alice), hash160(HEX),\n  and_v(v:pk(Bob), older(2016))\n)',
     bitcoinScript:
-      'OP_IF\n  OP_HASH160 [HEX] OP_EQUALVERIFY\n  [Alice] OP_CHECKSIG\nOP_ELSE\n  [20160] OP_CHECKSEQUENCEVERIFY OP_DROP\n  [Bob] OP_CHECKSIG\nOP_ENDIF',
+      'OP_IF\n  OP_HASH160 [HEX] OP_EQUALVERIFY\n  [Alice] OP_CHECKSIG\nOP_ELSE\n  [2016] OP_CHECKSEQUENCEVERIFY OP_DROP\n  [Bob] OP_CHECKSIG\nOP_ENDIF',
     scriptSize: 'Policy ~90 字节 → Miniscript ~68 字节 → Bitcoin Script 56 字节',
     applicationType: '哈希时间锁合约（HTLC）',
     realCase: '闪电网络跨链原子交换、去中心化交易',

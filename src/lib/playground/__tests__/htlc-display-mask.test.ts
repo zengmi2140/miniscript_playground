@@ -7,7 +7,7 @@ import {
 } from '../htlc-display-mask';
 
 describe('htlc-display-mask', () => {
-  const samplePolicy = `or(and(pk(Alice),hash160(${HTLC_TEACHING_HASH160_DIGEST})),and(pk(Bob),older(20160)))`;
+  const samplePolicy = `or(and(pk(Alice),hash160(${HTLC_TEACHING_HASH160_DIGEST})),and(pk(Bob),older(2016)))`;
 
   it('round-trips mask / unmask', () => {
     const masked = maskHash160DigestInPolicy(samplePolicy);

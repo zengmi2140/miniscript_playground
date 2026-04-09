@@ -16,7 +16,7 @@ export function IntroLimitationsSection() {
               <div className="border-b border-border-subtle pb-4">
                 <p className="mb-2 font-medium text-text-primary">脚本大小上限</p>
                 <p className="text-sm text-text-muted">
-                  Bitcoin 对脚本大小有限制（10 KB），复杂的策略可能会超出。
+                  Bitcoin 对脚本大小有限制（P2WSH 为 10,000 字节，P2SH 为 520 字节），复杂的策略可能会超出。
                 </p>
               </div>
               <div className="border-b border-border-subtle pb-4">
@@ -28,7 +28,7 @@ export function IntroLimitationsSection() {
               <div className="border-b border-border-subtle pb-4">
                 <p className="mb-2 font-medium text-text-primary">操作码数量</p>
                 <p className="text-sm text-text-muted">
-                  单个脚本最多 201 个操作码（OP_CHECKMULTISIG 不计）。
+                  执行时非推送操作码数量加上多签密钥数量之和不能超过 201。
                 </p>
               </div>
               <div>
