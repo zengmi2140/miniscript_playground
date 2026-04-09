@@ -4,15 +4,15 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
-import { ScenarioGallery } from '@/components/scenarios/ScenarioGallery';
 import { HomepageHero } from '@/components/home/HomepageHero';
-import { HomepageMiniscriptExplainer } from '@/components/home/HomepageMiniscriptExplainer';
-import { HomepageMission } from '@/components/home/HomepageMission';
-import { HomepageFeatures } from '@/components/home/HomepageFeatures';
-import { HomepageHowItWorks } from '@/components/home/HomepageHowItWorks';
 import { HomepageWallets } from '@/components/home/HomepageWallets';
+import { IntroChallengeSection } from '@/components/intro/IntroChallengeSection';
+import { IntroCoreConceptsSection } from '@/components/intro/IntroCoreConceptsSection';
+import { IntroApplicationsSection } from '@/components/intro/IntroApplicationsSection';
+import { IntroLimitationsSection } from '@/components/intro/IntroLimitationsSection';
+import { IntroWhyMattersSection } from '@/components/intro/IntroWhyMattersSection';
 
-export default function ScenariosPage() {
+export default function HomePage() {
   const { t } = useI18n();
 
   useEffect(() => {
@@ -44,27 +44,13 @@ export default function ScenariosPage() {
   return (
     <div className="w-full">
       <HomepageHero />
-      <HomepageMiniscriptExplainer />
-      <HomepageMission />
-      <HomepageHowItWorks />
-      <HomepageFeatures />
+      <IntroChallengeSection />
+      <IntroCoreConceptsSection />
+      <IntroApplicationsSection />
+      <IntroLimitationsSection />
+      <IntroWhyMattersSection />
 
       <HomepageWallets />
-
-      <section id="scenarios" className="mx-auto w-full max-w-5xl px-4 py-12 md:py-16">
-        <div className="mb-8 text-center md:mb-10">
-          <span className="mb-3 inline-block rounded-full border border-btc-500/20 bg-btc-500/10 px-3 py-1 text-xs font-medium text-btc-500">
-            {t('home.scenarios.label')}
-          </span>
-          <h2 className="mb-3 text-2xl font-bold text-text-primary md:text-3xl">
-            {t('home.scenarios.title')}
-          </h2>
-          <p className="text-sm text-text-secondary md:text-base">
-            {t('home.scenarios.subtitle')}
-          </p>
-        </div>
-        <ScenarioGallery />
-      </section>
 
       <section className="border-t border-border-subtle bg-surface-card py-12 md:py-16">
         <div className="mx-auto max-w-5xl px-4 text-center">

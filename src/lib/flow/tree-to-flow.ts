@@ -2,6 +2,7 @@ import dagre from 'dagre';
 import type { Node, Edge } from '@xyflow/react';
 import type { MiniscriptNode } from '@/lib/engine/types';
 import { blocksToHumanLocale, afterToHumanLocale } from '@/lib/engine/time-utils';
+import { HTLC_TEACHING_HASH160_DIGEST } from '@/lib/playground/htlc-display-mask';
 
 export type FlowNodeType = 'root' | 'operator' | 'condition';
 
@@ -81,7 +82,11 @@ function getCompositeStatus(childStatuses: ('satisfied' | 'pending' | 'missing')
   return 'missing';
 }
 
-function conditionLabel(node: MiniscriptNode, locale: 'zh' | 'en'): string {
+function conditionLabel(
+  node: MiniscriptNode,
+  locale: 'zh' | 'en',
+  maskHtlcTeachingHash160: boolean,
+): string {
   switch (node.type) {
     case 'key':
       return node.name;
@@ -90,6 +95,13 @@ function conditionLabel(node: MiniscriptNode, locale: 'zh' | 'en'): string {
     case 'after':
       return afterToHumanLocale(node.value, locale);
     case 'hash':
+      if (
+        maskHtlcTeachingHash160 &&
+        node.hashType === 'hash160' &&
+        node.hash === HTLC_TEACHING_HASH160_DIGEST
+      ) {
+        return 'hash160(HEX)';
+      }
       return `${node.hashType}(${node.hash.slice(0, 8)}...)`;
     case 'multi':
       return `${node.k}-of-${node.keys.length}`;
@@ -146,6 +158,7 @@ function buildGraph(
   availableHashes: Set<string>,
   currentTimeBlocks: number,
   locale: 'zh' | 'en',
+  maskHtlcTeachingHash160: boolean,
   parentId?: string,
   relation?: 'and' | 'or' | 'threshold',
 ): BuildResult {
@@ -234,7 +247,7 @@ function buildGraph(
   if (isLeaf) {
     const id = nextId();
     const status = getConditionStatus(msNode, availableKeys, availableHashes, currentTimeBlocks);
-    const label = conditionLabel(msNode, locale);
+    const label = conditionLabel(msNode, locale, maskHtlcTeachingHash160);
     const condSize = NODE_SIZES.condition;
     nodes.push({
       id,
@@ -296,7 +309,18 @@ function buildGraph(
 
     const childStatuses: ('satisfied' | 'pending' | 'missing')[] = [];
     for (const child of msNode.children) {
-      const result = buildGraph(child, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, locale, id, opType);
+      const result = buildGraph(
+        child,
+        nodes,
+        edges,
+        availableKeys,
+        availableHashes,
+        currentTimeBlocks,
+        locale,
+        maskHtlcTeachingHash160,
+        id,
+        opType,
+      );
       childStatuses.push(result.status);
     }
 
@@ -341,7 +365,18 @@ function buildGraph(
 
     const childStatuses: ('satisfied' | 'pending' | 'missing')[] = [];
     for (const child of msNode.children) {
-      const result = buildGraph(child, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, locale, id, 'threshold');
+      const result = buildGraph(
+        child,
+        nodes,
+        edges,
+        availableKeys,
+        availableHashes,
+        currentTimeBlocks,
+        locale,
+        maskHtlcTeachingHash160,
+        id,
+        'threshold',
+      );
       childStatuses.push(result.status);
     }
 
@@ -413,11 +448,13 @@ export function treeToFlow(
   availableHashes: Set<string>,
   currentTimeBlocks: number,
   locale: 'zh' | 'en' = 'zh',
+  options?: { maskHtlcTeachingHash160?: boolean },
 ): { nodes: Node<FlowNodeData>[]; edges: Edge<FlowEdgeData>[] } {
   nodeIdCounter = 0;
 
   const nodes: Node<FlowNodeData>[] = [];
   const edges: Edge<FlowEdgeData>[] = [];
+  const maskHtlcTeachingHash160 = options?.maskHtlcTeachingHash160 ?? false;
 
   const isLeafTree =
     tree.type === 'key' ||
@@ -428,7 +465,16 @@ export function treeToFlow(
     tree.type === 'just_0';
 
   if (isLeafTree) {
-    buildGraph(tree, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, locale);
+    buildGraph(
+      tree,
+      nodes,
+      edges,
+      availableKeys,
+      availableHashes,
+      currentTimeBlocks,
+      locale,
+      maskHtlcTeachingHash160,
+    );
   } else if (tree.type === 'and' || tree.type === 'or') {
     const rootId = nextId();
     const rootSize = NODE_SIZES.root;
@@ -448,7 +494,18 @@ export function treeToFlow(
 
     const childStatuses: ('satisfied' | 'pending' | 'missing')[] = [];
     for (const child of tree.children) {
-      const result = buildGraph(child, nodes, edges, availableKeys, availableHashes, currentTimeBlocks, locale, rootId, tree.type);
+      const result = buildGraph(
+        child,
+        nodes,
+        edges,
+        availableKeys,
+        availableHashes,
+        currentTimeBlocks,
+        locale,
+        maskHtlcTeachingHash160,
+        rootId,
+        tree.type,
+      );
       childStatuses.push(result.status);
     }
     const compositeStatus = getCompositeStatus(childStatuses, tree.type);
@@ -480,6 +537,7 @@ export function treeToFlow(
         availableHashes,
         currentTimeBlocks,
         locale,
+        maskHtlcTeachingHash160,
         rootId,
         'threshold',
       );
