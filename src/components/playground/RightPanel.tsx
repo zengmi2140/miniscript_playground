@@ -14,7 +14,6 @@ import { MiniscriptTab } from '@/components/results/MiniscriptTab';
 import { ScriptTab } from '@/components/results/ScriptTab';
 import { DescriptorTab } from '@/components/results/DescriptorTab';
 import { AddressTab } from '@/components/results/AddressTab';
-import { WarningsTab } from '@/components/results/WarningsTab';
 import type { ResultTab } from '@/lib/engine/types';
 
 type SecondaryTab = Exclude<ResultTab, 'paths'>;
@@ -31,7 +30,6 @@ const SECONDARY_TABS: TabDef[] = [
   { key: 'script', i18nKey: 'playground.results.script' },
   { key: 'descriptor', i18nKey: 'playground.results.descriptor', glossaryKey: 'descriptor' },
   { key: 'address', i18nKey: 'playground.results.address' },
-  { key: 'warnings', i18nKey: 'playground.results.warnings' },
 ];
 
 const TAB_COMPONENTS: Record<SecondaryTab, React.FC> = {
@@ -40,7 +38,6 @@ const TAB_COMPONENTS: Record<SecondaryTab, React.FC> = {
   script: ScriptTab,
   descriptor: DescriptorTab,
   address: AddressTab,
-  warnings: WarningsTab,
 };
 
 const MIN_TOP_HEIGHT = 100;
@@ -185,7 +182,7 @@ export function RightPanel() {
               )}
             >
               <span className="min-w-0 flex-1 truncate">{t(tab.i18nKey)}</span>
-              {isStale && secondaryTab === tab.key && tab.key !== 'warnings' && (
+              {isStale && secondaryTab === tab.key && (
                 <span className="flex-shrink-0 text-[10px] text-text-muted">
                   ({t('playground.results.stale')})
                 </span>
