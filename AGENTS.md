@@ -49,7 +49,7 @@ npm run test
 - `/`（首页：Miniscript 通识着陆 + 钱包区 + CTA）
   - 入口：`src/app/page.tsx`（`'use client'`）
   - **顺序**：`HomepageHero` → `IntroChallengeSection` → `IntroCoreConceptsSection` → `IntroApplicationsSection` → `IntroLimitationsSection` → `IntroWhyMattersSection` → `HomepageWallets` → Bottom CTA + footer（组件见 `src/components/intro/*`）
-  - **不再使用于首页**：`HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageHowItWorks`、`HomepageFeatures`、`ScenarioGallery`（`ScenarioGallery` 仍用于 **Playground 左栏**）
+  - **不再使用于首页**：`HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageHowItWorks`、`HomepageFeatures`、`ScenarioGallery`（Playground 左栏场景列表由 `LeftPanel` 实现；`ScenarioGallery` 保留在仓库，当前未挂载）
   - **首页预加载**：`requestIdleCallback` 预热 Playground 相关模块，减少进入 `/playground` 的等待
   - **窄屏提示**：`md` 以下在 Hero 与底部 CTA 展示 `home.playground.desktopHint`，与 `/playground` 的 `MobileFallback` 一致（桌面优先）
 
@@ -178,7 +178,7 @@ src/
 - `src/lib/engine/path-analyzer.ts`
   - 从 `satisfier()` 的 ASM、`nSequence`、`nLockTime` 推导 `SpendingPath`。
   - 输出签名、相对时间锁、绝对时间锁、哈希锁等条件。
-  - UI 的 `Paths`、`Warnings`、`StatusBanner` 都依赖这份结构化结果。
+  - UI 的 `Paths`（右栏上部路径列表）、`StatusBanner`（中栏结论横幅）都依赖这份结构化结果。
 
 ### 分享与会话存储
 
@@ -194,6 +194,8 @@ src/
 
 - `src/components/playground/LeftPanel.tsx`
   - 预设场景列表；首项为 **「自己动手」** 入口，点击进入 `enterBuildMode()`（`build` 模式）
+  - 场景顺序与首页 Applications 一致：`SCENARIOS` 经 `sortScenariosForPlayground()`（`src/lib/scenarios/playground-order.ts`）排序，依据 `APPLICATION_PLAYGROUND_SCENARIO_IDS`（`src/components/intro/data.ts`，由 `INTRO_APPLICATION_EXAMPLES` 中有 `playgroundScenarioId` 的卡片顺序导出）。**未**出现在 Applications 的预设（如 `degrading-multisig`、`vault-hot-cold`）排在列表末尾。
+  - 「自己动手」下方的预设卡片列表使用有限高度 + `overflow-y-auto`，首屏约可见 **6** 条预设（随视口略变），其余需在该区域内滚动查看，或通过首页 Applications / `?scenario=` 直达。
   - Key 变量管理
   - Context / Network 选择
 
@@ -232,7 +234,7 @@ src/
   - 上部：花费路径（始终展示，非 Tab），标题区域有 `ExplainPopover` 解释按钮。
   - 中间：可拖拽分割条（调节上下区域高度）。
   - 下部：技术细节面板，布局为「左侧垂直 Tab 导航（约 100px 宽）+ 右侧内容区」：
-    - 左列导航只显示文字标签（policy / miniscript / script / descriptor / address / warnings），当前选中项用左侧竖线 + 浅色背景 + 加粗文字高亮。
+    - 左列导航只显示文字标签（policy / miniscript / script / descriptor / address），当前选中项用左侧竖线 + 浅色背景 + 加粗文字高亮。
     - 右列内容区根据当前 Tab 渲染对应组件（统一在 `src/components/results/*Tab.tsx` 中）。
     - **右栏所有 Tab 统一为「可复制的真实输出」**：Policy Tab 展示 `policyWithKeys`，Miniscript Tab 展示 `miniscriptWithKeys`，均含真实公钥（非 Alice 等角色名），便于用户复制到钱包或链上工具。中栏 Policy 编辑器和路径图已用角色名直观展示，右栏专注技术输出。**`htlc-atomic` 时** hash160 摘要仅在右栏 Tab 为完整 hex；中栏 Policy 与路径图节点为 `HEX` 占位（与首页 Applications 卡片一致）。
     - 带 glossary 的 Tab（policy / miniscript / descriptor）在标签上悬停 2 秒后，会在右侧内容区域内弹出术语解释卡片，内容来自 `src/lib/glossary/data.ts`。
@@ -290,7 +292,7 @@ src/
 
 11. **渐进式加载**：`playground/page.tsx` 直接 import `PlaygroundClient`（服务端渲染三栏框架 HTML，用户进入页面立即看到完整框架）；`PlaygroundContent` 移除了 `mode === 'loading' → null` 逻辑；`CenterPanel` 中 `BuilderCanvas` 和 `PathMap` 用 `dynamic({ ssr: false })` 懒加载，期间显示带 spinner 骨架屏；`layout.tsx` 加 `<link rel="prefetch">` 提前获取 Playground 页面；首页 `requestIdleCallback` 预热所有 Playground 模块（三栏组件、两个画布、编译器），同 Tab 内来回切换命中浏览器模块缓存无需重新加载，刷新后命中 HTTP 缓存（Next.js 文件名含 hash）极快恢复。
 
-12. **首页设计**：着陆页为 Miniscript 通识长文：Hero → `IntroChallengeSection` / `IntroCoreConceptsSection` / `IntroApplicationsSection` / `IntroLimitationsSection` / `IntroWhyMattersSection`（`src/components/intro/*`）→ `HomepageWallets`（两条横向 marquee）→ 底部 CTA。旧版区块 `HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageHowItWorks`、`HomepageFeatures` 仍在仓库中但**未**挂在首页；`ScenarioGallery` 仅用于 Playground 左栏。
+12. **首页设计**：着陆页为 Miniscript 通识长文：Hero → `IntroChallengeSection` / `IntroCoreConceptsSection` / `IntroApplicationsSection` / `IntroLimitationsSection` / `IntroWhyMattersSection`（`src/components/intro/*`）→ `HomepageWallets`（两条横向 marquee）→ 底部 CTA。旧版区块 `HomepageMiniscriptExplainer`、`HomepageMission`、`HomepageHowItWorks`、`HomepageFeatures` 仍在仓库中但**未**挂在首页；Playground 左栏场景列表由 `LeftPanel` 渲染（`ScenarioGallery` 组件保留在仓库，当前未挂载）。
 
 13. **`htlc-atomic` 教学展示**：store 与编译使用真实 `hash160` 摘要（常量 `HTLC_TEACHING_HASH160_DIGEST`，`src/lib/playground/htlc-display-mask.ts`）；中栏 Policy、路径图、条件面板仅展示 `HEX`，右栏 Tab 为真实输出。`PolicyEditor` 须用 `onDocChangeRef` 避免场景切换时陈旧闭包写入占位符导致编译失败（详见 §8）。
 
@@ -299,6 +301,7 @@ src/
 ### 新增或修改预设场景
 
 - 主入口：`src/lib/scenarios/data.ts`
+- 左栏展示顺序与 Applications 对齐：顺序来自 `APPLICATION_PLAYGROUND_SCENARIO_IDS`（`intro/data.ts`）；若新增出现在 Applications 的预设，需同步更新 `INTRO_APPLICATION_EXAMPLES` 中对应条目的 `playgroundScenarioId` 与顺序；排序实现见 `src/lib/scenarios/playground-order.ts`。
 - 如果场景标签或卡片顶部颜色也要改：
   - `src/lib/scenarios/tags.ts`
   - `src/components/scenarios/ScenarioCard.tsx`
@@ -322,7 +325,6 @@ src/
 - `src/components/playground/ConditionToggles.tsx`
 - `src/components/playground/TimeSlider.tsx`
 - `src/components/results/PathsTab.tsx`
-- `src/components/results/WarningsTab.tsx`
 
 ### 修改路径图展示（scenario 模式）
 

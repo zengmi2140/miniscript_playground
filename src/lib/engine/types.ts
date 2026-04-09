@@ -84,7 +84,7 @@ export interface PlaygroundState {
   isRightPanelOpen: boolean;
 }
 
-export type ResultTab = 'policy' | 'miniscript' | 'script' | 'descriptor' | 'address' | 'paths' | 'warnings';
+export type ResultTab = 'policy' | 'miniscript' | 'script' | 'descriptor' | 'address' | 'paths';
 
 export type PlaygroundMode = 'scenario' | 'build';
 
