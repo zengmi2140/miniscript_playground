@@ -49,7 +49,7 @@ function PathCard({ path }: { path: SpendingPath }) {
       )}
 
       <div className="flex items-center justify-between text-[12px] text-text-muted">
-        <span>Witness: ~{path.witnessSize} vB</span>
+        <span>{t('playground.paths.witness', { size: path.witnessSize })}</span>
         {path.isMalleable && (
           <span className="flex items-center gap-1 text-semantic-warning">
             <AlertTriangle className="h-3 w-3" />

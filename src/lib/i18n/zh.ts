@@ -230,6 +230,7 @@ export const zh = {
       advantageLabel: '优势',
       compileArrow: '编译 ↓',
       scriptSizeLabel: '脚本大小优化',
+      witnessLabel: '证明大小',
     },
   },
 
@@ -395,6 +396,7 @@ export const zh = {
     paths: {
       empty: '此 Policy 无可用花费路径。所有路径当前条件下不可满足。',
       malleable: '可延展',
+      witness: 'Witness: ~{size} vB',
     },
     address: { warning: '此地址仅用于测试网络，请勿在主网使用。' },
     mobile: {
