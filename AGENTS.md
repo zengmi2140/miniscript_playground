@@ -247,6 +247,7 @@ src/
   - `src/lib/i18n/context.tsx`
   - 词条：`src/lib/i18n/zh.ts`、`src/lib/i18n/en.ts`
   - 默认中文，localStorage key 为 `miniscript-lab-locale`
+  - 当前词条为嵌套对象结构，`t()` 使用 dot-path；新增文案时需同步补齐中英文并保持路径类型可达
 
 - 主题：
   - `src/lib/theme/context.tsx`

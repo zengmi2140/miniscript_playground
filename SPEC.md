@@ -18,4 +18,4 @@
 
 **窄屏**：`md` 以下 Hero 与底部 CTA 展示 `home.playground.desktopHint`，与 Playground 内说明一致（桌面优先）。
 
-**i18n**：`home.hero.*`、`home.wallets.*`、`home.cta.*`、`intro.applications.tryIt`；Intro 长文正文目前以组件内中文为主。
+**i18n**：`home.hero.*`、`home.wallets.*`、`home.cta.*`、`intro.applications.tryIt`；`src/lib/i18n/zh.ts` / `src/lib/i18n/en.ts` 采用嵌套结构，`t()` 通过 dot-path 解析；新增文案需同时补齐中英文与类型可达路径。Intro 长文正文目前以组件内中文为主。
