@@ -1,3 +1,12 @@
+export type IntroApplicationExampleEn = {
+  title: string;
+  description: string;
+  applicationType: string;
+  realCase: string;
+  advantage: string;
+  scriptSize: string;
+};
+
 export type IntroApplicationExample = {
   title: string;
   description: string;
@@ -10,6 +19,8 @@ export type IntroApplicationExample = {
   advantage: string;
   /** `SCENARIOS` preset id for `?scenario=`; `null` when no matching preset yet. */
   playgroundScenarioId: string | null;
+  /** Optional English overrides for translatable text fields. */
+  en?: IntroApplicationExampleEn;
 };
 
 export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
@@ -25,6 +36,14 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
     realCase: '比特币基金、交易所冷钱包、DAO 财库',
     advantage: '灵活的门槛配置（2-of-3、3-of-5 等）',
     playgroundScenarioId: 'multisig-2of3',
+    en: {
+      title: 'Multisig (2-of-3)',
+      description: 'Any two of three participants can sign to spend',
+      applicationType: 'Multisig wallet',
+      realCase: 'Bitcoin funds, exchange cold wallets, DAO treasuries',
+      advantage: 'Flexible threshold configuration (2-of-3, 3-of-5, etc.)',
+      scriptSize: 'Policy ~45 bytes → Miniscript ~75 bytes → Bitcoin Script 71 bytes',
+    },
   },
   {
     title: '多签 + 时间锁定',
@@ -41,6 +60,15 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
     realCase: '企业财务多重审批、联合创始人资产管理',
     advantage: '防止单点失败，时间锁定提供应急方案',
     playgroundScenarioId: 'multisig-or-timelock',
+    en: {
+      title: 'Multisig + Timelock',
+      description:
+        'Alice and Bob must co-sign to spend, or after 1000 blocks from confirmation Charlie can spend alone',
+      applicationType: 'Multisig wallet + Timelock',
+      realCase: 'Corporate multi-approval, co-founder asset management',
+      advantage: 'No single point of failure; timelock provides an emergency fallback',
+      scriptSize: 'Policy ~80 bytes → Miniscript ~65 bytes → Bitcoin Script 54 bytes',
+    },
   },
   {
     title: '恢复密钥',
@@ -56,6 +84,15 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
     realCase: '个人冷钱包备份、遗产继承安排',
     advantage: '日常便利性与紧急保障的平衡',
     playgroundScenarioId: 'recoverykey',
+    en: {
+      title: 'Recovery Key',
+      description:
+        'Day-to-day spending with the main key; after 10000 blocks from confirmation, the recovery key can spend alone',
+      applicationType: 'Emergency access control',
+      realCase: 'Personal cold wallet backup, inheritance planning',
+      advantage: 'Balances everyday convenience with emergency protection',
+      scriptSize: 'Policy ~60 bytes → Miniscript ~50 bytes → Bitcoin Script 45 bytes',
+    },
   },
   {
     title: '原子交换（HTLC）',
@@ -71,6 +108,14 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
     realCase: '闪电网络跨链原子交换、去中心化交易',
     advantage: '无信任交换，超时自动退款',
     playgroundScenarioId: 'htlc-atomic',
+    en: {
+      title: 'Atomic Swap (HTLC)',
+      description: 'Hash-timelock contract: spend via preimage or claim a refund after ~2 weeks',
+      applicationType: 'Hash Time-Locked Contract (HTLC)',
+      realCase: 'Lightning Network, cross-chain atomic swaps, decentralized exchanges',
+      advantage: 'Trustless exchange with automatic refund on timeout',
+      scriptSize: 'Policy ~90 bytes → Miniscript ~68 bytes → Bitcoin Script 56 bytes',
+    },
   },
   {
     title: 'DLC 合约',
@@ -86,6 +131,14 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
     realCase: '比特币期货、去中心化预言机、衍生品',
     advantage: '无需信任的预言机，原生比特币结算',
     playgroundScenarioId: 'dlc-simple',
+    en: {
+      title: 'DLC Contract',
+      description: 'Oracle-signed discrete log contract: two different payment paths',
+      applicationType: 'Discrete Log Contract (DLC)',
+      realCase: 'Bitcoin futures, decentralized oracles, derivatives',
+      advantage: 'Trustless oracle, native Bitcoin settlement',
+      scriptSize: 'Policy ~110 bytes → Miniscript ~85 bytes → Bitcoin Script 72 bytes',
+    },
   },
   {
     title: '批量支付',
@@ -101,6 +154,15 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
     realCase: '薪资发放系统、投资分配、多条件托管',
     advantage: '复杂条件逻辑的优雅表达',
     playgroundScenarioId: 'batch-payment',
+    en: {
+      title: 'Batch Payment',
+      description:
+        'Satisfy two groups simultaneously: Alice or Bob (one of); and Charlie or after 500 blocks',
+      applicationType: 'Conditional payment combination',
+      realCase: 'Payroll systems, investment allocation, multi-condition escrow',
+      advantage: 'Elegant expression of complex conditional logic',
+      scriptSize: 'Policy ~85 bytes → Miniscript ~62 bytes → Bitcoin Script 52 bytes',
+    },
   },
 ];
 

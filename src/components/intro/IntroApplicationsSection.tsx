@@ -2,17 +2,22 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { INTRO_APPLICATION_EXAMPLES } from '@/components/intro/data';
+import { INTRO_APPLICATION_EXAMPLES, type IntroApplicationExample } from '@/components/intro/data';
 import { useI18n } from '@/lib/i18n/context';
 
 export function IntroApplicationsSection() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [activeExample, setActiveExample] = useState(0);
   const ex = INTRO_APPLICATION_EXAMPLES[activeExample];
   const playgroundHref =
     ex.playgroundScenarioId != null
       ? `/playground?scenario=${encodeURIComponent(ex.playgroundScenarioId)}`
       : '/playground';
+
+  const getDisplay = (example: IntroApplicationExample) =>
+    locale === 'en' && example.en ? { ...example, ...example.en } : example;
+
+  const display = getDisplay(ex);
 
   return (
     <section
@@ -24,24 +29,27 @@ export function IntroApplicationsSection() {
           Applications
         </h2>
         <p className="mx-auto mb-12 max-w-2xl text-center text-text-secondary">
-          从 Policy 到最终脚本：实时查看真实应用场景的完整编译演化过程。
+          {t('intro.applications.subtitle')}
         </p>
 
         <div className="mb-12 flex flex-wrap items-center justify-center gap-3">
-          {INTRO_APPLICATION_EXAMPLES.map((example, idx) => (
-            <button
-              key={example.title}
-              type="button"
-              onClick={() => setActiveExample(idx)}
-              className={`whitespace-nowrap rounded-lg border px-4 py-2 text-sm transition-colors ${
-                activeExample === idx
-                  ? 'border-btc-500 bg-btc-500/15 text-btc-500'
-                  : 'border-border-default text-text-secondary hover:border-border-hover hover:text-text-primary'
-              }`}
-            >
-              {example.title}
-            </button>
-          ))}
+          {INTRO_APPLICATION_EXAMPLES.map((example, idx) => {
+            const displayEx = getDisplay(example);
+            return (
+              <button
+                key={example.title}
+                type="button"
+                onClick={() => setActiveExample(idx)}
+                className={`whitespace-nowrap rounded-lg border px-4 py-2 text-sm transition-colors ${
+                  activeExample === idx
+                    ? 'border-btc-500 bg-btc-500/15 text-btc-500'
+                    : 'border-border-default text-text-secondary hover:border-border-hover hover:text-text-primary'
+                }`}
+              >
+                {displayEx.title}
+              </button>
+            );
+          })}
         </div>
 
         <div className="mb-16 grid gap-12 md:grid-cols-2">
@@ -49,7 +57,7 @@ export function IntroApplicationsSection() {
             <div className="h-full rounded-xl border border-border-default bg-surface-card p-8">
               <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                 <h3 className="min-w-0 flex-1 text-2xl font-semibold text-text-primary">
-                  {ex.title}
+                  {display.title}
                 </h3>
                 <Link
                   href={playgroundHref}
@@ -61,29 +69,29 @@ export function IntroApplicationsSection() {
 
               <div className="mb-6">
                 <p className="mb-2 text-xs font-medium uppercase tracking-widest text-text-muted">
-                  使用场景
+                  {t('intro.applications.scenarioLabel')}
                 </p>
-                <p className="leading-relaxed text-text-secondary">{ex.description}</p>
+                <p className="leading-relaxed text-text-secondary">{display.description}</p>
               </div>
 
               <div className="space-y-4">
                 <div>
                   <p className="mb-2 text-xs font-medium uppercase tracking-widest text-btc-500">
-                    应用类型
+                    {t('intro.applications.typeLabel')}
                   </p>
-                  <p className="text-sm text-text-muted">{ex.applicationType}</p>
+                  <p className="text-sm text-text-muted">{display.applicationType}</p>
                 </div>
                 <div>
                   <p className="mb-2 text-xs font-medium uppercase tracking-widest text-btc-500">
-                    真实案例
+                    {t('intro.applications.caseLabel')}
                   </p>
-                  <p className="text-sm text-text-muted">{ex.realCase}</p>
+                  <p className="text-sm text-text-muted">{display.realCase}</p>
                 </div>
                 <div>
                   <p className="mb-2 text-xs font-medium uppercase tracking-widest text-btc-500">
-                    优势
+                    {t('intro.applications.advantageLabel')}
                   </p>
-                  <p className="text-sm text-text-muted">{ex.advantage}</p>
+                  <p className="text-sm text-text-muted">{display.advantage}</p>
                 </div>
               </div>
             </div>
@@ -104,7 +112,7 @@ export function IntroApplicationsSection() {
             </div>
 
             <div className="flex justify-center py-2">
-              <span className="text-sm text-text-muted">编译 ↓</span>
+              <span className="text-sm text-text-muted">{t('intro.applications.compileArrow')}</span>
             </div>
 
             <div className="overflow-hidden rounded-xl border border-border-default bg-surface-card">
@@ -121,7 +129,7 @@ export function IntroApplicationsSection() {
             </div>
 
             <div className="flex justify-center py-2">
-              <span className="text-sm text-text-muted">编译 ↓</span>
+              <span className="text-sm text-text-muted">{t('intro.applications.compileArrow')}</span>
             </div>
 
             <div className="overflow-hidden rounded-xl border border-border-default bg-surface-card">
@@ -139,9 +147,9 @@ export function IntroApplicationsSection() {
 
             <div className="rounded-xl border border-btc-500/20 bg-btc-500/5 p-4">
               <p className="mb-2 text-xs font-medium uppercase tracking-widest text-text-muted">
-                脚本大小优化
+                {t('intro.applications.scriptSizeLabel')}
               </p>
-              <p className="font-mono text-sm text-text-secondary">{ex.scriptSize}</p>
+              <p className="font-mono text-sm text-text-secondary">{display.scriptSize}</p>
             </div>
           </div>
         </div>
