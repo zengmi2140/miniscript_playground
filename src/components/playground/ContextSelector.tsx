@@ -2,10 +2,11 @@
 
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
+import type { I18nKey } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils/cn';
 import type { ScriptContext, Network } from '@/lib/engine/types';
 
-const CONTEXTS: { value: ScriptContext; i18nKey: string; disabled: boolean }[] = [
+const CONTEXTS: { value: ScriptContext; i18nKey: I18nKey; disabled: boolean }[] = [
   { value: 'wsh', i18nKey: 'playground.context.wsh', disabled: false },
   { value: 'tr', i18nKey: 'playground.context.tr', disabled: true },
 ];

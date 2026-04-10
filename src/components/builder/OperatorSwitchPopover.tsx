@@ -74,17 +74,17 @@ export function OperatorSwitchPopover({
   const ops: { key: 'all' | 'any' | 'threshold'; label: string; desc: string }[] = [
     {
       key: 'all',
-      label: t('builder.op.all'),
+      label: t('builder.op.all.label'),
       desc: t('builder.op.all.desc'),
     },
     {
       key: 'any',
-      label: t('builder.op.any'),
+      label: t('builder.op.any.label'),
       desc: t('builder.op.any.desc'),
     },
     {
       key: 'threshold',
-      label: t('builder.op.threshold'),
+      label: t('builder.op.threshold.label'),
       desc: t('builder.op.threshold.desc'),
     },
   ];
