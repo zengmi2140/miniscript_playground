@@ -242,6 +242,7 @@ export const en = {
       advantageLabel: 'Advantage',
       compileArrow: 'compile ↓',
       scriptSizeLabel: 'Script size optimization',
+      witnessLabel: 'Witness',
     },
   },
 
@@ -408,6 +409,7 @@ export const en = {
     paths: {
       empty: 'No spending paths available. All paths are unsatisfiable under current conditions.',
       malleable: 'Malleable',
+      witness: 'Witness: ~{size} vB',
     },
     address: { warning: 'This address is for testnet only. Do not use on mainnet.' },
     mobile: {
