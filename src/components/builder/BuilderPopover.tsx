@@ -342,19 +342,19 @@ export function BuilderPopover() {
             onClick={() => handleWrap('all')}
             className="flex-1 rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-xs text-text-secondary hover:border-btc-500 hover:text-btc-500 transition-colors"
           >
-            {t('builder.op.all') || '都需要'}
+            {t('builder.op.all.label')}
           </button>
           <button
             onClick={() => handleWrap('any')}
             className="flex-1 rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-xs text-text-secondary hover:border-btc-500 hover:text-btc-500 transition-colors"
           >
-            {t('builder.op.any') || '任选一'}
+            {t('builder.op.any.label')}
           </button>
           <button
             onClick={() => handleWrap('threshold')}
             className="flex-1 rounded border border-border-subtle bg-surface-elevated px-2 py-1.5 text-xs text-text-secondary hover:border-btc-500 hover:text-btc-500 transition-colors"
           >
-            {t('builder.op.threshold') || '门限'}
+            {t('builder.op.threshold.label')}
           </button>
         </div>
       </div>
@@ -602,7 +602,7 @@ export function BuilderPopover() {
           <div className="flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-text-secondary">
-              确定要删除整个策略吗？这将重置画布到初始状态。
+              {t('builder.confirm.deleteRoot')}
             </p>
           </div>
           <div className="flex gap-2 pt-2">
@@ -610,13 +610,13 @@ export function BuilderPopover() {
               onClick={() => setConfirmDeleteTarget(null)}
               className="flex-1 rounded border border-border-subtle bg-surface-elevated px-3 py-1.5 text-sm text-text-secondary hover:bg-surface-elevated/80"
             >
-              取消
+              {t('builder.confirm.cancel')}
             </button>
             <button
               onClick={handleConfirmDelete}
               className="flex-1 rounded bg-red-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-600"
             >
-              确认删除
+              {t('builder.confirm.confirm')}
             </button>
           </div>
         </div>

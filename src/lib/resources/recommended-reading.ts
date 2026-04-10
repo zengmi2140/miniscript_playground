@@ -1,11 +1,13 @@
 /**
  * 推荐阅读：标题在 zh.ts / en.ts；中文站与原文链接分栏维护。
  */
+import type { I18nKey } from '@/lib/i18n/context';
+
 export type RecommendedReadingArticle = {
   hrefZh: string;
   hrefEn: string;
-  titleKey: string;
-  sourceKey: string;
+  titleKey: I18nKey;
+  sourceKey: I18nKey;
 };
 
 export const RECOMMENDED_READING_ARTICLES: RecommendedReadingArticle[] = [

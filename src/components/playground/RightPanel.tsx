@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { GripHorizontal } from 'lucide-react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
+import type { I18nKey } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils/cn';
 import { GLOSSARY } from '@/lib/glossary/data';
 import { ExplainPopover } from '@/components/shared/ExplainPopover';
@@ -20,7 +21,7 @@ type SecondaryTab = Exclude<ResultTab, 'paths'>;
 
 interface TabDef {
   key: SecondaryTab;
-  i18nKey: string;
+  i18nKey: I18nKey;
   glossaryKey?: string;
 }
 

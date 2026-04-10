@@ -6,13 +6,37 @@ import { en } from './en';
 
 export type Locale = 'zh' | 'en';
 
+type DotPaths<T, P extends string = ''> = {
+  [K in keyof T & string]: T[K] extends string
+    ? `${P}${K}`
+    : DotPaths<T[K], `${P}${K}.`>;
+}[keyof T & string];
+
+export type I18nKey = DotPaths<typeof zh>;
+
 interface I18nContextValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: (key: string, params?: Record<string, string | number>) => string;
+  t: (key: I18nKey, params?: Record<string, string | number>) => string;
 }
 
-const translations: Record<Locale, Record<string, string>> = { zh, en };
+function resolvePath(obj: Record<string, unknown>, path: string): string | undefined {
+  const val = path
+    .split('.')
+    .reduce<unknown>(
+      (cur, seg) =>
+        cur != null && typeof cur === 'object'
+          ? (cur as Record<string, unknown>)[seg]
+          : undefined,
+      obj,
+    );
+  return typeof val === 'string' ? val : undefined;
+}
+
+const translations: Record<Locale, typeof zh> = {
+  zh,
+  en: en as unknown as typeof zh,
+};
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
@@ -43,8 +67,11 @@ export function I18nProvider({
   }, []);
 
   const t = useCallback(
-    (key: string, params?: Record<string, string | number>) => {
-      let text = translations[locale][key] ?? translations['zh'][key] ?? key;
+    (key: I18nKey, params?: Record<string, string | number>) => {
+      let text =
+        resolvePath(translations[locale] as unknown as Record<string, unknown>, key) ??
+        resolvePath(translations['zh'] as unknown as Record<string, unknown>, key) ??
+        key;
       if (params) {
         Object.entries(params).forEach(([k, v]) => {
           text = text.replace(`{${k}}`, String(v));
