@@ -115,6 +115,96 @@ export const zh = {
     playground: {
       desktopHint: 'Playground 建议在桌面端打开以获得完整体验。',
     },
+    challenge: {
+      subtitle: 'Bitcoin Script 虽然强大，但存在着几个根本性的设计挑战。',
+      scriptCol: {
+        lowLevel: {
+          label: '低级抽象',
+          desc: '基于堆栈的汇编风格语言，代码看似一连串神秘的操作码。即使是简单的逻辑也需要深入理解栈机制。',
+        },
+        errorProne: {
+          label: '容易出错',
+          desc: '微小的错误就可能导致严重的安全漏洞，难以自动检测。栈深度溢出、条件分支错误等问题层出不穷。',
+        },
+        nonComposable: {
+          label: '缺乏可组合性',
+          desc: '难以分解为可重用组件，每次都需要从头开始。无法像现代编程语言那样进行模块化设计。',
+        },
+        hardToAnalyze: {
+          label: '难以分析',
+          desc: '对脚本的正确性、安全性验证需要大量手工分析。没有自动化工具来检查脚本的属性。',
+        },
+      },
+      miniscriptCol: {
+        highLevel: {
+          label: '高级抽象',
+          desc: '使用接近自然语言的语法，表达意图更加直观。开发者可以关注业务逻辑而不是底层细节。',
+        },
+        formalVerif: {
+          label: '形式化验证',
+          desc: '编译器内置安全检查，自动验证脚本的正确性。通过类型系统和属性分析防止常见错误。',
+        },
+        composable: {
+          label: '高度可组合',
+          desc: '像乐高积木一样组合条件，构建复杂的合约。标准的组合操作符确保结果始终有效。',
+        },
+        autoOpt: {
+          label: '自动优化',
+          desc: '编译器自动优化生成的脚本大小。通过分析找到最小的等价 Bitcoin Script 表示。',
+        },
+      },
+      codeCompare: {
+        scriptCaption: '难以理解的操作码序列',
+        miniscriptCaption: '清晰明确的逻辑表达',
+      },
+    },
+    concepts: {
+      subtitle: '理解 Policy、Miniscript 和 Descriptor 之间的关系。',
+      policy: {
+        desc: '高级、人类可读的策略描述。用自然语言的方式表达谁可以花费资金以及如何花费。Policy 是最顶层的抽象，允许使用任意的组合逻辑而不用担心编译后的有效性。',
+        example: '要么需要 Alice 的签名，要么 Bob 签名且时间已过某个区块高度。',
+      },
+      miniscript: {
+        desc: '高级 Policy 和底层 Bitcoin Script 之间的桥梁。Miniscript 提供标准化、可验证且可分析的中间表示。每个 Miniscript 表达式都有明确的类型和属性，这使得编译器可以进行安全性验证和优化。',
+        featuresLabel: '核心特点',
+        feature1: '类型系统（B、V、K、W 基础类型 + z、o、n、d、u 修饰符）',
+        feature2: '自动脚本优化',
+        feature3: '形式化属性验证',
+        feature4: '编译时安全检查',
+        compileLabel: '编译结果',
+        compileDesc: '最终的 Bitcoin Script 操作码，提交到区块链执行。',
+        compileNote: '通常比原始 Bitcoin Script 小 20-40%',
+      },
+      descriptor: {
+        desc: '便携、通用的方式来指定钱包可以花费的输出。将 Miniscript 与实际密钥信息结合。Descriptor 包含了生成地址和创建交易所需的所有信息，支持钱包间的无缝迁移。',
+        multisigLabel: '多签示例',
+        timelockLabel: '带时间锁示例',
+        note: '钱包可以据此生成地址、创建交易，确保所有参与者理解脚本结构并能无缝协作。',
+      },
+      stack: {
+        step1: { desc: '高级策略语言', detail: '用自然语言表达签名条件' },
+        step2: { desc: '中间表示层', detail: '标准化、可验证、自动优化' },
+        step3: { desc: '底层操作码', detail: '链上执行，已优化' },
+      },
+    },
+    why: {
+      innovation: {
+        title: '促进创新',
+        desc: '通过降低开发门槛，更多开发者可以参与到比特币生态的建设中，创造出更多创新应用。不再只有少数密码学专家能编写复杂的脚本。',
+      },
+      enterprise: {
+        title: '企业应用',
+        desc: '企业和机构可以更放心地部署复杂的比特币合约，而不用过度担心安全风险。内置的验证和优化提供了企业级的质量保证。',
+      },
+      ecosystem: {
+        title: '生态发展',
+        desc: 'Miniscript 为 Taproot 等比特币升级的发展奠定基础，推动比特币智能合约的演进。为未来的扩展性功能提供设计参考。',
+      },
+      efficiency: {
+        title: '提高效率',
+        desc: '开发、测试和部署时间大幅减少。自动脚本优化减少链上成本。让团队可以专注于业务逻辑而不是低级实现细节。',
+      },
+    },
   },
 
   nav: {
@@ -131,7 +221,16 @@ export const zh = {
   },
 
   intro: {
-    applications: { tryIt: '上手一试' },
+    applications: {
+      tryIt: '上手一试',
+      subtitle: '从 Policy 到最终脚本：实时查看真实应用场景的完整编译演化过程。',
+      scenarioLabel: '使用场景',
+      typeLabel: '应用类型',
+      caseLabel: '真实案例',
+      advantageLabel: '优势',
+      compileArrow: '编译 ↓',
+      scriptSizeLabel: '脚本大小优化',
+    },
   },
 
   builder: {

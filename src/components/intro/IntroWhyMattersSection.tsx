@@ -1,4 +1,9 @@
+'use client';
+
+import { useI18n } from '@/lib/i18n/context';
+
 export function IntroWhyMattersSection() {
+  const { t } = useI18n();
   return (
     <section className="bg-surface-base py-16 md:py-24">
       <div className="mx-auto max-w-4xl px-4">
@@ -8,30 +13,38 @@ export function IntroWhyMattersSection() {
 
         <div className="space-y-12">
           <div>
-            <h3 className="mb-4 text-xl font-semibold text-text-primary">促进创新</h3>
+            <h3 className="mb-4 text-xl font-semibold text-text-primary">
+              {t('home.why.innovation.title')}
+            </h3>
             <p className="leading-relaxed text-text-secondary">
-              通过降低开发门槛，更多开发者可以参与到比特币生态的建设中，创造出更多创新应用。不再只有少数密码学专家能编写复杂的脚本。
+              {t('home.why.innovation.desc')}
             </p>
           </div>
 
           <div>
-            <h3 className="mb-4 text-xl font-semibold text-text-primary">企业应用</h3>
+            <h3 className="mb-4 text-xl font-semibold text-text-primary">
+              {t('home.why.enterprise.title')}
+            </h3>
             <p className="leading-relaxed text-text-secondary">
-              企业和机构可以更放心地部署复杂的比特币合约，而不用过度担心安全风险。内置的验证和优化提供了企业级的质量保证。
+              {t('home.why.enterprise.desc')}
             </p>
           </div>
 
           <div>
-            <h3 className="mb-4 text-xl font-semibold text-text-primary">生态发展</h3>
+            <h3 className="mb-4 text-xl font-semibold text-text-primary">
+              {t('home.why.ecosystem.title')}
+            </h3>
             <p className="leading-relaxed text-text-secondary">
-              Miniscript 为 Taproot 等比特币升级的发展奠定基础，推动比特币智能合约的演进。为未来的扩展性功能提供设计参考。
+              {t('home.why.ecosystem.desc')}
             </p>
           </div>
 
           <div>
-            <h3 className="mb-4 text-xl font-semibold text-text-primary">提高效率</h3>
+            <h3 className="mb-4 text-xl font-semibold text-text-primary">
+              {t('home.why.efficiency.title')}
+            </h3>
             <p className="leading-relaxed text-text-secondary">
-              开发、测试和部署时间大幅减少。自动脚本优化减少链上成本。让团队可以专注于业务逻辑而不是低级实现细节。
+              {t('home.why.efficiency.desc')}
             </p>
           </div>
         </div>
