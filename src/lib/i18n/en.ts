@@ -127,6 +127,96 @@ export const en = {
     playground: {
       desktopHint: 'For the full experience, open the Playground on a desktop or larger screen.',
     },
+    challenge: {
+      subtitle: 'Bitcoin Script is powerful, but it has several fundamental design challenges.',
+      scriptCol: {
+        lowLevel: {
+          label: 'Low-Level Abstraction',
+          desc: 'A stack-based assembly-style language where code looks like a mysterious chain of opcodes. Even simple logic requires a deep understanding of the stack machine.',
+        },
+        errorProne: {
+          label: 'Error-Prone',
+          desc: 'A tiny mistake can introduce a serious security flaw, and these are hard to detect automatically. Stack overflows, branch errors, and edge cases abound.',
+        },
+        nonComposable: {
+          label: 'Non-Composable',
+          desc: 'Hard to decompose into reusable components — every script must be built from scratch. Modular design, as in modern languages, is essentially impossible.',
+        },
+        hardToAnalyze: {
+          label: 'Hard to Analyze',
+          desc: 'Verifying the correctness and security of a script requires extensive manual inspection. No automated tools exist to audit script properties systematically.',
+        },
+      },
+      miniscriptCol: {
+        highLevel: {
+          label: 'High-Level Abstraction',
+          desc: 'Near-natural-language syntax makes intent obvious. Developers focus on business logic, not low-level stack mechanics.',
+        },
+        formalVerif: {
+          label: 'Formal Verification',
+          desc: 'The compiler has safety checks built in and automatically validates scripts for correctness. The type system prevents the most common classes of error.',
+        },
+        composable: {
+          label: 'Highly Composable',
+          desc: 'Combine conditions like LEGO bricks to build complex contracts. Standard composition operators guarantee that the output is always valid.',
+        },
+        autoOpt: {
+          label: 'Auto-Optimized',
+          desc: 'The compiler automatically minimizes script size. Analysis finds the smallest equivalent Bitcoin Script representation.',
+        },
+      },
+      codeCompare: {
+        scriptCaption: 'An opaque sequence of opcodes',
+        miniscriptCaption: 'Clear, explicit logic',
+      },
+    },
+    concepts: {
+      subtitle: 'Understand the relationship between Policy, Miniscript, and Descriptor.',
+      policy: {
+        desc: "A high-level, human-readable description of spending conditions. Policy expresses who can spend funds, and under what conditions, in natural language. It is the topmost abstraction layer — you can use any combinatorial logic without worrying about whether the compiled result will be valid.",
+        example: "Either Alice's signature alone, or Bob's signature after a certain block height.",
+      },
+      miniscript: {
+        desc: 'The bridge between high-level Policy and low-level Bitcoin Script. Miniscript is a standardized, verifiable, and analyzable intermediate representation. Every Miniscript expression has a well-defined type and set of properties, which lets the compiler perform safety checks and optimizations.',
+        featuresLabel: 'Core Features',
+        feature1: 'Type system (base types B, V, K, W plus modifiers z, o, n, d, u)',
+        feature2: 'Automatic script optimization',
+        feature3: 'Formal property verification',
+        feature4: 'Compile-time safety checks',
+        compileLabel: 'Compiled Output',
+        compileDesc: 'The final Bitcoin Script opcodes, submitted to the blockchain for execution.',
+        compileNote: 'Typically 20–40% smaller than hand-written Bitcoin Script',
+      },
+      descriptor: {
+        desc: 'A portable, universal way to specify the outputs a wallet can spend. Descriptors combine Miniscript with actual key information. A descriptor contains everything needed to generate addresses and create transactions — making wallet migrations seamless.',
+        multisigLabel: 'Multisig example',
+        timelockLabel: 'Timelock example',
+        note: 'Wallets use descriptors to derive addresses and build transactions, ensuring all participants share the same understanding of the script structure.',
+      },
+      stack: {
+        step1: { desc: 'High-level policy language', detail: 'Expresses signing conditions in natural language' },
+        step2: { desc: 'Intermediate representation', detail: 'Standardized, verifiable, and auto-optimized' },
+        step3: { desc: 'Low-level opcodes', detail: 'Executed on-chain, size-optimized' },
+      },
+    },
+    why: {
+      innovation: {
+        title: 'Enabling Innovation',
+        desc: 'By lowering the barrier to entry, more developers can participate in the Bitcoin ecosystem and build innovative applications. Complex scripts are no longer the exclusive territory of a small circle of cryptographers.',
+      },
+      enterprise: {
+        title: 'Enterprise Adoption',
+        desc: 'Businesses and institutions can deploy complex Bitcoin contracts with confidence, without over-engineering security measures. Built-in verification and optimization deliver enterprise-grade guarantees.',
+      },
+      ecosystem: {
+        title: 'Ecosystem Growth',
+        desc: 'Miniscript lays the groundwork for advances like Taproot and helps push Bitcoin smart contracts forward. It provides a design reference for future scalability features.',
+      },
+      efficiency: {
+        title: 'Greater Efficiency',
+        desc: 'Development, testing, and deployment cycles shrink dramatically. Automatic script optimization reduces on-chain fees. Teams stay focused on business logic rather than low-level implementation details.',
+      },
+    },
   },
 
   nav: {
@@ -143,7 +233,16 @@ export const en = {
   },
 
   intro: {
-    applications: { tryIt: 'Try it' },
+    applications: {
+      tryIt: 'Try it',
+      subtitle: 'From Policy to on-chain script: watch the full compilation pipeline for real-world scenarios.',
+      scenarioLabel: 'Scenario',
+      typeLabel: 'Application type',
+      caseLabel: 'Real-world examples',
+      advantageLabel: 'Advantage',
+      compileArrow: 'compile ↓',
+      scriptSizeLabel: 'Script size optimization',
+    },
   },
 
   builder: {
