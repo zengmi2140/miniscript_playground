@@ -14,13 +14,21 @@ type DotPaths<T, P extends string = ''> = {
 
 export type I18nKey = DotPaths<typeof zh>;
 
+/** Recursive type that maps every leaf string literal to `string` (structure-only check). */
+type DeepStringMap<T> = {
+  [K in keyof T]: T[K] extends string ? string : DeepStringMap<T[K]>;
+};
+
+type TranslationShape = DeepStringMap<typeof zh>;
+
 interface I18nContextValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   t: (key: I18nKey, params?: Record<string, string | number>) => string;
 }
 
-function resolvePath(obj: Record<string, unknown>, path: string): string | undefined {
+/** Safely walks a nested object via a dot-separated path, returning the string at that leaf or undefined. */
+function resolvePath(obj: unknown, path: string): string | undefined {
   const val = path
     .split('.')
     .reduce<unknown>(
@@ -33,10 +41,7 @@ function resolvePath(obj: Record<string, unknown>, path: string): string | undef
   return typeof val === 'string' ? val : undefined;
 }
 
-const translations: Record<Locale, typeof zh> = {
-  zh,
-  en: en as unknown as typeof zh,
-};
+const translations: Record<Locale, TranslationShape> = { zh, en };
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
@@ -69,8 +74,8 @@ export function I18nProvider({
   const t = useCallback(
     (key: I18nKey, params?: Record<string, string | number>) => {
       let text =
-        resolvePath(translations[locale] as unknown as Record<string, unknown>, key) ??
-        resolvePath(translations['zh'] as unknown as Record<string, unknown>, key) ??
+        resolvePath(translations[locale], key) ??
+        resolvePath(translations['zh'], key) ??
         key;
       if (params) {
         Object.entries(params).forEach(([k, v]) => {
