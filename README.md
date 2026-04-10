@@ -20,8 +20,8 @@
 - **GlossaryTooltip** — 悬停节点查看 `pk`、`older`、`after`、`sha256` 等操作符的双语解释
 - **双语支持** — 中文 / English 完整双语，一键切换
 - **分享链接** — 将 Policy、变量、模式等编码为 `?s=` 参数，一键复制分享；通过该链接可还原会话
-- **钱包支持** — 首页与「介绍」页均展示「已支持 Miniscript 的钱包」板块（软件 / 硬件两组）
-- **首页** — Miniscript 通识长文（挑战与对比、核心概念与技术栈、应用场景与局限等）；**页尾 CTA** 为单一橙色主按钮（`home.cta.build`）进入 `/playground?mode=build`（可视化画布 / build 模式）。Applications 内 **Try it / 上手一试**：有对应预设时跳转 `/playground?scenario=<id>`；`playgroundScenarioId` 为 `null` 时仅进入 `/playground`（详见 `src/components/intro/data.ts`）。「原子交换」卡片三列使用 `HEX` 占位表示 hash160；Playground 中栏与路径图见 `AGENTS.md` §8 / §10.13
+- **钱包支持** — 首页展示「已支持 Miniscript 的钱包」板块（软件 / 硬件两组）；旧 `/intro` 已重定向至首页
+- **首页** — Miniscript 通识长文（挑战与对比、核心概念与技术栈、应用场景与局限等）；**页尾 CTA** 为单一橙色主按钮（`home.cta.build`）进入 `/playground?mode=build`（可视化画布 / build 模式）。Applications 内 **Try it / 上手一试**：有对应预设时跳转 `/playground?scenario=<id>`；`playgroundScenarioId` 为 `null` 时仅进入 `/playground`（详见 `src/components/intro/data.ts`）。「原子交换」卡片三列使用 `HEX` 占位表示 hash160；Playground 中栏与路径图见 [`AGENTS.md`](AGENTS.md) §4、§7、§9
 - **首页导航** — 顶栏：首页 / Playground / Resources（`nav.scenarios` 等 i18n）
 
 ## 技术栈
@@ -38,7 +38,7 @@
 | 样式 | Tailwind CSS + shadcn/ui |
 | i18n | 自定义轻量 Context（无第三方依赖） |
 
-Descriptor 库使用 `@bitcoinerlab/descriptors/dist/descriptors` 入口，并通过构建别名避免打入 Ledger 硬件钱包 SDK；说明见 [`SPEC.md`](SPEC.md) §5.1「关键实现细节」第 5 条。
+Descriptor 库使用 `@bitcoinerlab/descriptors/dist/descriptors` 入口，并通过构建别名避免打入 Ledger 硬件钱包 SDK；说明见 [`AGENTS.md`](AGENTS.md)「编译管线」中 Descriptor 与构建。
 
 视觉与设计 token（色板、字体、Scenario 路径图节点尺寸等）见 [`DESIGN.md`](DESIGN.md)。
 
@@ -64,7 +64,7 @@ npm run dev
 
 ## 项目结构
 
-完整规格见 [`SPEC.md`](SPEC.md)；以下为简版：
+完整开发说明见 **[`AGENTS.md`](AGENTS.md)**（产品与实现合并为单一文档）。以下为目录简版：
 
 ```
 src/
@@ -72,7 +72,7 @@ src/
 │   ├── page.tsx            # 首页（通识长页）
 │   ├── intro/              # 旧 /intro 路由，重定向至 /
 │   ├── playground/         # Playground 页
-│   ├── resources/          # FAQ + 资源链接
+│   ├── resources/          # 外部工具链接 + 推荐阅读
 │   ├── compare/            # 对比页（Coming Soon）
 │   └── opengraph-image.tsx # 动态 OG 图片
 ├── components/
