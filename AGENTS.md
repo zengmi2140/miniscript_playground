@@ -213,7 +213,7 @@ npm run test
 
 ### 语义树与路径图（scenario）
 
-- `miniscript-parser.ts` → `tree-to-flow.ts`（Dagre）；`multi(k,…)` 在图上展开为 k-of-n + 叶子。  
+- `miniscript-parser.ts` → `tree-to-flow.ts`（Dagre）；`multi(k,…)` 在图上展开为 k-of-n 与各 key 叶子：**嵌套** multi 为 operator 框 + 父→k-of-n 合成边；**根级** multi 为 **单层** root 型 k-of-n 框直连各 key（避免多余顶层节点）。共源多边叠画时边带 `zIndex`，使已满足边在上层，减轻灰线盖住绿线（`PathEdge`）。  
 - **区块高度型 `after()`**：条件满足态依赖当前链尖（`blockTipHeight`）；在链尖首次拉取完成前不向 `tree-to-flow` 传入高度，避免占位高度误判。  
 - 组件：`PathMap`、`FlowNodes`、`PathEdge` 等。
 

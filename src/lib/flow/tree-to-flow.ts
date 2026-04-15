@@ -67,7 +67,11 @@ function getConditionStatus(
   }
 }
 
-function getCompositeStatus(childStatuses: ('satisfied' | 'pending' | 'missing')[], type: 'and' | 'or', k?: number): 'satisfied' | 'pending' | 'missing' {
+function getCompositeStatus(
+  childStatuses: ('satisfied' | 'pending' | 'missing')[],
+  type: 'and' | 'or' | 'threshold',
+  k?: number,
+): 'satisfied' | 'pending' | 'missing' {
   if (type === 'and') {
     if (childStatuses.every((s) => s === 'satisfied')) return 'satisfied';
     if (childStatuses.some((s) => s === 'pending')) return 'pending';
@@ -78,7 +82,6 @@ function getCompositeStatus(childStatuses: ('satisfied' | 'pending' | 'missing')
     if (childStatuses.some((s) => s === 'pending')) return 'pending';
     return 'missing';
   }
-
   const satisfiedCount = childStatuses.filter((s) => s === 'satisfied').length;
   const pendingCount = childStatuses.filter((s) => s === 'pending').length;
   const threshold = k ?? 1;
@@ -178,16 +181,18 @@ function buildGraph(
 
   if (msNode.type === 'multi') {
     const operatorId = nextId();
-    const opSize = NODE_SIZES.operator;
+    const topLevelMulti = parentId === undefined;
+    const multiBoxSize = topLevelMulti ? NODE_SIZES.root : NODE_SIZES.operator;
+    const multiBoxType = topLevelMulti ? 'root' : 'operator';
 
     nodes.push({
       id: operatorId,
-      type: 'operator',
+      type: multiBoxType,
       position: { x: 0, y: 0 },
-      width: opSize.width,
-      height: opSize.height,
+      width: multiBoxSize.width,
+      height: multiBoxSize.height,
       data: {
-        nodeType: 'operator',
+        nodeType: multiBoxType,
         label: `${msNode.k}-of-${msNode.keys.length}`,
         status: 'missing',
         parentRelation: relation,
@@ -238,7 +243,7 @@ function buildGraph(
       });
     }
 
-    const compositeStatus = getCompositeStatus(childStatuses, 'or', msNode.k);
+    const compositeStatus = getCompositeStatus(childStatuses, 'threshold', msNode.k);
     const opNodeRef = nodes.find((n) => n.id === operatorId);
     if (opNodeRef) opNodeRef.data.status = compositeStatus;
 
@@ -394,7 +399,7 @@ function buildGraph(
       childStatuses.push(result.status);
     }
 
-    const compositeStatus = getCompositeStatus(childStatuses, 'or', msNode.k);
+    const compositeStatus = getCompositeStatus(childStatuses, 'threshold', msNode.k);
     const nodeRef = nodes.find((n) => n.id === id);
     if (nodeRef) nodeRef.data.status = compositeStatus;
 
@@ -456,6 +461,17 @@ function layoutWithDagre(nodes: Node<FlowNodeData>[], edges: Edge<FlowEdgeData>[
     node.position = { x, y };
     node.width = size.width;
     node.height = size.height;
+  }
+}
+
+/** 共源多边叠画时，未满足边后绘会盖住绿色；提高 satisfied 边的 zIndex。 */
+function assignPathEdgeZIndex(edges: Edge<FlowEdgeData>[]): void {
+  for (const e of edges) {
+    const d = e.data;
+    let z = 0;
+    if (d?.satisfied) z = 2;
+    else if (d?.status === 'pending') z = 1;
+    e.zIndex = z;
   }
 }
 
@@ -566,64 +582,27 @@ export function treeToFlow(
       );
       childStatuses.push(result.status);
     }
-    const compositeStatus = getCompositeStatus(childStatuses, 'or', tree.k);
+    const compositeStatus = getCompositeStatus(childStatuses, 'threshold', tree.k);
     const rootNode = nodes.find((n) => n.id === rootId);
     if (rootNode) rootNode.data.status = compositeStatus;
   } else if (tree.type === 'multi') {
-    const rootId = nextId();
-    const rootSize = NODE_SIZES.root;
-    const condSize = NODE_SIZES.condition;
-    nodes.push({
-      id: rootId,
-      type: 'root',
-      position: { x: 0, y: 0 },
-      width: rootSize.width,
-      height: rootSize.height,
-      data: {
-        nodeType: 'root',
-        label: `${tree.k}-of-${tree.keys.length}`,
-        status: 'missing',
-      },
-    });
-
-    const childStatuses: ('satisfied' | 'pending' | 'missing')[] = [];
-    for (const keyName of tree.keys) {
-      const childId = nextId();
-      const status = availableKeys.has(keyName) ? 'satisfied' : 'missing';
-      childStatuses.push(status);
-
-      nodes.push({
-        id: childId,
-        type: 'condition',
-        position: { x: 0, y: 0 },
-        width: condSize.width,
-        height: condSize.height,
-        data: {
-          nodeType: 'condition',
-          label: keyName,
-          conditionType: 'key',
-          glossaryKey: 'pk',
-          nodeValue: keyName,
-          status,
-          parentRelation: 'threshold',
-        },
-      });
-
-      edges.push({
-        id: `e_${rootId}_${childId}`,
-        source: rootId,
-        target: childId,
-        type: 'pathEdge',
-        data: { relation: 'threshold', satisfied: status === 'satisfied' },
-      });
-    }
-
-    const compositeStatus = getCompositeStatus(childStatuses, 'or', tree.k);
-    const rootNode = nodes.find((n) => n.id === rootId);
-    if (rootNode) rootNode.data.status = compositeStatus;
+    buildGraph(
+      tree,
+      nodes,
+      edges,
+      availableKeys,
+      availableHashes,
+      currentTimeBlocks,
+      locale,
+      maskHtlcTeachingHash160,
+      undefined,
+      undefined,
+      blockTipHeight,
+    );
   }
 
   layoutWithDagre(nodes, edges);
+  assignPathEdgeZIndex(edges);
 
   return { nodes, edges };
 }
