@@ -77,6 +77,9 @@ export interface PlaygroundState {
   availableKeys: Set<string>;
   availableHashes: Set<string>;
   currentTimeBlocks: number;
+  blockTipHeight: number;
+  /** True after first `fetchBlockTipHeight` settles (success or fallback). Used to avoid mixing default height with real tip for `after()`. */
+  blockTipHeightReady: boolean;
 
   selectedPathIndex: number | null;
   activeResultTab: ResultTab;

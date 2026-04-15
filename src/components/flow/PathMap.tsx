@@ -16,6 +16,8 @@ function PathMapInner() {
   const availableKeys = usePlaygroundStore((s) => s.availableKeys);
   const availableHashes = usePlaygroundStore((s) => s.availableHashes);
   const currentTimeBlocks = usePlaygroundStore((s) => s.currentTimeBlocks);
+  const blockTipHeight = usePlaygroundStore((s) => s.blockTipHeight);
+  const blockTipHeightReady = usePlaygroundStore((s) => s.blockTipHeightReady);
   const { locale } = useI18n();
   const maskHtlcTeachingHash160 = shouldMaskHtlcTeachingHash160(activeScenarioId);
 
@@ -23,12 +25,15 @@ function PathMapInner() {
     if (!semanticTree) return { nodes: [], edges: [] };
     return treeToFlow(semanticTree, availableKeys, availableHashes, currentTimeBlocks, locale, {
       maskHtlcTeachingHash160,
+      blockTipHeight: blockTipHeightReady ? blockTipHeight : undefined,
     });
   }, [
     semanticTree,
     availableKeys,
     availableHashes,
     currentTimeBlocks,
+    blockTipHeight,
+    blockTipHeightReady,
     locale,
     maskHtlcTeachingHash160,
   ]);

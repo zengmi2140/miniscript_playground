@@ -250,10 +250,10 @@ export const en = {
     starter: {
       title: 'Choose Strategy Type',
       subtitle: 'Pick a root node type; add more conditions on the canvas afterward.',
-      singleControl: 'Single Control',
-      singleControlDesc: 'One key controls everything',
-      sharedControl: 'Shared Control',
-      sharedControlDesc: 'Multisig (2-of-3)',
+      singleControl: 'Single Signature',
+      singleControlDesc: 'One key signs',
+      sharedControl: 'Threshold Condition',
+      sharedControlDesc: 'k-of-n threshold',
     },
     canvas: {
       waitingTree: 'Compiling and syncing canvas…',
@@ -271,7 +271,7 @@ export const en = {
       timelock: 'Timelock',
       threshold: 'Threshold',
       all: 'All Required',
-      any: 'Any One',
+      any: 'Either One',
       addChild: 'Add Condition',
       delete: 'Delete',
       wrap: 'Wrap as',
@@ -280,7 +280,7 @@ export const en = {
     op: {
       switch: { title: 'Switch Operator' },
       all: { label: 'All Required', desc: 'All conditions must be satisfied (AND)' },
-      any: { label: 'Any One', desc: 'Any one condition is enough (OR)' },
+      any: { label: 'Either One', desc: 'Either of the two conditions is enough (OR)' },
       threshold: {
         label: 'Threshold',
         desc: 'k-of-n: satisfy any k conditions',
@@ -306,7 +306,7 @@ export const en = {
     },
     action: {
       wrapAll: 'Wrap as "All Required"',
-      wrapAny: 'Wrap as "Any One"',
+      wrapAny: 'Wrap as "Either One"',
       wrapThreshold: 'Wrap as "Threshold"',
       addSignature: 'Add Signature',
       addTimelock: 'Add Timelock',
@@ -363,6 +363,11 @@ export const en = {
       label: 'Time Elapsed',
       blocks: 'blocks',
       current: 'Current: Block {blocks} ≈ {human}',
+      footerNote:
+        'The slider is relative blocks since confirmation; older() uses that. Block-height after() and path-node status use the current mainnet chain tip.',
+      footerSource:
+        'Tip height: read-only query to mempool.space (~{cacheMinutes} min cache); on failure, default {fallbackHeight} is used.',
+      tipLoading: 'Fetching chain tip height…',
     },
     status: {
       canSpend: 'Spendable: {path}',
@@ -442,7 +447,7 @@ export const en = {
   flow: {
     rootLabel: 'Spending Conditions',
     andLabel: 'All Required',
-    orLabel: 'Any One',
+    orLabel: 'Either One',
   },
 
   footer: {

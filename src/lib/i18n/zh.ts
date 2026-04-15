@@ -238,10 +238,10 @@ export const zh = {
     starter: {
       title: '选择策略类型',
       subtitle: '选择根节点类型；之后可在画布上继续添加条件。',
-      singleControl: '单人控制',
-      singleControlDesc: '单个密钥完全控制',
-      sharedControl: '多人共管',
-      sharedControlDesc: '多签 (2-of-3)',
+      singleControl: '单签名',
+      singleControlDesc: '单个密钥签名',
+      sharedControl: '阈值条件',
+      sharedControlDesc: 'k-of-n 门限条件',
     },
     canvas: {
       waitingTree: '正在编译并同步画布…',
@@ -258,7 +258,7 @@ export const zh = {
       timelock: '时间锁',
       threshold: '门限',
       all: '都需要',
-      any: '任选一',
+      any: '二选一',
       addChild: '添加条件',
       delete: '删除',
       wrap: '包装为',
@@ -267,14 +267,14 @@ export const zh = {
     op: {
       switch: { title: '切换操作符' },
       all: { label: '都需要', desc: '所有子条件都必须满足（AND）' },
-      any: { label: '任选一', desc: '满足其中一个即可（OR）' },
+      any: { label: '二选一', desc: '满足两个中的一个即可（OR）' },
       threshold: {
         label: '门限多签',
         desc: 'k-of-n，满足 k 个条件即可',
         confirm: '确认',
         k: { label: '所需满足数量' },
       },
-      binaryTrimNotice: '已切换为「都需要 / 任选一」，仅保留前两个子条件。',
+      binaryTrimNotice: '已切换为「都需要 / 二选一」，仅保留前两个子条件。',
     },
     popover: {
       selectRole: '选择角色',
@@ -293,7 +293,7 @@ export const zh = {
     },
     action: {
       wrapAll: '包装为「都需要」',
-      wrapAny: '包装为「任选一」',
+      wrapAny: '包装为「二选一」',
       wrapThreshold: '包装为「门限」',
       addSignature: '添加签名',
       addTimelock: '添加时间锁',
@@ -350,6 +350,11 @@ export const zh = {
       label: '时间流逝',
       blocks: '区块',
       current: '当前: 第 {blocks} 区块 ≈ {human}',
+      footerNote:
+        '滑块表示自输出确认以来流逝的相对区块；older() 使用该相对值。after(区块高度) 与路径图上的满足态依赖当前主网链尖高度。',
+      footerSource:
+        '链尖高度：只读查询 mempool.space（约 {cacheMinutes} 分钟缓存）；请求失败时使用默认值 {fallbackHeight}。',
+      tipLoading: '正在获取链尖高度…',
     },
     status: {
       canSpend: '可花费: {path}',
@@ -429,7 +434,7 @@ export const zh = {
   flow: {
     rootLabel: '花费条件',
     andLabel: '都需要',
-    orLabel: '任选一',
+    orLabel: '二选一',
   },
 
   footer: {
