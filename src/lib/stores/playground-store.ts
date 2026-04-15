@@ -17,6 +17,7 @@ import type { BuilderSyncState, StrategyNode, StrategyPlaceholderNode } from '@/
 import { serializeStrategyTree } from '@/lib/builder/serialize';
 import { changeGroupOp, wrapNodeInGroup, computeTreeDepth, findNode } from '@/lib/builder/node-ops';
 import { createRootPlaceholderTree } from '@/lib/builder/root-placeholder';
+import { FALLBACK_BLOCK_HEIGHT } from '@/lib/engine/block-height';
 
 interface PlaygroundActions {
   setPlaygroundMode: (mode: PlaygroundMode) => void;
@@ -105,7 +106,7 @@ const initialState: PlaygroundState & BuilderState = {
   availableKeys: new Set<string>(),
   availableHashes: new Set<string>(),
   currentTimeBlocks: 0,
-  blockTipHeight: 840000,
+  blockTipHeight: FALLBACK_BLOCK_HEIGHT,
   blockTipHeightReady: false,
 
   selectedPathIndex: null,
