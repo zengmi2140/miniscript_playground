@@ -24,6 +24,20 @@ describe('storage (legacy key cleanup)', () => {
     clearSession();
     expect(loadSession()).toBeNull();
   });
+
+  it('loadSession returns null for invalid persisted body', () => {
+    localStorage.setItem(
+      'miniscript-lab-session',
+      JSON.stringify({
+        policy: 'pk(A)',
+        keyVariables: [],
+        context: 'wsh',
+        network: 'mainnet',
+        savedAt: Date.now(),
+      }),
+    );
+    expect(loadSession()).toBeNull();
+  });
 });
 
 describe('share with playgroundMode', () => {
@@ -62,6 +76,34 @@ describe('share with playgroundMode', () => {
 
     expect(decoded).not.toBeNull();
     expect(decoded!.playgroundMode).toBeUndefined();
+  });
+
+  it('decodeSharePayload returns null for invalid network', () => {
+    const bad = { policy: 'pk(A)', keyVariables: [], context: 'wsh', network: 'mainnet' };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(bad))));
+    expect(decodeSharePayload(encoded)).toBeNull();
+  });
+
+  it('decodeSharePayload returns null for invalid context', () => {
+    const bad = {
+      policy: 'pk(A)',
+      keyVariables: [],
+      context: 'p2pkh',
+      network: 'testnet',
+    };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(bad))));
+    expect(decodeSharePayload(encoded)).toBeNull();
+  });
+
+  it('decodeSharePayload returns null for malformed keyVariables entry', () => {
+    const bad = {
+      policy: 'pk(A)',
+      keyVariables: [{ name: 'A', policyName: 'A' }],
+      context: 'wsh',
+      network: 'testnet',
+    };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(bad))));
+    expect(decodeSharePayload(encoded)).toBeNull();
   });
 
   it('should drop invalid playgroundMode from share payload', () => {

@@ -321,6 +321,8 @@ export const zh = {
       copy: '复制',
       share: '分享',
       shareCopied: '已复制',
+      shareUrlTooLong:
+        '链接较长，部分环境可能无法打开；已复制到剪贴板，若失败可缩短策略后再试。',
     },
     error: {
       hints: '建议',
@@ -402,6 +404,14 @@ export const zh = {
       empty: '此 Policy 无可用花费路径。所有路径当前条件下不可满足。',
       malleable: '可延展',
       witness: 'Witness: ~{size} vB',
+      labelLine: '路径 {index}: {description}',
+      labelDesc: {
+        signatures: '{names} 签名',
+        timelockRecovery: '超时恢复',
+        timelockOnly: '时间锁路径',
+        hashlock: '哈希锁路径',
+        generic: '花费路径',
+      },
     },
     address: { warning: '此地址仅用于测试网络，请勿在主网使用。' },
     mobile: {

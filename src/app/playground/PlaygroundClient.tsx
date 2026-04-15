@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Monitor, ArrowLeft } from 'lucide-react';
@@ -11,9 +11,9 @@ import { RightPanel } from '@/components/playground/RightPanel';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useCompiler } from '@/lib/hooks/useCompiler';
 import { useBuilderSync } from '@/lib/hooks/useBuilderSync';
-import { decodeSharePayload } from '@/lib/utils/share';
 import { clearSession } from '@/lib/utils/storage';
 import { fetchBlockTipHeight } from '@/lib/engine/block-height';
+import { applyPlaygroundSearchParams } from '@/lib/playground/apply-playground-search-params';
 import { useI18n } from '@/lib/i18n/context';
 
 function useViewportMode() {
@@ -65,47 +65,24 @@ function DesktopPlayground() {
   const enterBuildMode = usePlaygroundStore((s) => s.enterBuildMode);
   const setBlockTipHeight = usePlaygroundStore((s) => s.setBlockTipHeight);
   const setBlockTipHeightReady = usePlaygroundStore((s) => s.setBlockTipHeightReady);
-  const activeScenarioId = usePlaygroundStore((s) => s.activeScenarioId);
-  const initialized = useRef(false);
-
   useCompiler();
   useBuilderSync();
 
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
-
     clearSession();
     fetchBlockTipHeight().then((h) => {
       setBlockTipHeight(h);
       setBlockTipHeightReady(true);
     });
-
-    const shareParam = searchParams.get('s');
-    if (shareParam) {
-      const payload = decodeSharePayload(shareParam);
-      if (payload) {
-        restoreSession(payload);
-        return;
-      }
-    }
-
-    const scenarioId = searchParams.get('scenario');
-    if (scenarioId) {
-      loadScenario(scenarioId);
-    } else if (searchParams.get('mode') === 'build') {
-      enterBuildMode();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [setBlockTipHeight, setBlockTipHeightReady]);
 
   useEffect(() => {
-    if (!initialized.current) return;
-    const scenarioId = searchParams.get('scenario');
-    if (scenarioId && scenarioId !== activeScenarioId) {
-      loadScenario(scenarioId);
-    }
-  }, [searchParams, loadScenario, activeScenarioId]);
+    applyPlaygroundSearchParams(searchParams, {
+      restoreSession,
+      loadScenario,
+      enterBuildMode,
+    });
+  }, [searchParams, restoreSession, loadScenario, enterBuildMode]);
 
   return (
     <ThreeColumnLayout

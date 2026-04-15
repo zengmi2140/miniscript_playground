@@ -1,4 +1,4 @@
-import type { SpendingPath, PathCondition, KeyVariable } from './types';
+import type { SpendingPath, PathCondition, KeyVariable, PathLabelVariant } from './types';
 import { blocksToHuman, afterToHuman, isOlderSatisfied } from './time-utils';
 
 interface Satisfaction {
@@ -17,7 +17,9 @@ export function analyzeSpendingPaths(
 ): SpendingPath[] {
   const pubkeyToName: Record<string, string> = {};
   for (const kv of keyVariables) {
-    pubkeyToName[kv.publicKey] = kv.name;
+    if (pubkeyToName[kv.publicKey] === undefined) {
+      pubkeyToName[kv.publicKey] = kv.name;
+    }
   }
 
   const paths: SpendingPath[] = [];
@@ -88,11 +90,11 @@ function buildPath(
   }
 
   const witnessSize = estimateWitnessSize(sat.asm);
-  const label = generateLabel(index, conditions);
+  const labelVariant = computeLabelVariant(conditions);
 
   return {
     index,
-    label,
+    labelVariant,
     conditions,
     witnessAsm: sat.asm,
     witnessSize,
@@ -187,28 +189,27 @@ function estimateWitnessSize(asm: string): number {
   return size;
 }
 
-function generateLabel(index: number, conditions: PathCondition[]): string {
+function computeLabelVariant(conditions: PathCondition[]): PathLabelVariant {
   const sigCount = conditions.filter(c => c.type === 'signature').length;
   const hasTimelock = conditions.some(
     c => c.type === 'timelock_relative' || c.type === 'timelock_absolute',
   );
   const hasHash = conditions.some(c => c.type === 'hashlock');
 
-  let description = '';
   if (sigCount > 0 && !hasTimelock && !hasHash) {
     const names = conditions
       .filter((c): c is PathCondition & { type: 'signature' } => c.type === 'signature')
       .map(c => c.keyName);
-    description = names.join(' + ') + ' 签名';
-  } else if (hasTimelock && sigCount > 0) {
-    description = '超时恢复';
-  } else if (hasTimelock) {
-    description = '时间锁路径';
-  } else if (hasHash) {
-    description = '哈希锁路径';
-  } else {
-    description = '花费路径';
+    return { kind: 'signatures', names };
   }
-
-  return `路径 ${index}: ${description}`;
+  if (hasTimelock && sigCount > 0) {
+    return { kind: 'timelock_recovery' };
+  }
+  if (hasTimelock) {
+    return { kind: 'timelock_only' };
+  }
+  if (hasHash) {
+    return { kind: 'hashlock' };
+  }
+  return { kind: 'generic' };
 }
