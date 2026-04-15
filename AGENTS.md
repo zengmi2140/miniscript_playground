@@ -33,6 +33,8 @@
 
 **技术边界**：纯前端；无后端 API / 数据库；所有计算在浏览器本地完成，**不依赖 LLM 或外部服务**。地址仅用于 **testnet / signet** 教学展示，**不得**将主网地址作为默认或隐式行为。**MVP** 实际编译与地址以 **P2WSH** 为主；**P2TR** 可为占位，UI 中通常禁用（以代码为准）。
 
+**与「不连接区块链」的区分**：应用**不会**作为钱包去查询 UTXO、广播交易或同步链状态。唯一例外是 Playground 为教学展示 **after(区块高度)** 与混合时间轴，**只读**请求公共 API（`mempool.space`）获取**当前主网链尖高度**（短 TTL 内存缓存；失败时使用默认高度）。这不改变「不上传策略、不托管密钥」的边界。
+
 ---
 
 ## 2. 技术栈
@@ -98,9 +100,9 @@ npm run test
 
 ### 各路由实现要点
 
-- **`/`** — `src/app/page.tsx`。顺序：`HomepageHero` → Intro 各节（含 Applications 等）→ `HomepageWallets` → 底部 CTA + footer。Applications **6** 条卡片与 `playgroundScenarioId` 见 `src/components/intro/data.ts`；**「原子交换」** 三列可用 `HEX` 作 hash160 占位，与 `htlc-atomic` Playground 展示一致，右栏真实输出见 §7。`requestIdleCallback` 可预热 Playground；窄屏 `home.playground.desktopHint`。未挂首页的旧组件见 §9。  
+- **`/`** — `src/app/page.tsx`。顺序：`HomepageHero` → Intro 各节（含 Applications 等）→ `HomepageWallets` → 底部 CTA + footer。Applications **6** 条卡片与 `playgroundScenarioId` 见 `src/components/intro/data.ts`；另有预设 **「穿越牛熊」**（`holder-timelock`，`sortScenariosForPlayground()` 中排在未列入 Applications 的项之末，见 `src/lib/scenarios/data.ts`）。**「原子交换」** 三列可用 `HEX` 作 hash160 占位，与 `htlc-atomic` Playground 展示一致，右栏真实输出见 §7。`requestIdleCallback` 可预热 Playground；窄屏 `home.playground.desktopHint`。未挂首页的旧组件见 §9。  
 - **`/intro`** — `src/app/intro/page.tsx`：`redirect('/')`。  
-- **`/playground`** — `src/app/playground/page.tsx` → `PlaygroundClient.tsx`：处理 `?s=`、`?scenario=`、`?mode=build`；`clearSession()`；`useCompiler` + `useBuilderSync`；渐进式加载（`dynamic` 画布、`prefetch` 等）。  
+- **`/playground`** — `src/app/playground/page.tsx` → `PlaygroundClient.tsx`：处理 `?s=`、`?scenario=`、`?mode=build`；`clearSession()`；挂载时 `fetchBlockTipHeight`；`useCompiler` + `useBuilderSync`；渐进式加载（`dynamic` 画布、`prefetch` 等）。  
 - **`/resources`** — `src/app/resources/page.tsx`：外链网格 +「推荐阅读」（数据：`src/lib/resources/recommended-reading.ts`）。  
 - **`/compare`** — `src/app/compare/page.tsx`：Coming Soon。
 
@@ -156,7 +158,7 @@ npm run test
 |------|------|
 | `stores/` | `playground-store.ts` — Playground 唯一状态源 |
 | `hooks/` | `useCompiler.ts`、`useBuilderSync.ts` |
-| `engine/` | `compiler.ts`、`miniscript-parser.ts`、`path-analyzer.ts`、policy 错误与预检、`*__tests__/` |
+| `engine/` | `compiler.ts`、`miniscript-parser.ts`、`path-analyzer.ts`、`block-height.ts`（链尖缓存与 `fetchBlockTipHeight`）、policy 错误与预检、`*__tests__/` |
 | `builder/` | 策略树模型、`serialize`、`node-ops`、`from-semantic-tree`、`status`、`tree-to-flow`、`__tests__/` |
 | `flow/` | scenario：`tree-to-flow.ts`（Dagre） |
 | `editor/` | `policy-language.ts`（CodeMirror 高亮等） |
@@ -174,8 +176,9 @@ npm run test
 ```text
 用户编辑 Policy / 操作画布
     → playground-store（Zustand）
+    → Playground 挂载：fetchBlockTipHeight → blockTipHeight / blockTipHeightReady
     → useCompiler（debounce）→ compiler → miniscript、descriptor、地址、spendingPaths
-    → scenario：miniscript-parser → tree-to-flow → PathMap
+    → scenario：miniscript-parser → tree-to-flow → PathMap（链尖就绪后传入 blockTipHeight 用于区块高度型 after）
     → build：strategyTree ↔ useBuilderSync ↔ Policy 文本
     → 右栏 Tabs / StatusBanner / ConditionToggles / TimeSlider
 ```
@@ -196,7 +199,7 @@ npm run test
 
 ### Playground 状态
 
-- 单一事实源：`src/lib/stores/playground-store.ts`（`playgroundMode`、`policy`、`strategyTree`、`builderSyncState`、编译结果、模拟条件、UI 等）。
+- 单一事实源：`src/lib/stores/playground-store.ts`（`playgroundMode`、`policy`、`strategyTree`、`builderSyncState`、编译结果、模拟条件、`blockTipHeight` / `blockTipHeightReady`、UI 等）。
 
 ### 自动编译
 
@@ -211,6 +214,7 @@ npm run test
 ### 语义树与路径图（scenario）
 
 - `miniscript-parser.ts` → `tree-to-flow.ts`（Dagre）；`multi(k,…)` 在图上展开为 k-of-n + 叶子。  
+- **区块高度型 `after()`**：条件满足态依赖当前链尖（`blockTipHeight`）；在链尖首次拉取完成前不向 `tree-to-flow` 传入高度，避免占位高度误判。  
 - 组件：`PathMap`、`FlowNodes`、`PathEdge` 等。
 
 ### 可视化构建（build）
@@ -229,7 +233,7 @@ npm run test
 
 ## 7. 关键 UI 结构
 
-左栏 `LeftPanel`（240px）、中栏 `CenterPanel`、右栏 `RightPanel`（320px）。`PolicyEditor`（含 `htlc-atomic` 的 `hash160(HEX)` 展示与 `onDocChangeRef`）、`ConditionToggles`、`TimeSlider`、`StatusBanner`；右栏 Tab 与 `htlc` 真实摘要规则见上文与 `htlc-display-mask.ts`。
+左栏 `LeftPanel`（240px）、中栏 `CenterPanel`、右栏 `RightPanel`（320px）。`PolicyEditor`（含 `htlc-atomic` 的 `hash160(HEX)` 展示与 `onDocChangeRef`）、`ConditionToggles`、`TimeSlider`（分段线性锚点；`older()` 与区块高度型 `after()` 统一为相对区块语义后混排）、`StatusBanner`；右栏 Tab 与 `htlc` 真实摘要规则见上文与 `htlc-display-mask.ts`。
 
 ---
 
@@ -244,14 +248,14 @@ npm run test
 ## 9. 限制与易误判点
 
 1. 仅 **wsh** 实际可用；`tr` 占位/禁用。  
-2. **after()** 模拟不完整；时间滑块主要对 **older()** 有效。  
+2. **时间模拟**：`older()` 与区块高度型 **`after()`** 可与链尖结合，在时间轴上混合排序；**Unix 时间戳型 `after()`** 等路径仍可能简化或未完全模拟（以代码为准）。  
 3. **signet** 地址派生可能复用 testnet 网络对象（教学折中）。  
 4. **/compare** 未实现；导航指向 **Resources**。  
 5. **@supabase/supabase-js** 已安装未使用。  
 6. 多数页面为 **'use client'**。  
 7. **移动端**无完整 Playground（桌面优先）。  
 8. 无 **regtest**。  
-9. 路径图**根节点**即顶层逻辑（都需要 / 任选一 / k-of-n），单叶子可无根节点。  
+9. 路径图**根节点**即顶层逻辑（都需要 / **二选一** / k-of-n），单叶子可无根节点。  
 10. **build** 为 MVP：受约束树 + 同步；非任意拖线。  
 11. **渐进式加载**、首页 **单一橙色 CTA** → `?mode=build`。  
 12. **htlc-atomic**：`HEX` 展示 vs 右栏真实 hex；见 §7 与 `htlc-display-mask.ts`。
@@ -264,8 +268,8 @@ npm run test
 |------|------|
 | 预设场景 | `src/lib/scenarios/data.ts`、`playground-order.ts`、`intro/data.ts`、tags / `ScenarioCard` |
 | Policy 语法 / 编译 | `policy-language.ts`、`compiler.ts`、`miniscript-parser.ts`、`glossary/data.ts`、`*__tests__/*` |
-| 路径判定 / 模拟 | `path-analyzer.ts`、`time-utils.ts`、`StatusBanner`、`ConditionToggles`、`TimeSlider`、`PathsTab` |
-| scenario 路径图 | `tree-to-flow.ts`、`PathMap`、`FlowNodes`、`PathEdge` |
+| 路径判定 / 模拟 | `path-analyzer.ts`、`time-utils.ts`、`block-height.ts`、`StatusBanner`、`ConditionToggles`、`TimeSlider`、`PathsTab` |
+| scenario 路径图 | `tree-to-flow.ts`、`PathMap`（传入 `blockTipHeight`）、`FlowNodes`、`PathEdge` |
 | build 画布 | `src/lib/builder/*`、`BuilderCanvas`、`useBuilderSync.ts`、`playground-store.ts` |
 | Policy 编辑器 | `PolicyEditor.tsx`、`htlc-display-mask.ts`、`policy-errors` 等 |
 | 右栏结果 | `RightPanel.tsx`、`components/results/*` |

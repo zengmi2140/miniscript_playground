@@ -16,7 +16,7 @@ describe('sortScenariosForPlayground', () => {
     const appSet = new Set(APPLICATION_PLAYGROUND_SCENARIO_IDS);
     const tail = sorted.filter((s) => !appSet.has(s.id));
     expect(tail.map((s) => s.id).sort()).toEqual(
-      ['degrading-multisig', 'vault-hot-cold'].sort(),
+      ['degrading-multisig', 'holder-timelock', 'vault-hot-cold'].sort(),
     );
   });
 });

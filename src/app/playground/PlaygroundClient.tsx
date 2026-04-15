@@ -13,6 +13,7 @@ import { useCompiler } from '@/lib/hooks/useCompiler';
 import { useBuilderSync } from '@/lib/hooks/useBuilderSync';
 import { decodeSharePayload } from '@/lib/utils/share';
 import { clearSession } from '@/lib/utils/storage';
+import { fetchBlockTipHeight } from '@/lib/engine/block-height';
 import { useI18n } from '@/lib/i18n/context';
 
 function useViewportMode() {
@@ -62,6 +63,8 @@ function DesktopPlayground() {
   const loadScenario = usePlaygroundStore((s) => s.loadScenario);
   const restoreSession = usePlaygroundStore((s) => s.restoreSession);
   const enterBuildMode = usePlaygroundStore((s) => s.enterBuildMode);
+  const setBlockTipHeight = usePlaygroundStore((s) => s.setBlockTipHeight);
+  const setBlockTipHeightReady = usePlaygroundStore((s) => s.setBlockTipHeightReady);
   const activeScenarioId = usePlaygroundStore((s) => s.activeScenarioId);
   const initialized = useRef(false);
 
@@ -73,6 +76,10 @@ function DesktopPlayground() {
     initialized.current = true;
 
     clearSession();
+    fetchBlockTipHeight().then((h) => {
+      setBlockTipHeight(h);
+      setBlockTipHeightReady(true);
+    });
 
     const shareParam = searchParams.get('s');
     if (shareParam) {

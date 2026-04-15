@@ -16,6 +16,7 @@ export const DEFAULT_TEST_KEYS: Record<string, string> = {
   Hot: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
   Cold: '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5',
   Recovery: '02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9',
+  Holder: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
 };
 
 function kv(name: string, policyName?: string): KeyVariable {
@@ -153,6 +154,22 @@ export const SCENARIOS: Scenario[] = [
     },
     policy: 'and(or(pk(Alice),pk(Bob)),or(pk(Charlie),older(500)))',
     keyVariables: [kv('Alice'), kv('Bob'), kv('Charlie')],
+    context: 'wsh',
+  },
+  {
+    id: 'holder-timelock',
+    icon: 'Clock',
+    title: { zh: '穿越牛熊', en: 'Diamond Hands (HODL)' },
+    description: {
+      zh: '三年后解锁，必须同时满足三年时间锁和签名两个条件。',
+      en: 'Unlocks after 3 years, requiring both the timelock and a signature.',
+    },
+    explanation: {
+      zh: '最简单的时间锁场景：`and(pk(Holder), older(157680))`。在 UTXO 确认后必须等待约 3 年（157,680 个区块）并提供 Holder 的签名才能花费。适合强制长期持有。',
+      en: 'Simplest timelock scenario: `and(pk(Holder), older(157680))`. Must wait ~3 years (157,680 blocks after confirmation) and provide the Holder signature to spend. Ideal for enforced long-term holding.',
+    },
+    policy: 'and(pk(Holder),older(157680))',
+    keyVariables: [kv('Holder')],
     context: 'wsh',
   },
 ];
