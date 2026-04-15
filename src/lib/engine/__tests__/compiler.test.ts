@@ -80,6 +80,19 @@ describe('compiler', () => {
     }
   });
 
+  it('returns limit error when context is P2TR (tr)', async () => {
+    const { result, error } = await compile(
+      'pk(Alice)',
+      [{ name: 'Alice', policyName: 'Alice', publicKey: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798' }],
+      'tr',
+    );
+
+    expect(result).toBeNull();
+    expect(error).not.toBeNull();
+    expect(error!.category).toBe('limit');
+    expect(error!.raw).toContain('P2TR');
+  });
+
   it('returns friendly error for invalid policy', async () => {
     const policy = 'invalid_garbage!!!()';
     const { result, error } = await compile(policy, [], 'wsh');

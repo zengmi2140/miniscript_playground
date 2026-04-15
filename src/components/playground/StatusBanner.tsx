@@ -6,6 +6,7 @@ import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils/cn';
 import { blocksToHumanLocale } from '@/lib/engine/time-utils';
+import { formatSpendingPathLabel } from '@/lib/engine/path-label';
 
 type BannerStatus = 'canSpend' | 'waiting' | 'cannotSpend';
 
@@ -27,7 +28,9 @@ export function StatusBanner() {
     if (satisfiable) {
       return {
         status: 'canSpend',
-        message: t('playground.status.canSpend', { path: satisfiable.label }),
+        message: t('playground.status.canSpend', {
+          path: formatSpendingPathLabel(satisfiable, t),
+        }),
       };
     }
 
@@ -55,7 +58,7 @@ export function StatusBanner() {
           status: 'waiting',
           message: t('playground.status.waiting', {
             time: blocksToHumanLocale(remaining, locale),
-            path: pendingPath.label,
+            path: formatSpendingPathLabel(pendingPath, t),
           }),
         };
       }

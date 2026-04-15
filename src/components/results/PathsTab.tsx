@@ -6,6 +6,7 @@ import { useI18n } from '@/lib/i18n/context';
 import { ConditionChip } from '@/components/shared/ConditionChip';
 import { cn } from '@/lib/utils/cn';
 import type { SpendingPath } from '@/lib/engine/types';
+import { formatSpendingPathLabel } from '@/lib/engine/path-label';
 
 function PathStatusIcon({ path }: { path: SpendingPath }) {
   if (path.satisfiable) {
@@ -35,7 +36,7 @@ function PathCard({ path }: { path: SpendingPath }) {
     >
       <div className="mb-2 flex items-center justify-between">
         <span className="text-[13px] font-medium text-text-primary">
-          {path.label}
+          {formatSpendingPathLabel(path, t)}
         </span>
         <PathStatusIcon path={path} />
       </div>

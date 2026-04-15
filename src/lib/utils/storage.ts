@@ -4,6 +4,7 @@
  * `loadSession` remain for tests and any future explicit persistence.
  */
 import type { KeyVariable, ScriptContext, Network, PlaygroundMode } from '@/lib/engine/types';
+import { parseValidPlaygroundPayload } from '@/lib/utils/share';
 
 const STORAGE_KEY = 'miniscript-lab-session';
 
@@ -27,20 +28,21 @@ export function loadSession(): PersistedSession | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (
-      typeof parsed.policy !== 'string' ||
-      !Array.isArray(parsed.keyVariables) ||
-      typeof parsed.context !== 'string' ||
-      typeof parsed.network !== 'string'
-    ) {
-      return null;
-    }
-    // Default playgroundMode to 'scenario' for backward compatibility
-    if (!parsed.playgroundMode) {
-      parsed.playgroundMode = 'scenario';
-    }
-    return parsed as PersistedSession;
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null) return null;
+    const o = parsed as Record<string, unknown>;
+    if (typeof o.savedAt !== 'number') return null;
+    const body = parseValidPlaygroundPayload(o);
+    if (!body) return null;
+    const playgroundMode: PlaygroundMode = body.playgroundMode ?? 'scenario';
+    return {
+      policy: body.policy,
+      keyVariables: body.keyVariables,
+      context: body.context,
+      network: body.network,
+      playgroundMode,
+      savedAt: o.savedAt,
+    };
   } catch {
     return null;
   }

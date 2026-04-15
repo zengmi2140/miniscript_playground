@@ -3,6 +3,19 @@ import { collectHighlightedNodeIds } from '../path-highlighting';
 import type { StrategyNode } from '../types';
 import type { SpendingPath } from '@/lib/engine/types';
 
+function pathStub(overrides: Partial<SpendingPath> & Pick<SpendingPath, 'conditions'>): SpendingPath {
+  return {
+    index: 1,
+    labelVariant: { kind: 'generic' },
+    witnessAsm: '',
+    witnessSize: 0,
+    isMalleable: false,
+    satisfiable: true,
+    missingConditions: [],
+    ...overrides,
+  };
+}
+
 describe('collectHighlightedNodeIds', () => {
   describe('simple signature', () => {
     it('should highlight a matching signature node', () => {
@@ -12,12 +25,9 @@ describe('collectHighlightedNodeIds', () => {
         roleId: 'Alice',
       };
 
-      const path: SpendingPath = {
+      const path = pathStub({
         conditions: [{ type: 'signature', keyName: 'Alice' }],
-        isSatisfied: true,
-        satisfiedConditions: [],
-        requiredConditions: [],
-      };
+      });
 
       const highlighted = collectHighlightedNodeIds(tree, path);
       expect(highlighted.has('sig-1')).toBe(true);
@@ -30,12 +40,9 @@ describe('collectHighlightedNodeIds', () => {
         roleId: 'Alice',
       };
 
-      const path: SpendingPath = {
+      const path = pathStub({
         conditions: [{ type: 'signature', keyName: 'Bob' }],
-        isSatisfied: true,
-        satisfiedConditions: [],
-        requiredConditions: [],
-      };
+      });
 
       const highlighted = collectHighlightedNodeIds(tree, path);
       expect(highlighted.has('sig-1')).toBe(false);
@@ -62,15 +69,12 @@ describe('collectHighlightedNodeIds', () => {
     };
 
     it('should highlight User + Service path', () => {
-      const path: SpendingPath = {
+      const path = pathStub({
         conditions: [
           { type: 'signature', keyName: 'User' },
           { type: 'signature', keyName: 'Service' },
         ],
-        isSatisfied: true,
-        satisfiedConditions: [],
-        requiredConditions: [],
-      };
+      });
 
       const highlighted = collectHighlightedNodeIds(recoveryTree, path);
       expect(highlighted.has('sig-user')).toBe(true);
@@ -82,15 +86,12 @@ describe('collectHighlightedNodeIds', () => {
     });
 
     it('should highlight User + timelock recovery path', () => {
-      const path: SpendingPath = {
+      const path = pathStub({
         conditions: [
           { type: 'signature', keyName: 'User' },
-          { type: 'timelock_relative', blocks: 4320 },
+          { type: 'timelock_relative', blocks: 4320, humanReadable: '~30 day(s)' },
         ],
-        isSatisfied: true,
-        satisfiedConditions: [],
-        requiredConditions: [],
-      };
+      });
 
       const highlighted = collectHighlightedNodeIds(recoveryTree, path);
       expect(highlighted.has('sig-user')).toBe(true);
@@ -116,15 +117,12 @@ describe('collectHighlightedNodeIds', () => {
     };
 
     it('should highlight matched participants and parent for 2-of-3', () => {
-      const path: SpendingPath = {
+      const path = pathStub({
         conditions: [
           { type: 'signature', keyName: 'Alice' },
           { type: 'signature', keyName: 'Bob' },
         ],
-        isSatisfied: true,
-        satisfiedConditions: [],
-        requiredConditions: [],
-      };
+      });
 
       const highlighted = collectHighlightedNodeIds(thresholdTree, path);
       expect(highlighted.has('sig-1')).toBe(true);
@@ -134,14 +132,9 @@ describe('collectHighlightedNodeIds', () => {
     });
 
     it('should not highlight parent if threshold not met', () => {
-      const path: SpendingPath = {
-        conditions: [
-          { type: 'signature', keyName: 'Alice' },
-        ],
-        isSatisfied: false,
-        satisfiedConditions: [],
-        requiredConditions: [],
-      };
+      const path = pathStub({
+        conditions: [{ type: 'signature', keyName: 'Alice' }],
+      });
 
       const highlighted = collectHighlightedNodeIds(thresholdTree, path);
       expect(highlighted.has('sig-1')).toBe(true);
@@ -177,15 +170,12 @@ describe('collectHighlightedNodeIds', () => {
         ],
       };
 
-      const path: SpendingPath = {
+      const path = pathStub({
         conditions: [
           { type: 'signature', keyName: 'Charlie' },
-          { type: 'timelock_relative', blocks: 1000 },
+          { type: 'timelock_relative', blocks: 1000, humanReadable: '~7 day(s)' },
         ],
-        isSatisfied: true,
-        satisfiedConditions: [],
-        requiredConditions: [],
-      };
+      });
 
       const highlighted = collectHighlightedNodeIds(tree, path);
       // Branch 2 should be highlighted

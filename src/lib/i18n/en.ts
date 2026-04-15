@@ -334,6 +334,8 @@ export const en = {
       copy: 'Copy',
       share: 'Share',
       shareCopied: 'Copied!',
+      shareUrlTooLong:
+        'This share link is long and may fail in some environments; copied to clipboard. Shorten the policy if opening fails.',
     },
     error: {
       hints: 'Suggestions',
@@ -415,6 +417,14 @@ export const en = {
       empty: 'No spending paths available. All paths are unsatisfiable under current conditions.',
       malleable: 'Malleable',
       witness: 'Witness: ~{size} vB',
+      labelLine: 'Path {index}: {description}',
+      labelDesc: {
+        signatures: '{names} signatures',
+        timelockRecovery: 'Timeout recovery',
+        timelockOnly: 'Timelock path',
+        hashlock: 'Hashlock path',
+        generic: 'Spending path',
+      },
     },
     address: { warning: 'This address is for testnet only. Do not use on mainnet.' },
     mobile: {

@@ -15,7 +15,7 @@ import { buildErrorHighlightExtensions, policyExtensions } from '@/lib/editor/po
 import { clampHighlightsToDoc } from '@/lib/engine/policy-error-highlight';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
-import { buildShareUrl } from '@/lib/utils/share';
+import { buildShareUrl, isShareUrlLikelyTooLong } from '@/lib/utils/share';
 import { cn } from '@/lib/utils/cn';
 import type { FriendlyError } from '@/lib/engine/types';
 
@@ -65,6 +65,7 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
   const suppressSync = useRef(false);
   const highlightCompartment = useMemo(() => new Compartment(), []);
   const [shareCopied, setShareCopied] = useState(false);
+  const [shareUrlTooLong, setShareUrlTooLong] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [rawCopied, setRawCopied] = useState(false);
 
@@ -201,6 +202,10 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
       await navigator.clipboard.writeText(url);
       setShareCopied(true);
       setTimeout(() => setShareCopied(false), 2000);
+      if (isShareUrlLikelyTooLong(url)) {
+        setShareUrlTooLong(true);
+        setTimeout(() => setShareUrlTooLong(false), 4000);
+      }
     } catch {}
   }, [policy, keyVariables, context, network, playgroundMode]);
 
@@ -217,6 +222,12 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
           active={shareCopied}
         />
       </div>
+
+      {shareUrlTooLong && (
+        <p className="text-[11px] leading-relaxed text-semantic-warning">
+          {t('playground.editor.shareUrlTooLong')}
+        </p>
+      )}
 
       <div
         ref={editorRef}
