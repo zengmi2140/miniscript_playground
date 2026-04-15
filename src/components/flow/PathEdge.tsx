@@ -17,6 +17,7 @@ export const PathEdge = memo(function PathEdge({
   const edgeData = data as FlowEdgeData | undefined;
   const relation = edgeData?.relation || 'and';
   const satisfied = edgeData?.satisfied || false;
+  const status = edgeData?.status;
 
   const [edgePath] = getSmoothStepPath({
     sourceX,
@@ -31,6 +32,7 @@ export const PathEdge = memo(function PathEdge({
 
   let stroke = '#44403C';
   if (satisfied) stroke = '#22C55E';
+  else if (status === 'pending') stroke = '#F7931A';
   else if (relation === 'or') stroke = '#78716C';
 
   const dashArray = relation === 'or' ? '6 4' : relation === 'threshold' ? '4 3' : undefined;

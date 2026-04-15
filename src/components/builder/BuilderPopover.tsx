@@ -397,7 +397,7 @@ export function BuilderPopover() {
             <Key className="h-5 w-5 text-btc-500" />
             <div>
               <p className="text-sm font-medium text-text-primary">{t('builder.starter.singleControl') || '单签名'}</p>
-              <p className="text-xs text-text-muted">{t('builder.starter.singleControlDesc') || '单个密钥控制'}</p>
+              <p className="text-xs text-text-muted">{t('builder.starter.singleControlDesc') || '单个密钥签名'}</p>
             </div>
           </button>
           <button
@@ -406,8 +406,8 @@ export function BuilderPopover() {
           >
             <Users className="h-5 w-5 text-btc-500" />
             <div>
-              <p className="text-sm font-medium text-text-primary">{t('builder.starter.sharedControl') || '门限多签'}</p>
-              <p className="text-xs text-text-muted">{t('builder.starter.sharedControlDesc') || '多签 (2-of-3)'}</p>
+              <p className="text-sm font-medium text-text-primary">{t('builder.starter.sharedControl') || '阈值条件'}</p>
+              <p className="text-xs text-text-muted">{t('builder.starter.sharedControlDesc') || 'k-of-n 门限条件'}</p>
             </div>
           </button>
           <button
@@ -426,7 +426,7 @@ export function BuilderPopover() {
           >
             <div className="flex h-5 w-5 items-center justify-center text-btc-500 font-bold text-xs">|</div>
             <div>
-              <p className="text-sm font-medium text-text-primary">{t('builder.node.any') || '任选一'}</p>
+              <p className="text-sm font-medium text-text-primary">{t('builder.node.any') || '二选一'}</p>
               <p className="text-xs text-text-muted">{t('builder.op.any.desc')}</p>
             </div>
           </button>

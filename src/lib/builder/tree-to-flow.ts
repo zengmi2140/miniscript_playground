@@ -100,7 +100,7 @@ function getNodeLabel(
         case 'all':
           return locale === 'zh' ? '都需要' : 'All Required';
         case 'any':
-          return locale === 'zh' ? '任选一' : 'Any One';
+          return locale === 'zh' ? '二选一' : 'Either One';
         case 'threshold': {
           const realChildCount = node.children.filter((c) => c.kind !== 'placeholder').length;
           const k = node.threshold ?? 1;

@@ -36,6 +36,8 @@ interface PlaygroundActions {
   toggleKey: (keyName: string) => void;
   toggleHash: (hash: string) => void;
   setCurrentTimeBlocks: (blocks: number) => void;
+  setBlockTipHeight: (height: number) => void;
+  setBlockTipHeightReady: (ready: boolean) => void;
   setAvailableKeys: (keys: Set<string>) => void;
   setAvailableHashes: (hashes: Set<string>) => void;
 
@@ -103,6 +105,8 @@ const initialState: PlaygroundState & BuilderState = {
   availableKeys: new Set<string>(),
   availableHashes: new Set<string>(),
   currentTimeBlocks: 0,
+  blockTipHeight: 840000,
+  blockTipHeightReady: false,
 
   selectedPathIndex: null,
   activeResultTab: 'paths',
@@ -166,6 +170,8 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
     }),
 
   setCurrentTimeBlocks: (currentTimeBlocks) => set({ currentTimeBlocks }),
+  setBlockTipHeight: (blockTipHeight) => set({ blockTipHeight }),
+  setBlockTipHeightReady: (blockTipHeightReady) => set({ blockTipHeightReady }),
   setAvailableKeys: (availableKeys) => set({ availableKeys }),
   setAvailableHashes: (availableHashes) => set({ availableHashes }),
 

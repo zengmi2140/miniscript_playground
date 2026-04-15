@@ -21,6 +21,7 @@ export interface FlowNodeData {
 export interface FlowEdgeData {
   relation: 'and' | 'or' | 'threshold';
   satisfied: boolean;
+  status?: 'satisfied' | 'pending' | 'missing';
   [key: string]: unknown;
 }
 
@@ -41,6 +42,7 @@ function getConditionStatus(
   availableKeys: Set<string>,
   availableHashes: Set<string>,
   currentTimeBlocks: number,
+  blockTipHeight?: number,
 ): 'satisfied' | 'pending' | 'missing' {
   switch (node.type) {
     case 'key':
@@ -48,6 +50,9 @@ function getConditionStatus(
     case 'older':
       return currentTimeBlocks >= node.blocks ? 'satisfied' : 'pending';
     case 'after':
+      if (blockTipHeight !== undefined && node.value < 500000000) {
+        return blockTipHeight >= node.value ? 'satisfied' : 'pending';
+      }
       return 'pending';
     case 'hash':
       return availableHashes.has(node.hash) ? 'satisfied' : 'missing';
@@ -78,7 +83,7 @@ function getCompositeStatus(childStatuses: ('satisfied' | 'pending' | 'missing')
   const pendingCount = childStatuses.filter((s) => s === 'pending').length;
   const threshold = k ?? 1;
   if (satisfiedCount >= threshold) return 'satisfied';
-  if (satisfiedCount + pendingCount >= threshold) return 'pending';
+  if (satisfiedCount > 0 || satisfiedCount + pendingCount >= threshold) return 'pending';
   return 'missing';
 }
 
@@ -161,6 +166,7 @@ function buildGraph(
   maskHtlcTeachingHash160: boolean,
   parentId?: string,
   relation?: 'and' | 'or' | 'threshold',
+  blockTipHeight?: number,
 ): BuildResult {
   const isLeaf =
     msNode.type === 'key' ||
@@ -228,7 +234,7 @@ function buildGraph(
         source: operatorId,
         target: childId,
         type: 'pathEdge',
-        data: { relation: 'threshold', satisfied: status === 'satisfied' },
+        data: { relation: 'threshold', satisfied: status === 'satisfied', status },
       });
     }
 
@@ -238,7 +244,10 @@ function buildGraph(
 
     if (parentId) {
       const edgeRef = edges.find((e) => e.id === `e_${parentId}_${operatorId}`);
-      if (edgeRef?.data) edgeRef.data.satisfied = compositeStatus === 'satisfied';
+      if (edgeRef?.data) {
+        edgeRef.data.satisfied = compositeStatus === 'satisfied';
+        edgeRef.data.status = compositeStatus;
+      }
     }
 
     return { nodeId: operatorId, status: compositeStatus };
@@ -246,7 +255,7 @@ function buildGraph(
 
   if (isLeaf) {
     const id = nextId();
-    const status = getConditionStatus(msNode, availableKeys, availableHashes, currentTimeBlocks);
+    const status = getConditionStatus(msNode, availableKeys, availableHashes, currentTimeBlocks, blockTipHeight);
     const label = conditionLabel(msNode, locale, maskHtlcTeachingHash160);
     const condSize = NODE_SIZES.condition;
     nodes.push({
@@ -320,6 +329,7 @@ function buildGraph(
         maskHtlcTeachingHash160,
         id,
         opType,
+        blockTipHeight,
       );
       childStatuses.push(result.status);
     }
@@ -330,7 +340,10 @@ function buildGraph(
 
     if (parentId) {
       const edgeRef = edges.find((e) => e.id === `e_${parentId}_${id}`);
-      if (edgeRef?.data) edgeRef.data.satisfied = compositeStatus === 'satisfied';
+      if (edgeRef?.data) {
+        edgeRef.data.satisfied = compositeStatus === 'satisfied';
+        edgeRef.data.status = compositeStatus;
+      }
     }
 
     return { nodeId: id, status: compositeStatus };
@@ -376,6 +389,7 @@ function buildGraph(
         maskHtlcTeachingHash160,
         id,
         'threshold',
+        blockTipHeight,
       );
       childStatuses.push(result.status);
     }
@@ -386,7 +400,10 @@ function buildGraph(
 
     if (parentId) {
       const edgeRef = edges.find((e) => e.id === `e_${parentId}_${id}`);
-      if (edgeRef?.data) edgeRef.data.satisfied = compositeStatus === 'satisfied';
+      if (edgeRef?.data) {
+        edgeRef.data.satisfied = compositeStatus === 'satisfied';
+        edgeRef.data.status = compositeStatus;
+      }
     }
 
     return { nodeId: id, status: compositeStatus };
@@ -448,13 +465,14 @@ export function treeToFlow(
   availableHashes: Set<string>,
   currentTimeBlocks: number,
   locale: 'zh' | 'en' = 'zh',
-  options?: { maskHtlcTeachingHash160?: boolean },
+  options?: { maskHtlcTeachingHash160?: boolean; blockTipHeight?: number },
 ): { nodes: Node<FlowNodeData>[]; edges: Edge<FlowEdgeData>[] } {
   nodeIdCounter = 0;
 
   const nodes: Node<FlowNodeData>[] = [];
   const edges: Edge<FlowEdgeData>[] = [];
   const maskHtlcTeachingHash160 = options?.maskHtlcTeachingHash160 ?? false;
+  const blockTipHeight = options?.blockTipHeight;
 
   const isLeafTree =
     tree.type === 'key' ||
@@ -474,6 +492,9 @@ export function treeToFlow(
       currentTimeBlocks,
       locale,
       maskHtlcTeachingHash160,
+      undefined,
+      undefined,
+      blockTipHeight,
     );
   } else if (tree.type === 'and' || tree.type === 'or') {
     const rootId = nextId();
@@ -505,6 +526,7 @@ export function treeToFlow(
         maskHtlcTeachingHash160,
         rootId,
         tree.type,
+        blockTipHeight,
       );
       childStatuses.push(result.status);
     }
@@ -540,6 +562,7 @@ export function treeToFlow(
         maskHtlcTeachingHash160,
         rootId,
         'threshold',
+        blockTipHeight,
       );
       childStatuses.push(result.status);
     }
