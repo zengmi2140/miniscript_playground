@@ -49,7 +49,37 @@ describe('fetchBlockTipHeight', () => {
     expect(fetch).toHaveBeenCalled();
   });
 
-  it('returns fallback on HTTP error when no cache', async () => {
+  it('tries the next endpoint when the first fails', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation((url: string) => {
+        if (url.includes('mempool.space')) {
+          return Promise.resolve({
+            ok: false,
+            status: 503,
+            text: async () => '',
+          });
+        }
+        if (url.includes('blockstream.info')) {
+          return Promise.resolve({
+            ok: true,
+            text: async () => '900002',
+          });
+        }
+        return Promise.resolve({
+          ok: false,
+          status: 500,
+          text: async () => '',
+        });
+      }),
+    );
+    await expect(fetchBlockTipHeight()).resolves.toBe(900002);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(fetch).mock.calls[0][0]).toContain('mempool.space');
+    expect(vi.mocked(fetch).mock.calls[1][0]).toContain('blockstream.info');
+  });
+
+  it('returns fallback when all endpoints fail and no cache', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -59,6 +89,7 @@ describe('fetchBlockTipHeight', () => {
       }),
     );
     await expect(fetchBlockTipHeight()).resolves.toBe(FALLBACK_BLOCK_HEIGHT);
+    expect(fetch).toHaveBeenCalledTimes(3);
   });
 
   it('returns fallback on invalid body when no cache', async () => {
@@ -70,6 +101,7 @@ describe('fetchBlockTipHeight', () => {
       }),
     );
     await expect(fetchBlockTipHeight()).resolves.toBe(FALLBACK_BLOCK_HEIGHT);
+    expect(fetch).toHaveBeenCalledTimes(3);
   });
 
   it('returns last successful height on error when cache exists', async () => {
