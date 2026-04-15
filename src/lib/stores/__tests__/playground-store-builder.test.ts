@@ -79,7 +79,18 @@ describe('Playground Store - Builder', () => {
 
     it('clears path results', () => {
       const store = usePlaygroundStore.getState();
-      store.setSpendingPaths([{ index: 0, label: 'test', conditions: [], witnessAsm: '', witnessSize: 0, isMalleable: false, satisfiable: true, missingConditions: [] }]);
+      store.setSpendingPaths([
+        {
+          index: 1,
+          labelVariant: { kind: 'generic' },
+          conditions: [],
+          witnessAsm: '',
+          witnessSize: 0,
+          isMalleable: false,
+          satisfiable: true,
+          missingConditions: [],
+        },
+      ]);
 
       store.enterBuildMode();
 

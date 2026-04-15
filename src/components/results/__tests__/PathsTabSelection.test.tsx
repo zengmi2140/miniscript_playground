@@ -6,8 +6,8 @@ import type { SpendingPath } from '@/lib/engine/types';
 
 const mockPaths: SpendingPath[] = [
   {
-    index: 0,
-    label: 'Path A',
+    index: 1,
+    labelVariant: { kind: 'signatures', names: ['Alice'] },
     conditions: [{ type: 'signature', keyName: 'Alice' }],
     witnessAsm: '',
     witnessSize: 42,
@@ -16,8 +16,8 @@ const mockPaths: SpendingPath[] = [
     missingConditions: [],
   },
   {
-    index: 1,
-    label: 'Path B',
+    index: 2,
+    labelVariant: { kind: 'signatures', names: ['Alice', 'Bob'] },
     conditions: [
       { type: 'signature', keyName: 'Alice' },
       { type: 'signature', keyName: 'Bob' },
@@ -60,8 +60,8 @@ describe('PathsTab', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('Path A')).toBeInTheDocument();
-    expect(screen.getByText('Path B')).toBeInTheDocument();
+    expect(screen.getByText('Path 1: Alice signatures')).toBeInTheDocument();
+    expect(screen.getByText('Path 2: Alice + Bob signatures')).toBeInTheDocument();
   });
 
   it('renders empty state when there are no paths', () => {

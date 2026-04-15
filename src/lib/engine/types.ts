@@ -29,9 +29,17 @@ export interface CompilationResult {
   scriptHex: string;
 }
 
+/** Machine-readable path title; format with `formatSpendingPathLabel` in UI for locale-aware text. */
+export type PathLabelVariant =
+  | { kind: 'signatures'; names: string[] }
+  | { kind: 'timelock_recovery' }
+  | { kind: 'timelock_only' }
+  | { kind: 'hashlock' }
+  | { kind: 'generic' };
+
 export interface SpendingPath {
   index: number;
-  label: string;
+  labelVariant: PathLabelVariant;
   conditions: PathCondition[];
   witnessAsm: string;
   witnessSize: number;

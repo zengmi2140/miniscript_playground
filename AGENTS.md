@@ -164,7 +164,7 @@ npm run test
 | `editor/` | `policy-language.ts`（CodeMirror 高亮等） |
 | `i18n/` | `context.tsx`、`zh.ts`、`en.ts` |
 | `scenarios/` | 预设数据、`playground-order.ts`、`tags.ts` |
-| `playground/` | `htlc-display-mask.ts`、`add-next-key-variable.ts` |
+| `playground/` | `htlc-display-mask.ts`、`add-next-key-variable.ts`、`apply-playground-search-params.ts`（`?s=` / `scenario` / `mode` 与 store 同步） |
 | `glossary/` | 术语数据 |
 | `resources/` | `recommended-reading.ts` |
 | `theme/` | 主题 Context |
@@ -207,7 +207,7 @@ npm run test
 
 ### 编译管线
 
-- `compiler.ts`：`compilePolicy` → 替换 key → `compileMiniscript` → `wsh(...)` descriptor → 地址 / scriptPubKey → `satisfier` → `analyzeSpendingPaths`。  
+- `compiler.ts`：`compilePolicy` → 替换 key → `compileMiniscript` → `wsh(...)` descriptor → 地址 / scriptPubKey → `satisfier` → `analyzeSpendingPaths`。若 **`context === 'tr'`**，在编译 Policy 之前即返回 **`limit` 类友好错误**（不产出地址），与左栏 P2TR 占位一致，避免误以为已生成 Taproot 输出。  
 - 错误链：`policy-errors` → `policy-preflight` → `policy-error-highlight`（编辑器标红区间）。  
 - **Descriptor**：从 `@bitcoinerlab/descriptors/dist/descriptors` 导入；`@ledgerhq/ledger-bitcoin` → `ledger-bitcoin-stub`（`next.config` / `vitest.config`）。
 
@@ -223,17 +223,19 @@ npm run test
 
 ### 花费路径
 
-- `path-analyzer.ts` → `Paths`、`StatusBanner`。
+- `path-analyzer.ts` → `Paths`、`StatusBanner`。同一 **公钥** 在 `keyVariables` 中重复出现时，路径标签取 **首次出现** 的变量名。路径卡片标题由 `path-analyzer` 产出 `labelVariant`，UI 经 `path-label.ts` 的 `formatSpendingPathLabel` 按当前语言拼接（不再在引擎内写死中文串）。
 
 ### 分享与会话
 
-- 不自动持久化 Playground；`share.ts` 编码 `?s=`；`clearSession()` 清理历史键。
+- 不自动持久化 Playground；`share.ts` 将状态编码为 `?s=`（Base64 JSON），并对 `network` / `context` / `keyVariables` 形状做校验；`storage.ts` 的 legacy `loadSession` 使用相同规则。  
+- `PlaygroundClient`：`searchParams` **每次变化**（含客户端路由）时按 **`applyPlaygroundSearchParams`** 应用：**`s` 解码成功** → `restoreSession`；**否则** 若有 `scenario` → `loadScenario`；**否则** 若 `mode=build` → `enterBuildMode`。无上述参数时不 `reset()`，避免误清编辑中状态。挂载时仍 `clearSession()` 并拉取链尖。  
+- 分享链接过长时 `PolicyEditor` 会提示（阈值见 `share.ts`）；超大策略不宜仅依赖 URL 分享。
 
 ---
 
 ## 7. 关键 UI 结构
 
-左栏 `LeftPanel`（240px）、中栏 `CenterPanel`、右栏 `RightPanel`（320px）。`PolicyEditor`（含 `htlc-atomic` 的 `hash160(HEX)` 展示与 `onDocChangeRef`）、`ConditionToggles`、`TimeSlider`（分段线性锚点；`older()` 与区块高度型 `after()` 统一为相对区块语义后混排）、`StatusBanner`；右栏 Tab 与 `htlc` 真实摘要规则见上文与 `htlc-display-mask.ts`。
+左栏 `LeftPanel`（240px）、中栏 `CenterPanel`、右栏 `RightPanel`（320px）。`PolicyEditor`（含 `htlc-atomic` 的 `hash160(HEX)` 展示与 `onDocChangeRef`、分享链接过长提示）、`ConditionToggles`、`TimeSlider`（分段线性锚点；`older()` 与区块高度型 `after()` 统一为相对区块语义后混排）、`StatusBanner`；右栏 Tab 与 `htlc` 真实摘要规则见上文与 `htlc-display-mask.ts`。
 
 ---
 
@@ -247,18 +249,17 @@ npm run test
 
 ## 9. 限制与易误判点
 
-1. 仅 **wsh** 实际可用；`tr` 占位/禁用。  
+1. 仅 **wsh** 有实际编译产出；左栏 **tr** 为占位（禁用）。若 `context === 'tr'`，编译器返回明确错误（见 §6 编译管线）。  
 2. **时间模拟**：`older()` 与区块高度型 **`after()`** 可与链尖结合，在时间轴上混合排序；**Unix 时间戳型 `after()`** 等路径仍可能简化或未完全模拟（以代码为准）。  
 3. **signet** 地址派生可能复用 testnet 网络对象（教学折中）。  
 4. **/compare** 未实现；导航指向 **Resources**。  
-5. **@supabase/supabase-js** 已安装未使用。  
-6. 多数页面为 **'use client'**。  
-7. **移动端**无完整 Playground（桌面优先）。  
-8. 无 **regtest**。  
-9. 路径图**根节点**即顶层逻辑（都需要 / **二选一** / k-of-n），单叶子可无根节点。  
-10. **build** 为 MVP：受约束树 + 同步；非任意拖线。  
-11. **渐进式加载**、首页 **单一橙色 CTA** → `?mode=build`。  
-12. **htlc-atomic**：`HEX` 展示 vs 右栏真实 hex；见 §7 与 `htlc-display-mask.ts`。
+5. 多数页面为 **'use client'**。  
+6. **移动端**无完整 Playground（桌面优先）。  
+7. 无 **regtest**。  
+8. 路径图**根节点**即顶层逻辑（都需要 / **二选一** / k-of-n），单叶子可无根节点。  
+9. **build** 为 MVP：受约束树 + 同步；非任意拖线。  
+10. **渐进式加载**、首页 **单一橙色 CTA** → `?mode=build`。  
+11. **htlc-atomic**：`HEX` 展示 vs 右栏真实 hex；见 §7 与 `htlc-display-mask.ts`。
 
 ---
 

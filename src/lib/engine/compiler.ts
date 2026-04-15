@@ -56,6 +56,22 @@ export async function compile(
   try {
     await policiesReady;
 
+    if (context === 'tr') {
+      const err: FriendlyError = {
+        raw: 'P2TR context not supported (MVP uses P2WSH only)',
+        category: 'limit',
+        friendly: {
+          zh: '当前版本仅支持 P2WSH（wsh）上下文。P2TR（Taproot）尚未实现。',
+          en: 'Only P2WSH (wsh) is supported in this version. P2TR (Taproot) is not implemented yet.',
+        },
+      };
+      return {
+        result: null,
+        paths: [],
+        error: attachErrorHighlight(policy, err),
+      };
+    }
+
     const policyResult = compilePolicy(policy);
 
     if (
