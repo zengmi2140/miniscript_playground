@@ -364,11 +364,9 @@ export const en = {
     timeslider: {
       label: 'Time Elapsed',
       blocks: 'blocks',
-      current: 'Current: Block {blocks} ≈ {human}',
-      footerNote:
-        'The slider is relative blocks since confirmation; older() uses that. Block-height after() and path-node status use the current mainnet chain tip.',
-      footerSource:
-        'Tip height: read-only query to public APIs (~{cacheMinutes} min cache); on failure, default {fallbackHeight} is used.',
+      current: 'Current: Block {tipHeight}',
+      elapsedInline: '{count} · {human}',
+      sliderAriaValue: 'Simulated elapsed {count} blocks ({human})',
       tipLoading: 'Fetching chain tip height…',
     },
     status: {
