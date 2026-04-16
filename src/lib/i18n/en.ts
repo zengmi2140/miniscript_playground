@@ -127,6 +127,72 @@ export const en = {
     playground: {
       desktopHint: 'For the full experience, open the Playground on a desktop or larger screen.',
     },
+    benefits: {
+      title: 'Why Miniscript Matters',
+      subtitle: 'More than better syntax — Miniscript brings readability, portability, and composability, turning spending policies into a shareable, reusable standard.',
+      readability: {
+        label: 'Readability',
+        title: 'Structure Is Semantics — Readable at a Glance',
+        desc: 'Bitcoin Script is a low-level, machine-oriented language — even simple multisig is hard to read. Miniscript uses and, or, thresh to express business intent directly — the code itself is the documentation.',
+        script: {
+          problem1: 'Stacked opcodes require line-by-line stack tracing to understand intent',
+          problem2: 'Extremely error-prone to hand-write — one wrong byte can lock funds forever',
+        },
+        policy: {
+          advantage1: 'Structure maps directly to logic: thresh(2, …) instantly reads as "2-of-3"',
+          advantage2: 'Compiler auto-generates optimal scripts and verifies safety — no hand-crafted code needed',
+        },
+        takeaway: 'Focus on "who can spend, and when" — leave the low-level implementation to the compiler.',
+      },
+      portability: {
+        label: 'Portability',
+        title: 'Write Once, Restore Anywhere',
+        desc: 'Traditional wallets lock spending policies into specific software. Miniscript uses standardized Output Descriptors so your spending rules can migrate seamlessly between any Miniscript-compatible wallet — no data lost, no manual rebuilding.',
+        walletA: 'Wallet A',
+        walletADesc: 'Design spending policy',
+        export: 'Export',
+        descriptorNote: 'Standard format with full policy information',
+        import: 'Import',
+        walletB: 'Wallet B',
+        walletBDesc: 'Fully restored policy',
+        takeaway: 'No more vendor lock-in. Your spending rules belong to you — migrate to any wallet, anytime.',
+      },
+      composability: {
+        label: 'Composability',
+        title: 'Combine Conditions Like Building Blocks',
+        desc: 'Signatures, timelocks, hashlocks — each condition is an independent block. Combine them freely with and, or, thresh to build arbitrarily complex spending policies.',
+        blocksLabel: 'Basic Conditions',
+        combineArrow: 'Freely combine',
+        resultLabel: 'Combined Result',
+        benefit1: {
+          title: 'Unlimited Nesting',
+          desc: 'Conditions can nest to any depth, expressing complex business logic.',
+        },
+        benefit2: {
+          title: 'Compiler-Verified Safety',
+          desc: 'No matter how you combine, the compiler verifies correctness and safety.',
+        },
+        benefit3: {
+          title: 'Automatic Optimization',
+          desc: 'The compiler finds the smallest equivalent script, reducing on-chain fees.',
+        },
+      },
+    },
+    transition: {
+      title: 'Behind Every Address, There Is a Script',
+      subtitle: 'A Bitcoin address is not just a string of characters — it corresponds to a script that defines who can spend the funds.',
+      singleSig: {
+        label: 'Single Signature',
+        desc: 'One private key to spend.',
+        code: 'pk(Alice)',
+      },
+      multiSig: {
+        label: 'Multisig (2-of-3)',
+        desc: 'Any two of three keys can spend.',
+        code: 'thresh(2,\n  pk(Alice),\n  pk(Bob),\n  pk(Charlie)\n)',
+      },
+      footer: 'Beyond multisig — timelocks, hashlocks, threshold combinations… all can be written into spending conditions.',
+    },
     challenge: {
       subtitle: 'Bitcoin Script is powerful, but it has several fundamental design challenges.',
       scriptCol: {
@@ -223,6 +289,7 @@ export const en = {
     scenarios: 'Home',
     playground: 'Playground',
     compare: 'Resources',
+    preview: 'Preview',
     comingSoon: 'Soon',
     toggleMenu: 'Toggle menu',
   },
