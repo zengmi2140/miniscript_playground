@@ -12,6 +12,7 @@ const navItems = [
   { key: 'nav.scenarios', path: '/' },
   { key: 'nav.playground', path: '/playground' },
   { key: 'nav.compare', path: '/resources' },
+  { key: 'nav.preview', path: '/preview' },
 ] as const;
 
 export function Header() {
