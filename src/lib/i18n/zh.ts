@@ -277,7 +277,6 @@ export const zh = {
     scenarios: '首页',
     playground: 'Playground',
     compare: '资源',
-    preview: '测试',
     comingSoon: '即将推出',
     toggleMenu: '菜单',
   },

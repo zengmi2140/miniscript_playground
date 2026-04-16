@@ -164,6 +164,29 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
       scriptSize: 'Policy ~85 bytes → Miniscript ~62 bytes → Bitcoin Script 52 bytes',
     },
   },
+  {
+    title: '穿越牛熊',
+    description:
+      '在输出确认后再经过约三年（157,680 个区块），须同时满足相对时间锁与 Holder 签名才能花费',
+    policy: 'and(pk(Holder), older(157680))',
+    miniscript: 'and_v(v:pk(Holder), older(157680))',
+    bitcoinScript:
+      '[157680] OP_CHECKSEQUENCEVERIFY OP_DROP [Holder] OP_CHECKSIG',
+    scriptSize: 'Policy ~42 字节 → Miniscript ~48 字节 → Bitcoin Script ~38 字节',
+    applicationType: '长期持有 / 强制锁仓',
+    realCase: '长期囤币、储蓄型冷钱包、遗产或信托式锁仓',
+    advantage: '时间与签名双条件，结构简单、意图清晰',
+    playgroundScenarioId: 'holder-timelock',
+    en: {
+      title: 'Diamond Hands (HODL)',
+      description:
+        'After ~3 years from confirmation (157,680 blocks), spending requires both the relative timelock and a Holder signature',
+      applicationType: 'Long-term hold / enforced lock',
+      realCase: 'Long-term stacking, savings-oriented cold storage, inheritance-style locking',
+      advantage: 'Timelock plus signature — simple and explicit',
+      scriptSize: 'Policy ~42 bytes → Miniscript ~48 bytes → Bitcoin Script ~38 bytes',
+    },
+  },
 ];
 
 /** Preset ids in the same order as `INTRO_APPLICATION_EXAMPLES` — 与首页 Applications 标签顺序一致，供 Playground 左栏对齐。 */

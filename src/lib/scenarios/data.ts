@@ -165,8 +165,8 @@ export const SCENARIOS: Scenario[] = [
       en: 'Unlocks after 3 years, requiring both the timelock and a signature.',
     },
     explanation: {
-      zh: '最简单的时间锁场景：`and(pk(Holder), older(157680))`。在 UTXO 确认后必须等待约 3 年（157,680 个区块）并提供 Holder 的签名才能花费。适合强制长期持有。',
-      en: 'Simplest timelock scenario: `and(pk(Holder), older(157680))`. Must wait ~3 years (157,680 blocks after confirmation) and provide the Holder signature to spend. Ideal for enforced long-term holding.',
+      zh: '最简单的时间锁场景：`and(pk(Holder), older(157680))`。在 UTXO 确认后必须等待约 3 年（157,680 个区块）并提供 Holder 的签名才能花费。适合强制长期持有。与首页 Applications「穿越牛熊」一致。',
+      en: 'Simplest timelock scenario: `and(pk(Holder), older(157680))`. Must wait ~3 years (157,680 blocks after confirmation) and provide the Holder signature to spend. Ideal for enforced long-term holding. Matches the Applications “Diamond Hands (HODL)” card.',
     },
     policy: 'and(pk(Holder),older(157680))',
     keyVariables: [kv('Holder')],
