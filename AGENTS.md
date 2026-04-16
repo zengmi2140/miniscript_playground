@@ -74,7 +74,7 @@ npm run test
 
 | 路由 | 用途 |
 |------|------|
-| `/` | 首页：通识、钱包区、页尾主 CTA → 画布 |
+| `/` | 首页：`HomepageHero` → `TransitionSection` → `MiniscriptBenefitsSection` → Applications 等 → `HomepageWallets` → 页尾 CTA → 画布 |
 | `/intro` | **重定向到** `/` |
 | `/playground` | 三栏；默认 **scenario** |
 | `/playground?mode=build` | **build**（自己动手） |
@@ -101,7 +101,7 @@ npm run test
 
 ### 各路由实现要点
 
-- **`/`** — `src/app/page.tsx`。顺序：`HomepageHero` → Intro 各节（含 Applications 等）→ `HomepageWallets` → 底部 CTA + footer。Applications **6** 条卡片与 `playgroundScenarioId` 见 `src/components/intro/data.ts`；另有预设 **「穿越牛熊」**（`holder-timelock`，`sortScenariosForPlayground()` 中排在未列入 Applications 的项之末，见 `src/lib/scenarios/data.ts`）。**「原子交换」** 三列可用 `HEX` 作 hash160 占位，与 `htlc-atomic` Playground 展示一致，右栏真实输出见 §7。`requestIdleCallback` 可预热 Playground；窄屏 `home.playground.desktopHint`。未挂首页的旧组件见 §9。  
+- **`/`** — `src/app/page.tsx`。顺序：`HomepageHero` → `TransitionSection` → `MiniscriptBenefitsSection` → `IntroApplicationsSection` → `IntroCoreConceptsSection`（`hideStack`）→ `HomepageWallets` → 底部 CTA + footer。Applications **7** 条卡片与 `playgroundScenarioId` 见 `src/components/intro/data.ts`（含 **「穿越牛熊」** `holder-timelock`）；其余未列入 Applications 的预设由 `sortScenariosForPlayground()` 排在末尾（见 `src/lib/scenarios/data.ts`）。**「原子交换」** 三列可用 `HEX` 作 hash160 占位，与 `htlc-atomic` Playground 展示一致，右栏真实输出见 §7。`requestIdleCallback` 可预热 Playground；窄屏 `home.playground.desktopHint`。历史首页区块 `IntroChallengeSection`、`IntroWhyMattersSection` 仍保留在 `components/intro/`，当前首页未挂载（见 §9）。  
 - **`/intro`** — `src/app/intro/page.tsx`：`redirect('/')`。  
 - **`/playground`** — `src/app/playground/page.tsx` → `PlaygroundClient.tsx`：处理 `?s=`、`?scenario=`、`?mode=build`；`clearSession()`；挂载时 `fetchBlockTipHeight`；`useCompiler` + `useBuilderSync`；渐进式加载（`dynamic` 画布、`prefetch` 等）。  
 - **`/resources`** — `src/app/resources/page.tsx`：外链网格 +「推荐阅读」（数据：`src/lib/resources/recommended-reading.ts`）。  
@@ -261,7 +261,8 @@ npm run test
 8. 路径图**根节点**即顶层逻辑（都需要 / **二选一** / k-of-n），单叶子可无根节点。  
 9. **build** 为 MVP：受约束树 + 同步；非任意拖线。  
 10. **渐进式加载**、首页 **单一橙色 CTA** → `?mode=build`。  
-11. **htlc-atomic**：`HEX` 展示 vs 右栏真实 hex；见 §7 与 `htlc-display-mask.ts`。
+11. **htlc-atomic**：`HEX` 展示 vs 右栏真实 hex；见 §7 与 `htlc-display-mask.ts`。  
+12. **`IntroChallengeSection` / `IntroWhyMattersSection`**：源码仍在 `components/intro/`，**未**挂载于当前首页；若复用需自行挂到路由。
 
 ---
 
@@ -277,5 +278,5 @@ npm run test
 | Policy 编辑器 | `PolicyEditor.tsx`、`htlc-display-mask.ts`、`policy-errors` 等 |
 | 右栏结果 | `RightPanel.tsx`、`components/results/*` |
 | 资源页 | `src/app/resources/page.tsx`、`recommended-reading.ts`、`resources.*` |
-| 首页 / Intro | `src/app/page.tsx`、`src/components/intro/*` |
+| 首页 / Intro | `src/app/page.tsx`、`src/components/home/*`（Hero / Transition / Benefits / Wallets 等）、`src/components/intro/*` |
 | 设计 token | [DESIGN.md](DESIGN.md) |
