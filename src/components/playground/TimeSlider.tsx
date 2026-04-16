@@ -4,7 +4,6 @@ import { useMemo, useCallback } from 'react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 import { blocksToHumanLocale } from '@/lib/engine/time-utils';
-import { CACHE_TTL_MINUTES, FALLBACK_BLOCK_HEIGHT } from '@/lib/engine/block-height';
 import type { MiniscriptNode } from '@/lib/engine/types';
 
 /** Block-height based after() needs a real tip; timestamp after() is excluded. */
@@ -139,7 +138,7 @@ export function TimeSlider() {
 
   if (semanticTreeHasBlockHeightAfter(semanticTree) && !blockTipHeightReady) {
     return (
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between gap-2">
           <p className="text-[11px] font-medium text-text-muted">
             {t('playground.timeslider.label')}
@@ -153,35 +152,71 @@ export function TimeSlider() {
   if (timelockValues.length === 0) return null;
 
   const progress = SLIDER_MAX > 0 ? (sliderValue / SLIDER_MAX) * 100 : 0;
+  /** Keep bubble center inside [EDGE, 100-EDGE]% so −50% translate does not clip at track edges. */
+  const BUBBLE_CENTER_MIN_PCT = 6;
+  const bubbleLeftPct = Math.min(
+    100 - BUBBLE_CENTER_MIN_PCT,
+    Math.max(BUBBLE_CENTER_MIN_PCT, progress),
+  );
+  const elapsedHuman = blocksToHumanLocale(currentTimeBlocks, locale);
+  const countStr = currentTimeBlocks.toLocaleString(
+    locale === 'en' ? 'en-US' : 'zh-CN',
+  );
+  const ariaValueText = t('playground.timeslider.sliderAriaValue', {
+    count: countStr,
+    human: elapsedHuman,
+  });
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-1">
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-medium text-text-muted">
           {t('playground.timeslider.label')}
         </p>
         <p className="text-[11px] text-text-secondary">
           {t('playground.timeslider.current', {
-            blocks: currentTimeBlocks.toLocaleString(),
-            human: blocksToHumanLocale(currentTimeBlocks, locale),
+            tipHeight: blockTipHeight.toLocaleString(),
           })}
         </p>
       </div>
 
-      <div className="relative">
+      <div className="relative w-full overflow-visible px-2">
+        <div className="pointer-events-none relative mb-px min-h-[16px]">
+          <div
+            className="absolute bottom-0 z-10"
+            style={{
+              left: `${bubbleLeftPct}%`,
+              transform: 'translateX(-50%)',
+            }}
+          >
+            <div
+              className="rounded-md border border-border-subtle bg-bg-elevated px-2 py-px text-center leading-tight shadow-sm"
+              aria-hidden
+            >
+              <p className="whitespace-nowrap text-[9px] tabular-nums text-text-muted">
+                {t('playground.timeslider.elapsedInline', {
+                  count: countStr,
+                  human: elapsedHuman,
+                })}
+              </p>
+            </div>
+          </div>
+        </div>
+
         <input
           type="range"
           min={0}
           max={SLIDER_MAX}
           value={sliderValue}
           onChange={handleChange}
+          aria-valuetext={ariaValueText}
           className="slider-input w-full"
           style={{
             background: `linear-gradient(to right, #F7931A ${progress}%, #292524 ${progress}%)`,
           }}
         />
 
-        <div className="relative mt-1 h-4">
+        <div className="relative mt-0.5 h-4">
           {timelockValues.map((val, idx) => {
             // Equal-spaced: condition i at position (i+1)/(n+1)
             const pct = ((idx + 1) / (timelockValues.length + 1)) * 100;
@@ -199,16 +234,6 @@ export function TimeSlider() {
             );
           })}
         </div>
-      </div>
-
-      <div className="flex flex-col gap-1 text-[10px] leading-snug text-text-muted">
-        <p>{t('playground.timeslider.footerNote')}</p>
-        <p>
-          {t('playground.timeslider.footerSource', {
-            cacheMinutes: CACHE_TTL_MINUTES,
-            fallbackHeight: FALLBACK_BLOCK_HEIGHT.toLocaleString(),
-          })}
-        </p>
       </div>
     </div>
   );
