@@ -33,7 +33,7 @@
 
 **技术边界**：纯前端；无后端 API / 数据库；所有计算在浏览器本地完成，**不依赖 LLM 或外部服务**。地址仅用于 **testnet / signet** 教学展示，**不得**将主网地址作为默认或隐式行为。**MVP** 实际编译与地址以 **P2WSH** 为主；**P2TR** 可为占位，UI 中通常禁用（以代码为准）。
 
-**与「不连接区块链」的区分**：应用**不会**作为钱包去查询 UTXO、广播交易或同步链状态。唯一例外是 Playground 为教学展示 **after(区块高度)** 与混合时间轴，**只读**请求公共 API 获取**当前主网链尖高度**（实现上为多个端点顺序回退；短 TTL 内存缓存；全部失败时使用 [`block-height.ts`](src/lib/engine/block-height.ts) 中的默认高度常量）。这不改变「不上传策略、不托管密钥」的边界。
+**与「不连接区块链」的区分**：应用**不会**作为钱包去查询 UTXO、广播交易或同步链状态。唯一例外是 Playground 为教学展示 **after(区块高度)** 与混合时间轴，**只读**请求公共 API 获取**当前主网链尖高度**（实现上为多个端点顺序回退；短 TTL 内存缓存；全部失败时使用 [`block-height-fallback.generated.ts`](src/lib/engine/block-height-fallback.generated.ts) 中**构建时写入**的回退高度，由 `npm run build` 的 `prebuild` 抓取主网链尖并生成该文件；抓取失败时写入脚本内固定桩值，以免阻塞构建）。这不改变「不上传策略、不托管密钥」的边界。
 
 ---
 
@@ -50,11 +50,12 @@
 ```bash
 npm install
 npm run dev
-npm run build
+npm run build          # 会先运行 prebuild：生成 block-height-fallback.generated.ts
 npm run lint
 npm run test
 ```
 
+- **`generate:block-height-fallback`**：单独抓取主网链尖并写入 `block-height-fallback.generated.ts`（与 `prebuild` 相同逻辑；可在不跑完整 `next build` 时刷新仓库内该文件）。  
 - **仅使用 npm**；锁文件为 `package-lock.json`（勿提交 pnpm/yarn 锁）。  
 - `npm run test` 即 `vitest run`（配置：`vitest.config.ts`；全局 setup：`src/test/setup.ts`）。  
 - dev server 默认 `http://localhost:3000`（端口占用时以终端为准）。
@@ -114,7 +115,8 @@ npm run test
 
 | 文件 / 目录 | 作用 |
 |-------------|------|
-| `package.json` / `package-lock.json` | 依赖与脚本 |
+| `package.json` / `package-lock.json` | 依赖与脚本（含 `prebuild` → 链尖回退生成） |
+| `scripts/generate-block-height-fallback.mjs` | 构建前抓取主网高度 → `block-height-fallback.generated.ts` |
 | `next.config.mjs` | Next 配置；Ledger 等别名 |
 | `tailwind.config.js` / `postcss.config.js` | Tailwind / PostCSS |
 | `tsconfig.json` | TypeScript；`exclude` 含 **`v0/`**（历史快照不参与主应用类型检查） |
@@ -158,7 +160,7 @@ npm run test
 |------|------|
 | `stores/` | `playground-store.ts` — Playground 唯一状态源 |
 | `hooks/` | `useCompiler.ts`、`useBuilderSync.ts` |
-| `engine/` | `compiler.ts`、`miniscript-parser.ts`、`path-analyzer.ts`、`block-height.ts`（链尖缓存与 `fetchBlockTipHeight`）、policy 错误与预检、`*__tests__/` |
+| `engine/` | `compiler.ts`、`miniscript-parser.ts`、`path-analyzer.ts`、`block-height.ts`（链尖缓存与 `fetchBlockTipHeight`）、`block-height-fallback.generated.ts`（**构建生成**，勿手改）、policy 错误与预检、`*__tests__/` |
 | `builder/` | 策略树模型、`serialize`、`node-ops`、`from-semantic-tree`、`status`、`tree-to-flow`、`__tests__/` |
 | `flow/` | scenario：`tree-to-flow.ts`（Dagre） |
 | `editor/` | `policy-language.ts`（CodeMirror 高亮等） |
@@ -269,7 +271,7 @@ npm run test
 |------|------|
 | 预设场景 | `src/lib/scenarios/data.ts`、`playground-order.ts`、`intro/data.ts`、tags / `ScenarioCard` |
 | Policy 语法 / 编译 | `policy-language.ts`、`compiler.ts`、`miniscript-parser.ts`、`glossary/data.ts`、`*__tests__/*` |
-| 路径判定 / 模拟 | `path-analyzer.ts`、`time-utils.ts`、`block-height.ts`、`StatusBanner`、`ConditionToggles`、`TimeSlider`、`PathsTab` |
+| 路径判定 / 模拟 | `path-analyzer.ts`、`time-utils.ts`、`block-height.ts`、`block-height-fallback.generated.ts`（`prebuild`）、`StatusBanner`、`ConditionToggles`、`TimeSlider`、`PathsTab` |
 | scenario 路径图 | `tree-to-flow.ts`、`PathMap`（传入 `blockTipHeight`）、`FlowNodes`、`PathEdge` |
 | build 画布 | `src/lib/builder/*`、`BuilderCanvas`、`useBuilderSync.ts`、`playground-store.ts` |
 | Policy 编辑器 | `PolicyEditor.tsx`、`htlc-display-mask.ts`、`policy-errors` 等 |

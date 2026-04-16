@@ -1,3 +1,5 @@
+import { FALLBACK_BLOCK_HEIGHT } from './block-height-fallback.generated';
+
 /** Ordered list; not exported (order is implementation detail). */
 const BLOCK_TIP_ENDPOINTS = [
   'https://mempool.space/api/blocks/tip/height',
@@ -10,8 +12,9 @@ const FETCH_TIMEOUT_MS = 5000;
 /** Public API block tip cache duration (used by UI copy and tests). */
 export const CACHE_TTL_MS = 5 * 60 * 1000;
 export const CACHE_TTL_MINUTES = 5;
-/** Used when all endpoints fail and there is no cached successful value. Manually maintained. */
-export const FALLBACK_BLOCK_HEIGHT = 940000;
+
+/** Re-export: value lives in `block-height-fallback.generated.ts` (refreshed on each `next build`). */
+export { FALLBACK_BLOCK_HEIGHT };
 
 let cachedHeight: number | null = null;
 let cachedAt = 0;
@@ -33,7 +36,7 @@ async function fetchHeightFromEndpoint(url: string): Promise<number> {
 
 /**
  * Fetch the current Bitcoin mainnet block tip height from public APIs (sequential fallback).
- * Caches for 5 minutes; returns {@link FALLBACK_BLOCK_HEIGHT} when all sources fail and there is no cache.
+ * Caches for 5 minutes; returns the build-time {@link FALLBACK_BLOCK_HEIGHT} when all sources fail and there is no cache.
  */
 export async function fetchBlockTipHeight(): Promise<number> {
   const now = Date.now();
