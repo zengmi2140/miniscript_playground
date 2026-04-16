@@ -237,7 +237,7 @@ npm run test
 
 ## 7. 关键 UI 结构
 
-左栏 `LeftPanel`（240px）、中栏 `CenterPanel`、右栏 `RightPanel`（320px）。`PolicyEditor`（含 `htlc-atomic` 的 `hash160(HEX)` 展示与 `onDocChangeRef`、分享链接过长提示）、`ConditionToggles`、`TimeSlider`（分段线性锚点；`older()` 与区块高度型 `after()` 统一为相对区块语义后混排）、`StatusBanner`；右栏 Tab 与 `htlc` 真实摘要规则见上文与 `htlc-display-mask.ts`。
+左栏 `LeftPanel`（240px）、中栏 `CenterPanel`、右栏 `RightPanel`（320px）。`PolicyEditor`（含 `htlc-atomic` 的 `hash160(HEX)` 展示与 `onDocChangeRef`、分享链接过长提示）、`ConditionToggles`、`TimeSlider`（顶行仅展示主网链尖高度；分段线性锚点；`older()` 与区块高度型 `after()` 统一为相对区块语义后混排；模拟流逝在滑块上方单行显示，水平位置随拇指并限制在轨道内避免裁切）、`StatusBanner`；右栏 Tab 与 `htlc` 真实摘要规则见上文与 `htlc-display-mask.ts`。
 
 ---
 

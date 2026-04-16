@@ -351,11 +351,9 @@ export const zh = {
     timeslider: {
       label: '时间流逝',
       blocks: '区块',
-      current: '当前: 第 {blocks} 区块 ≈ {human}',
-      footerNote:
-        '滑块表示自输出确认以来流逝的相对区块；older() 使用该相对值。after(区块高度) 与路径图上的满足态依赖当前主网链尖高度。',
-      footerSource:
-        '链尖高度：只读查询公共接口（约 {cacheMinutes} 分钟缓存）；请求失败时使用默认值 {fallbackHeight}。',
+      current: '当前: 第 {tipHeight} 区块',
+      elapsedInline: '{count} · {human}',
+      sliderAriaValue: '模拟已流逝 {count} 区块（{human}）',
       tipLoading: '正在获取链尖高度…',
     },
     status: {
