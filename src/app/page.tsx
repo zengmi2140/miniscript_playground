@@ -6,10 +6,10 @@ import { ArrowRight } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
 import { HomepageHero } from '@/components/home/HomepageHero';
 import { HomepageWallets } from '@/components/home/HomepageWallets';
-import { IntroChallengeSection } from '@/components/intro/IntroChallengeSection';
-import { IntroCoreConceptsSection } from '@/components/intro/IntroCoreConceptsSection';
+import { TransitionSection } from '@/components/home/TransitionSection';
+import { MiniscriptBenefitsSection } from '@/components/home/MiniscriptBenefitsSection';
 import { IntroApplicationsSection } from '@/components/intro/IntroApplicationsSection';
-import { IntroWhyMattersSection } from '@/components/intro/IntroWhyMattersSection';
+import { IntroCoreConceptsSection } from '@/components/intro/IntroCoreConceptsSection';
 
 export default function HomePage() {
   const { t } = useI18n();
@@ -43,10 +43,10 @@ export default function HomePage() {
   return (
     <div className="w-full">
       <HomepageHero />
-      <IntroChallengeSection />
-      <IntroCoreConceptsSection />
+      <TransitionSection />
+      <MiniscriptBenefitsSection />
       <IntroApplicationsSection />
-      <IntroWhyMattersSection />
+      <IntroCoreConceptsSection hideStack />
 
       <HomepageWallets />
 

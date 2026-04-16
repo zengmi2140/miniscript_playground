@@ -119,7 +119,7 @@ function CollapsibleSection({ title, defaultOpen, children, pulse }: {
   );
 }
 
-/** 除「自己动手」外，首屏约可见 6 条预设；其余在区域内滚动。 */
+/** 除「自己动手」外，首屏约可见 7 条 Applications 对齐预设；其余在区域内滚动。 */
 const SCENARIO_LIST_MAX_HEIGHT_CLASS = 'max-h-[min(28rem,55vh)]';
 
 export function LeftPanel() {

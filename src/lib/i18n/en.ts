@@ -289,7 +289,6 @@ export const en = {
     scenarios: 'Home',
     playground: 'Playground',
     compare: 'Resources',
-    preview: 'Preview',
     comingSoon: 'Soon',
     toggleMenu: 'Toggle menu',
   },
