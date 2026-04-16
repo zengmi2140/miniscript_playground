@@ -2,10 +2,10 @@
 
 import { useI18n } from '@/lib/i18n/context';
 
-export function IntroCoreConceptsSection() {
+export function IntroCoreConceptsSection({ hideStack = false }: { hideStack?: boolean } = {}) {
   const { t } = useI18n();
 
-  const stackSteps = [
+  const stackSteps = hideStack ? [] : [
     {
       num: '1',
       title: 'Policy',
@@ -117,7 +117,7 @@ export function IntroCoreConceptsSection() {
           </div>
         </div>
 
-        <div className="mt-16">
+        {!hideStack && <div className="mt-16">
           <h2 className="mb-12 text-center text-3xl font-bold tracking-tight text-text-primary md:text-4xl">
             The Technical Stack
           </h2>
@@ -188,7 +188,7 @@ export function IntroCoreConceptsSection() {
               </div>
             ))}
           </div>
-        </div>
+        </div>}
       </div>
     </section>
   );

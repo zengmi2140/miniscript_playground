@@ -115,6 +115,72 @@ export const zh = {
     playground: {
       desktopHint: 'Playground 建议在桌面端打开以获得完整体验。',
     },
+    benefits: {
+      title: 'Miniscript 的核心优势',
+      subtitle: '不只是更好的语法——Miniscript 带来了可读性、可迁移性与可组合性，让花费策略成为可共享、可复用的标准。',
+      readability: {
+        label: '可读性',
+        title: '结构即语义，一眼读懂',
+        desc: 'Bitcoin Script 是面向机器的低级语言，即使是简单的多签也难以阅读。Miniscript 用 and、or、thresh 直接表达业务意图——代码本身就是文档。',
+        script: {
+          problem1: '操作码堆叠，必须逐行追踪栈状态才能理解意图',
+          problem2: '手写极易出错，一个字节的偏差就可能锁死资金',
+        },
+        policy: {
+          advantage1: '结构直接映射逻辑：thresh(2, …) 一眼看出「三选二」',
+          advantage2: '编译器自动生成最优脚本并验证安全性，无需手写底层代码',
+        },
+        takeaway: '你只需关心「谁能花、什么时候花」，底层实现交给编译器。',
+      },
+      portability: {
+        label: '可迁移性',
+        title: '一次编写，随处还原',
+        desc: '传统钱包的花费策略往往被锁定在特定软件中。Miniscript 通过标准化的 Output Descriptor，让你的花费规则可以在任何支持 Miniscript 的钱包之间无缝迁移——不丢信息，不需重建。',
+        walletA: '钱包 A',
+        walletADesc: '设计花费策略',
+        export: '导出',
+        descriptorNote: '标准格式，包含完整策略信息',
+        import: '导入',
+        walletB: '钱包 B',
+        walletBDesc: '完整还原策略',
+        takeaway: '不再被单一钱包软件绑定。你的花费规则属于你自己，随时可以迁移到下一个钱包。',
+      },
+      composability: {
+        label: '可组合性',
+        title: '像搭积木一样组合条件',
+        desc: '签名、时间锁、哈希锁——每个条件都是独立的积木，可以用 and、or、thresh 自由组合成任意复杂的花费策略。',
+        blocksLabel: '基础条件',
+        combineArrow: '自由组合',
+        resultLabel: '组合结果',
+        benefit1: {
+          title: '嵌套无限制',
+          desc: '条件可以任意层级嵌套，表达复杂的业务逻辑。',
+        },
+        benefit2: {
+          title: '编译器保障安全',
+          desc: '无论怎么组合，编译器都会验证结果的正确性与安全性。',
+        },
+        benefit3: {
+          title: '自动优化脚本',
+          desc: '编译器找到最小等价脚本，降低链上手续费。',
+        },
+      },
+    },
+    transition: {
+      title: '每个地址背后，都有一段脚本',
+      subtitle: '比特币地址不只是一串字符——它对应着一段脚本，定义了「谁能花费这笔资金」。',
+      singleSig: {
+        label: '单一签名',
+        desc: '一把私钥，即可花费。',
+        code: 'pk(Alice)',
+      },
+      multiSig: {
+        label: '多重签名（2-of-3）',
+        desc: '三把钥匙中，任意两把即可花费。',
+        code: 'thresh(2,\n  pk(Alice),\n  pk(Bob),\n  pk(Charlie)\n)',
+      },
+      footer: '不止于多签——时间锁、哈希锁、门限组合……都可以写进花费条件。',
+    },
     challenge: {
       subtitle: 'Bitcoin Script 虽然强大，但存在着几个根本性的设计挑战。',
       scriptCol: {
@@ -211,6 +277,7 @@ export const zh = {
     scenarios: '首页',
     playground: 'Playground',
     compare: '资源',
+    preview: '测试',
     comingSoon: '即将推出',
     toggleMenu: '菜单',
   },
