@@ -85,15 +85,9 @@ function ProblemBlock() {
 
   return (
     <div>
-      <span className="mb-3 inline-block rounded-full border border-red-400/25 bg-red-400/10 px-3 py-1 text-xs font-medium text-red-400">
-        {t('home.meetMiniscript.problem.eyebrow')}
-      </span>
-      <h3 className="mb-3 text-2xl font-semibold text-text-primary md:text-3xl">
+      <h3 className="mb-8 text-2xl font-semibold text-text-primary md:text-3xl">
         {t('home.meetMiniscript.problem.title')}
       </h3>
-      <p className="mb-8 max-w-3xl text-sm leading-relaxed text-text-secondary md:text-base">
-        {t('home.meetMiniscript.problem.subtitle')}
-      </p>
 
       <div className="grid gap-4 md:grid-cols-2">
         <PainCard
@@ -179,9 +173,6 @@ function DefinitionBlock() {
 
   return (
     <div>
-      <span className="mb-3 inline-block rounded-full border border-btc-500/25 bg-btc-500/10 px-3 py-1 text-xs font-medium text-btc-500">
-        {t('home.meetMiniscript.definition.eyebrow')}
-      </span>
       <h3 className="mb-6 text-2xl font-semibold text-text-primary md:text-3xl">
         {t('home.meetMiniscript.definition.title')}
       </h3>
@@ -312,9 +303,6 @@ function ComposabilityCard() {
         title={t('home.meetMiniscript.features.composability.title')}
         accent="violet"
       />
-      <p className="mb-6 max-w-2xl text-sm leading-relaxed text-text-secondary">
-        {t('home.meetMiniscript.features.composability.desc')}
-      </p>
 
       <div className="grid gap-6 md:grid-cols-2">
         <div>
@@ -402,9 +390,6 @@ function PortabilityCard() {
         title={t('home.meetMiniscript.features.portability.title')}
         accent="emerald"
       />
-      <p className="mb-6 max-w-2xl text-sm leading-relaxed text-text-secondary">
-        {t('home.meetMiniscript.features.portability.desc')}
-      </p>
 
       <div className="grid items-stretch gap-4 md:grid-cols-[1fr_auto_1fr_auto_1fr]">
         <div className="flex flex-col items-center rounded-xl border border-border-default bg-surface-elevated p-5">
@@ -483,9 +468,6 @@ function FeaturesBlock() {
 
   return (
     <div>
-      <span className="mb-3 inline-block rounded-full border border-violet-400/25 bg-violet-400/10 px-3 py-1 text-xs font-medium text-violet-400">
-        {t('home.meetMiniscript.features.eyebrow')}
-      </span>
       <h3 className="mb-8 text-2xl font-semibold text-text-primary md:text-3xl">
         {t('home.meetMiniscript.features.title')}
       </h3>
