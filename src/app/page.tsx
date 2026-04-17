@@ -7,7 +7,7 @@ import { useI18n } from '@/lib/i18n/context';
 import { HomepageHero } from '@/components/home/HomepageHero';
 import { HomepageWallets } from '@/components/home/HomepageWallets';
 import { TransitionSection } from '@/components/home/TransitionSection';
-import { MiniscriptBenefitsSection } from '@/components/home/MiniscriptBenefitsSection';
+import { MeetMiniscriptSection } from '@/components/home/MeetMiniscriptSection';
 import { IntroApplicationsSection } from '@/components/intro/IntroApplicationsSection';
 import { IntroCoreConceptsSection } from '@/components/intro/IntroCoreConceptsSection';
 
@@ -44,7 +44,7 @@ export default function HomePage() {
     <div className="w-full">
       <HomepageHero />
       <TransitionSection />
-      <MiniscriptBenefitsSection />
+      <MeetMiniscriptSection />
       <IntroApplicationsSection />
       <IntroCoreConceptsSection hideStack />
 
