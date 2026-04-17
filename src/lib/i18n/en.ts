@@ -127,54 +127,111 @@ export const en = {
     playground: {
       desktopHint: 'For the full experience, open the Playground on a desktop or larger screen.',
     },
-    benefits: {
-      title: 'Why Miniscript Matters',
-      subtitle: 'More than better syntax — Miniscript brings readability, portability, and composability, turning spending policies into a shareable, reusable standard.',
-      readability: {
-        label: 'Readability',
-        title: 'Structure Is Semantics — Readable at a Glance',
-        desc: 'Bitcoin Script is a low-level, machine-oriented language — even simple multisig is hard to read. Miniscript uses and, or, thresh to express business intent directly — the code itself is the documentation.',
-        script: {
-          problem1: 'Stacked opcodes require line-by-line stack tracing to understand intent',
-          problem2: 'Extremely error-prone to hand-write — one wrong byte can lock funds forever',
+    meetMiniscript: {
+      title: 'Meet Miniscript: A New Way to Write Scripts',
+      subtitle: "Bitcoin Script already has enough expressive power — the real bottleneck is how you write it. Miniscript doesn't change anything underneath; it adds one structured layer on top.",
+
+      problem: {
+        eyebrow: '① The problem with raw scripts',
+        title: 'Why is writing Bitcoin Script directly so hard?',
+        subtitle:
+          'Bitcoin Script is made for machines to execute, not for humans to read or compose. The moment conditions get complex, four structural problems surface.',
+        items: {
+          lowLevel: {
+            label: 'Low-level abstraction',
+            desc: 'Based on opcodes and a stack. To read any script you have to trace the stack state line by line in your head — even a 2-of-3 multisig looks like a chain of mystery symbols.',
+          },
+          errorProne: {
+            label: 'Error-prone',
+            desc: 'One wrong byte or misplaced branch can lock funds forever, and there is no easy way to statically verify off-chain that "this script is actually spendable."',
+          },
+          nonComposable: {
+            label: 'Hard to compose',
+            desc: 'Scripts cannot be broken into reusable pieces the way functions can. Adding one new condition usually means redesigning the whole thing from scratch.',
+          },
+          hardToAnalyze: {
+            label: 'Hard to analyze',
+            desc: 'Script size, witness cost, spending paths — all derived by hand. No standard tool can answer "what does this script actually express?"',
+          },
         },
-        policy: {
-          advantage1: 'Structure maps directly to logic: thresh(2, …) instantly reads as "2-of-3"',
-          advantage2: 'Compiler auto-generates optimal scripts and verifies safety — no hand-crafted code needed',
-        },
-        takeaway: 'Focus on "who can spend, and when" — leave the low-level implementation to the compiler.',
       },
-      portability: {
-        label: 'Portability',
-        title: 'Write Once, Restore Anywhere',
-        desc: 'Traditional wallets lock spending policies into specific software. Miniscript uses standardized Output Descriptors so your spending rules can migrate seamlessly between any Miniscript-compatible wallet — no data lost, no manual rebuilding.',
-        walletA: 'Wallet A',
-        walletADesc: 'Design spending policy',
-        export: 'Export',
-        descriptorNote: 'Standard format with full policy information',
-        import: 'Import',
-        walletB: 'Wallet B',
-        walletBDesc: 'Fully restored policy',
-        takeaway: 'No more vendor lock-in. Your spending rules belong to you — migrate to any wallet, anytime.',
+
+      definition: {
+        eyebrow: '② What Miniscript is',
+        title: 'So — what is Miniscript?',
+        calloutStrong: 'Miniscript is a structured representation layered on top of Bitcoin Script.',
+        calloutBody:
+          'It is not a new consensus rule, not a new virtual machine — what runs on-chain is still Bitcoin Script. It simply inserts a compilable, verifiable, composable intermediate language between how you write scripts and how machines read them.',
+        arrowLabel: 'compiles to',
+        stack: {
+          policy: {
+            layer: 'Policy',
+            role: 'How humans think',
+            subtitle: 'Natural-language semantics',
+            example: 'and / or / thresh …',
+          },
+          miniscript: {
+            layer: 'Miniscript',
+            role: 'How tools analyze',
+            subtitle: 'Standardized IR',
+            example: 'Typed, verifiable',
+          },
+          script: {
+            layer: 'Bitcoin Script',
+            role: 'How chains execute',
+            subtitle: 'Opcode sequence',
+            example: 'OP_CHECKSIG / OP_CSV …',
+          },
+        },
       },
-      composability: {
-        label: 'Composability',
-        title: 'Combine Conditions Like Building Blocks',
-        desc: 'Signatures, timelocks, hashlocks — each condition is an independent block. Combine them freely with and, or, thresh to build arbitrarily complex spending policies.',
-        blocksLabel: 'Basic Conditions',
-        combineArrow: 'Freely combine',
-        resultLabel: 'Combined Result',
-        benefit1: {
-          title: 'Unlimited Nesting',
-          desc: 'Conditions can nest to any depth, expressing complex business logic.',
+
+      features: {
+        eyebrow: '③ What changes in practice',
+        title: 'Three things this layer changes',
+
+        readability: {
+          label: 'Readability',
+          title: 'Structure is semantics — readable at a glance',
+          scriptCaption: 'Bitcoin Script',
+          policyCaption: 'Miniscript Policy',
+          compareNote:
+            'Same 2-of-3 multisig. On the right you instantly read "threshold = 2"; on the left you have to understand the stack machine first.',
+          takeaway: 'Just focus on "who can spend, and when." Leave the low-level details to the compiler.',
         },
-        benefit2: {
-          title: 'Compiler-Verified Safety',
-          desc: 'No matter how you combine, the compiler verifies correctness and safety.',
+
+        composability: {
+          label: 'Composability',
+          title: 'Compose like building blocks — analyze like tools',
+          desc: 'Signatures, timelocks, hashlocks — each condition is an independent block. Combine them with and, or, thresh to build arbitrarily complex spending policies.',
+          blocksLabel: 'Basic conditions',
+          combineArrow: 'Freely combine',
+          resultLabel: 'Combined result',
+          benefit1: {
+            title: 'Standalone primitives',
+            desc: 'pk, older, sha256 — every one stands alone and stays valid under any nesting.',
+          },
+          benefit2: {
+            title: 'Nesting never hurts',
+            desc: 'No matter how deeply you nest, the compiler finds the smallest equivalent Bitcoin Script.',
+          },
+          benefit3: {
+            title: 'Structured = analyzable',
+            desc: 'Tools can automatically answer "what are the spending paths, and how expensive is each?" — which is exactly what this Playground does.',
+          },
         },
-        benefit3: {
-          title: 'Automatic Optimization',
-          desc: 'The compiler finds the smallest equivalent script, reducing on-chain fees.',
+
+        portability: {
+          label: 'Portability',
+          title: 'Write once, restore in any wallet',
+          desc: 'A spending policy written in a standardized language no longer depends on any single wallet.',
+          walletA: 'Wallet A',
+          walletADesc: 'Design spending policy',
+          export: 'Export',
+          descriptorNote: 'Standard format with full policy information',
+          import: 'Import',
+          walletB: 'Wallet B',
+          walletBDesc: 'Fully restored policy',
+          takeaway: 'Your spending rules belong to you — no vendor lock-in.',
         },
       },
     },
@@ -191,7 +248,7 @@ export const en = {
         desc: 'Any two of three keys can spend.',
         code: 'thresh(2,\n  pk(Alice),\n  pk(Bob),\n  pk(Charlie)\n)',
       },
-      footer: 'Beyond multisig — timelocks, hashlocks, threshold combinations… all can be written into spending conditions.',
+      footer: 'Beyond multisig — timelocks, hashlocks, threshold combinations… can all be written into spending conditions. But actually writing them runs into a whole other problem.',
     },
     challenge: {
       subtitle: 'Bitcoin Script is powerful, but it has several fundamental design challenges.',
