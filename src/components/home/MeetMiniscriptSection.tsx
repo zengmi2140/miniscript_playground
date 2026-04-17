@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  AlertTriangle,
-  ArrowRight,
-  CheckCircle2,
-  Layers,
-  Puzzle,
-  Search,
-  Sparkles,
-} from 'lucide-react';
+import { ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
 
 /* ------------------------------------------------------------------ */
@@ -53,70 +45,7 @@ const BUILDING_BLOCKS = [
 ] as const;
 
 /* ------------------------------------------------------------------ */
-/*  Part ①  Problem statement                                          */
-/* ------------------------------------------------------------------ */
-
-function PainCard({
-  Icon,
-  label,
-  desc,
-}: {
-  Icon: typeof Layers;
-  label: string;
-  desc: string;
-}) {
-  return (
-    <div className="flex gap-4 rounded-xl border border-border-default bg-surface-card p-5">
-      <div className="flex-shrink-0">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-red-400/25 bg-red-400/10">
-          <Icon className="h-5 w-5 text-red-400" />
-        </div>
-      </div>
-      <div className="min-w-0">
-        <p className="mb-1 text-sm font-semibold text-text-primary">{label}</p>
-        <p className="text-xs leading-relaxed text-text-secondary md:text-sm">{desc}</p>
-      </div>
-    </div>
-  );
-}
-
-function ProblemBlock() {
-  const { t } = useI18n();
-
-  return (
-    <div>
-      <h3 className="mb-8 text-2xl font-semibold text-text-primary md:text-3xl">
-        {t('home.meetMiniscript.problem.title')}
-      </h3>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <PainCard
-          Icon={Layers}
-          label={t('home.meetMiniscript.problem.items.lowLevel.label')}
-          desc={t('home.meetMiniscript.problem.items.lowLevel.desc')}
-        />
-        <PainCard
-          Icon={AlertTriangle}
-          label={t('home.meetMiniscript.problem.items.errorProne.label')}
-          desc={t('home.meetMiniscript.problem.items.errorProne.desc')}
-        />
-        <PainCard
-          Icon={Puzzle}
-          label={t('home.meetMiniscript.problem.items.nonComposable.label')}
-          desc={t('home.meetMiniscript.problem.items.nonComposable.desc')}
-        />
-        <PainCard
-          Icon={Search}
-          label={t('home.meetMiniscript.problem.items.hardToAnalyze.label')}
-          desc={t('home.meetMiniscript.problem.items.hardToAnalyze.desc')}
-        />
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Part ②  Definition + 3-layer horizontal pipeline                   */
+/*  Part ①  Definition + 3-layer horizontal pipeline                   */
 /* ------------------------------------------------------------------ */
 
 function StackColumn({
@@ -219,7 +148,7 @@ function DefinitionBlock() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Part ③  Features — three cards                                     */
+/*  Part ②  Features — three cards                                     */
 /* ------------------------------------------------------------------ */
 
 function FeatureHeader({
@@ -499,7 +428,6 @@ export function MeetMiniscriptSection() {
         </p>
 
         <div className="space-y-16">
-          <ProblemBlock />
           <DefinitionBlock />
           <FeaturesBlock />
         </div>

@@ -74,7 +74,7 @@ npm run test
 
 | 路由 | 用途 |
 |------|------|
-| `/` | 首页：`HomepageHero` → `TransitionSection` → `MeetMiniscriptSection` → Applications 等 → `HomepageWallets` → 页尾 CTA → 画布 |
+| `/` | 首页：`HomepageHero` → `TransitionSection` → `ScriptComplexitySection` → `MeetMiniscriptSection` → Applications 等 → `HomepageWallets` → 页尾 CTA → 画布 |
 | `/intro` | **重定向到** `/` |
 | `/playground` | 三栏；默认 **scenario** |
 | `/playground?mode=build` | **build**（自己动手） |
@@ -101,7 +101,7 @@ npm run test
 
 ### 各路由实现要点
 
-- **`/`** — `src/app/page.tsx`。顺序：`HomepageHero` → `TransitionSection` → `MeetMiniscriptSection`（三段式：`ProblemBlock` ①直接写脚本的问题 → `DefinitionBlock` ②Miniscript 是什么，含 Policy → Miniscript → Script 三层横向流水线 → `FeaturesBlock` ③可读性 / 可组合性 / 可迁移性 三张卡）→ `IntroApplicationsSection` → `IntroCoreConceptsSection`（`hideStack`；纵向四层堆栈含 Descriptor，与 `MeetMiniscriptSection` 的横向三层形成差异化）→ `HomepageWallets` → 底部 CTA + footer。Applications **7** 条卡片与 `playgroundScenarioId` 见 `src/components/intro/data.ts`（含 **「穿越牛熊」** `holder-timelock`）；其余未列入 Applications 的预设由 `sortScenariosForPlayground()` 排在末尾（见 `src/lib/scenarios/data.ts`）。**「原子交换」** 三列可用 `HEX` 作 hash160 占位，与 `htlc-atomic` Playground 展示一致，右栏真实输出见 §7。`requestIdleCallback` 可预热 Playground；窄屏 `home.playground.desktopHint`。历史首页区块 `IntroChallengeSection`、`IntroWhyMattersSection` 仍保留在 `components/intro/`，当前首页未挂载（见 §9）。  
+- **`/`** — `src/app/page.tsx`。顺序：`HomepageHero` → `TransitionSection` → `ScriptComplexitySection`（Bitcoin Script 复杂性的四堵墙 + 过渡尾句，作为进入 Miniscript 前的独立过渡章节） → `MeetMiniscriptSection`（两段式：`DefinitionBlock` ①Miniscript 是什么，含 Policy → Miniscript → Script 三层横向流水线 → `FeaturesBlock` ②可读性 / 可组合性 / 可迁移性 三张卡）→ `IntroApplicationsSection` → `IntroCoreConceptsSection`（`hideStack`；纵向四层堆栈含 Descriptor，与 `MeetMiniscriptSection` 的横向三层形成差异化）→ `HomepageWallets` → 底部 CTA + footer。Applications **7** 条卡片与 `playgroundScenarioId` 见 `src/components/intro/data.ts`（含 **「穿越牛熊」** `holder-timelock`）；其余未列入 Applications 的预设由 `sortScenariosForPlayground()` 排在末尾（见 `src/lib/scenarios/data.ts`）。**「原子交换」** 三列可用 `HEX` 作 hash160 占位，与 `htlc-atomic` Playground 展示一致，右栏真实输出见 §7。`requestIdleCallback` 可预热 Playground；窄屏 `home.playground.desktopHint`。历史首页区块 `IntroChallengeSection`、`IntroWhyMattersSection` 仍保留在 `components/intro/`，当前首页未挂载（见 §9）。  
 - **`/intro`** — `src/app/intro/page.tsx`：`redirect('/')`。  
 - **`/playground`** — `src/app/playground/page.tsx` → `PlaygroundClient.tsx`：处理 `?s=`、`?scenario=`、`?mode=build`；`clearSession()`；挂载时 `fetchBlockTipHeight`；`useCompiler` + `useBuilderSync`；渐进式加载（`dynamic` 画布、`prefetch` 等）。  
 - **`/resources`** — `src/app/resources/page.tsx`：外链网格 +「推荐阅读」（数据：`src/lib/resources/recommended-reading.ts`）。  
@@ -278,5 +278,5 @@ npm run test
 | Policy 编辑器 | `PolicyEditor.tsx`、`htlc-display-mask.ts`、`policy-errors` 等 |
 | 右栏结果 | `RightPanel.tsx`、`components/results/*` |
 | 资源页 | `src/app/resources/page.tsx`、`recommended-reading.ts`、`resources.*` |
-| 首页 / Intro | `src/app/page.tsx`、`src/components/home/*`（Hero / Transition / MeetMiniscript / Wallets 等）、`src/components/intro/*` |
+| 首页 / Intro | `src/app/page.tsx`、`src/components/home/*`（Hero / Transition / ScriptComplexity / MeetMiniscript / Wallets 等）、`src/components/intro/*` |
 | 设计 token | [DESIGN.md](DESIGN.md) |

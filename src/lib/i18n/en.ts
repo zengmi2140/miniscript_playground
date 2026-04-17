@@ -131,28 +131,6 @@ export const en = {
       title: 'Meet Miniscript',
       subtitle: "Bitcoin Script already has enough expressive power — the real bottleneck is how you write it. Miniscript doesn't change anything underneath; it adds one structured layer on top.",
 
-      problem: {
-        title: 'The complexity of Bitcoin Script',
-        items: {
-          lowLevel: {
-            label: 'Low-level abstraction',
-            desc: 'Based on opcodes and a stack. To read any script you have to trace the stack state line by line in your head — even a 2-of-3 multisig looks like a chain of mystery symbols.',
-          },
-          errorProne: {
-            label: 'Error-prone',
-            desc: 'One wrong byte or misplaced branch can lock funds forever, and there is no easy way to statically verify off-chain that "this script is actually spendable."',
-          },
-          nonComposable: {
-            label: 'Hard to compose',
-            desc: 'Scripts cannot be broken into reusable pieces the way functions can. Adding one new condition usually means redesigning the whole thing from scratch.',
-          },
-          hardToAnalyze: {
-            label: 'Hard to analyze',
-            desc: 'Script size, witness cost, spending paths — all derived by hand. No standard tool can answer "what does this script actually express?"',
-          },
-        },
-      },
-
       definition: {
         title: 'What is Miniscript',
         calloutStrong: 'Miniscript — a compilable, verifiable, composable intermediate language.',
@@ -234,14 +212,37 @@ export const en = {
       singleSig: {
         label: 'Single Signature',
         desc: 'One private key to spend.',
-        code: 'pk(Alice)',
+        code: 'OP_DUP OP_HASH160\n  <PubKeyHash>\nOP_EQUALVERIFY OP_CHECKSIG',
       },
       multiSig: {
         label: 'Multisig (2-of-3)',
         desc: 'Any two of three keys can spend.',
-        code: 'thresh(2,\n  pk(Alice),\n  pk(Bob),\n  pk(Charlie)\n)',
+        code: 'OP_2\n  <PubKey1>\n  <PubKey2>\n  <PubKey3>\nOP_3 OP_CHECKMULTISIG',
       },
       footer: 'Beyond multisig — timelocks, hashlocks, threshold combinations… can all be written into spending conditions. But actually writing them runs into a whole other problem.',
+    },
+    scriptComplexity: {
+      title: 'The Complexity of Bitcoin Script',
+      subtitle: 'The scripts above are the two simplest cases. Once you try to express anything more interesting, you run into four structural walls.',
+      items: {
+        lowLevel: {
+          label: 'Low-level abstraction',
+          desc: 'Based on opcodes and a stack. To read any script you have to trace the stack state line by line in your head — even a 2-of-3 multisig looks like a chain of mystery symbols.',
+        },
+        errorProne: {
+          label: 'Error-prone',
+          desc: 'One wrong byte or misplaced branch can lock funds forever, and there is no easy way to statically verify off-chain that "this script is actually spendable."',
+        },
+        nonComposable: {
+          label: 'Hard to compose',
+          desc: 'Scripts cannot be broken into reusable pieces the way functions can. Adding one new condition usually means redesigning the whole thing from scratch.',
+        },
+        hardToAnalyze: {
+          label: 'Hard to analyze',
+          desc: 'Script size, witness cost, spending paths — all derived by hand. No standard tool can answer "what does this script actually express?"',
+        },
+      },
+      outro: 'None of these are unsolvable — Miniscript is designed exactly for this.',
     },
     challenge: {
       subtitle: 'Bitcoin Script is powerful, but it has several fundamental design challenges.',

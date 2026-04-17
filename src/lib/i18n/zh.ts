@@ -119,28 +119,6 @@ export const zh = {
       title: '认识 Miniscript',
       subtitle: 'Bitcoin Script 的表达力已经够用，真正的瓶颈在于"怎么写"。Miniscript 不改动底层，只在上面加了一层结构化的写法。',
 
-      problem: {
-        title: 'Bitcoin Script 的复杂性',
-        items: {
-          lowLevel: {
-            label: '低级抽象',
-            desc: '基于操作码和栈，读一段脚本要在脑子里逐行追踪栈状态。即使是 2-of-3 多签，裸脚本也像一串神秘符号。',
-          },
-          errorProne: {
-            label: '容易出错',
-            desc: '一个字节偏差、一个分支错位就可能锁死资金；也没有简单的办法在链下静态验证"这段脚本一定能被花费"。',
-          },
-          nonComposable: {
-            label: '难以组合',
-            desc: '脚本无法像函数那样被拆成可复用的小块再拼起来。加一个新条件，往往意味着重新设计整段脚本。',
-          },
-          hardToAnalyze: {
-            label: '难以分析',
-            desc: '脚本大小、见证开销、花费路径……都得手工推导，没有标准工具能自动回答"这段脚本到底表达了什么"。',
-          },
-        },
-      },
-
       definition: {
         title: 'Miniscript 是什么',
         calloutStrong: 'Miniscript，一种可编译、可验证、可组合的中间语言。',
@@ -221,14 +199,37 @@ export const zh = {
       singleSig: {
         label: '单一签名',
         desc: '一把私钥，即可花费。',
-        code: 'pk(Alice)',
+        code: 'OP_DUP OP_HASH160\n  <PubKeyHash>\nOP_EQUALVERIFY OP_CHECKSIG',
       },
       multiSig: {
         label: '多重签名（2-of-3）',
         desc: '三把钥匙中，任意两把即可花费。',
-        code: 'thresh(2,\n  pk(Alice),\n  pk(Bob),\n  pk(Charlie)\n)',
+        code: 'OP_2\n  <PubKey1>\n  <PubKey2>\n  <PubKey3>\nOP_3 OP_CHECKMULTISIG',
       },
       footer: '不止于多签——时间锁、哈希锁、门限组合……都能写进花费条件。但真要直接动手写，就会撞到另一层问题。',
+    },
+    scriptComplexity: {
+      title: 'Bitcoin Script 的复杂性',
+      subtitle: '上面那段脚本只是最朴素的两个例子。一旦你尝试表达更有意思的花费条件，就会撞上 Bitcoin Script 的四堵墙。',
+      items: {
+        lowLevel: {
+          label: '低级抽象',
+          desc: '基于操作码和栈，读一段脚本要在脑子里逐行追踪栈状态。即使是 2-of-3 多签，裸脚本也像一串神秘符号。',
+        },
+        errorProne: {
+          label: '容易出错',
+          desc: '一个字节偏差、一个分支错位就可能锁死资金；也没有简单的办法在链下静态验证"这段脚本一定能被花费"。',
+        },
+        nonComposable: {
+          label: '难以组合',
+          desc: '脚本无法像函数那样被拆成可复用的小块再拼起来。加一个新条件，往往意味着重新设计整段脚本。',
+        },
+        hardToAnalyze: {
+          label: '难以分析',
+          desc: '脚本大小、见证开销、花费路径……都得手工推导，没有标准工具能自动回答"这段脚本到底表达了什么"。',
+        },
+      },
+      outro: '这些问题并非无解——Miniscript 正是为此而生。',
     },
     challenge: {
       subtitle: 'Bitcoin Script 虽然强大，但存在着几个根本性的设计挑战。',
