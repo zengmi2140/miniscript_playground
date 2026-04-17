@@ -128,14 +128,11 @@ export const en = {
       desktopHint: 'For the full experience, open the Playground on a desktop or larger screen.',
     },
     meetMiniscript: {
-      title: 'Meet Miniscript: A New Way to Write Scripts',
+      title: 'Meet Miniscript',
       subtitle: "Bitcoin Script already has enough expressive power — the real bottleneck is how you write it. Miniscript doesn't change anything underneath; it adds one structured layer on top.",
 
       problem: {
-        eyebrow: '① The problem with raw scripts',
-        title: 'Why is writing Bitcoin Script directly so hard?',
-        subtitle:
-          'Bitcoin Script is made for machines to execute, not for humans to read or compose. The moment conditions get complex, four structural problems surface.',
+        title: 'The complexity of Bitcoin Script',
         items: {
           lowLevel: {
             label: 'Low-level abstraction',
@@ -157,11 +154,10 @@ export const en = {
       },
 
       definition: {
-        eyebrow: '② What Miniscript is',
-        title: 'So — what is Miniscript?',
-        calloutStrong: 'Miniscript is a structured representation layered on top of Bitcoin Script.',
+        title: 'What is Miniscript',
+        calloutStrong: 'Miniscript — a compilable, verifiable, composable intermediate language.',
         calloutBody:
-          'It is not a new consensus rule, not a new virtual machine — what runs on-chain is still Bitcoin Script. It simply inserts a compilable, verifiable, composable intermediate language between how you write scripts and how machines read them.',
+          'Not a new consensus rule, not a new virtual machine — what runs on-chain is still Bitcoin Script. It only inserts this layer between how you write scripts and how machines read them.',
         arrowLabel: 'compiles to',
         stack: {
           policy: {
@@ -186,8 +182,7 @@ export const en = {
       },
 
       features: {
-        eyebrow: '③ What changes in practice',
-        title: 'Three things this layer changes',
+        title: 'What Miniscript brings',
 
         readability: {
           label: 'Readability',
@@ -202,7 +197,6 @@ export const en = {
         composability: {
           label: 'Composability',
           title: 'Compose like building blocks — analyze like tools',
-          desc: 'Signatures, timelocks, hashlocks — each condition is an independent block. Combine them with and, or, thresh to build arbitrarily complex spending policies.',
           blocksLabel: 'Basic conditions',
           combineArrow: 'Freely combine',
           resultLabel: 'Combined result',
@@ -223,7 +217,6 @@ export const en = {
         portability: {
           label: 'Portability',
           title: 'Write once, restore in any wallet',
-          desc: 'A spending policy written in a standardized language no longer depends on any single wallet.',
           walletA: 'Wallet A',
           walletADesc: 'Design spending policy',
           export: 'Export',

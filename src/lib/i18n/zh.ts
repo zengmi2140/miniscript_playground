@@ -116,14 +116,11 @@ export const zh = {
       desktopHint: 'Playground 建议在桌面端打开以获得完整体验。',
     },
     meetMiniscript: {
-      title: '认识 Miniscript：脚本的新写法',
+      title: '认识 Miniscript',
       subtitle: 'Bitcoin Script 的表达力已经够用，真正的瓶颈在于"怎么写"。Miniscript 不改动底层，只在上面加了一层结构化的写法。',
 
       problem: {
-        eyebrow: '① 直接写脚本的问题',
-        title: '直接写 Bitcoin Script，为什么难？',
-        subtitle:
-          'Bitcoin Script 是给虚拟机执行的语言，不是给人读和组合的。条件一复杂，四个结构性问题就会暴露。',
+        title: 'Bitcoin Script 的复杂性',
         items: {
           lowLevel: {
             label: '低级抽象',
@@ -145,11 +142,10 @@ export const zh = {
       },
 
       definition: {
-        eyebrow: '② Miniscript 是什么',
-        title: '那么，Miniscript 是什么？',
-        calloutStrong: 'Miniscript 是 Bitcoin Script 之上的一层结构化表达。',
+        title: 'Miniscript 是什么',
+        calloutStrong: 'Miniscript，一种可编译、可验证、可组合的中间语言。',
         calloutBody:
-          '它不是新的共识规则，也不是新的虚拟机——链上执行的仍然是 Bitcoin Script。它只是在你写脚本、工具分析脚本时，插入了一层可编译、可验证、可组合的中间语言。',
+          '它不是新的共识规则，也不是新的虚拟机——链上执行的仍然是 Bitcoin Script。它只是在你写脚本、工具分析脚本时，插入了这一层。',
         arrowLabel: '编译',
         stack: {
           policy: {
@@ -174,8 +170,7 @@ export const zh = {
       },
 
       features: {
-        eyebrow: '③ 写法带来的改变',
-        title: '这一层，让写法变了三件事',
+        title: 'Miniscript 带来了什么',
 
         readability: {
           label: '可读性',
@@ -189,7 +184,6 @@ export const zh = {
         composability: {
           label: '可组合性',
           title: '像积木一样组合，像工具一样分析',
-          desc: '签名、时间锁、哈希锁——每个条件都是独立的积木，可以用 and、or、thresh 自由组合成任意复杂的花费策略。',
           blocksLabel: '基础条件',
           combineArrow: '自由组合',
           resultLabel: '组合结果',
@@ -210,7 +204,6 @@ export const zh = {
         portability: {
           label: '可迁移性',
           title: '一次编写，任意钱包还原',
-          desc: '你的花费策略用标准化语言表达，不再依附于任何单一钱包软件。',
           walletA: '钱包 A',
           walletADesc: '设计花费策略',
           export: '导出',
