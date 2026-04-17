@@ -115,54 +115,110 @@ export const zh = {
     playground: {
       desktopHint: 'Playground 建议在桌面端打开以获得完整体验。',
     },
-    benefits: {
-      title: 'Miniscript 的核心优势',
-      subtitle: '不只是更好的语法——Miniscript 带来了可读性、可迁移性与可组合性，让花费策略成为可共享、可复用的标准。',
-      readability: {
-        label: '可读性',
-        title: '结构即语义，一眼读懂',
-        desc: 'Bitcoin Script 是面向机器的低级语言，即使是简单的多签也难以阅读。Miniscript 用 and、or、thresh 直接表达业务意图——代码本身就是文档。',
-        script: {
-          problem1: '操作码堆叠，必须逐行追踪栈状态才能理解意图',
-          problem2: '手写极易出错，一个字节的偏差就可能锁死资金',
+    meetMiniscript: {
+      title: '认识 Miniscript：脚本的新写法',
+      subtitle: 'Bitcoin Script 的表达力已经够用，真正的瓶颈在于"怎么写"。Miniscript 不改动底层，只在上面加了一层结构化的写法。',
+
+      problem: {
+        eyebrow: '① 直接写脚本的问题',
+        title: '直接写 Bitcoin Script，为什么难？',
+        subtitle:
+          'Bitcoin Script 是给虚拟机执行的语言，不是给人读和组合的。条件一复杂，四个结构性问题就会暴露。',
+        items: {
+          lowLevel: {
+            label: '低级抽象',
+            desc: '基于操作码和栈，读一段脚本要在脑子里逐行追踪栈状态。即使是 2-of-3 多签，裸脚本也像一串神秘符号。',
+          },
+          errorProne: {
+            label: '容易出错',
+            desc: '一个字节偏差、一个分支错位就可能锁死资金；也没有简单的办法在链下静态验证"这段脚本一定能被花费"。',
+          },
+          nonComposable: {
+            label: '难以组合',
+            desc: '脚本无法像函数那样被拆成可复用的小块再拼起来。加一个新条件，往往意味着重新设计整段脚本。',
+          },
+          hardToAnalyze: {
+            label: '难以分析',
+            desc: '脚本大小、见证开销、花费路径……都得手工推导，没有标准工具能自动回答"这段脚本到底表达了什么"。',
+          },
         },
-        policy: {
-          advantage1: '结构直接映射逻辑：thresh(2, …) 一眼看出「三选二」',
-          advantage2: '编译器自动生成最优脚本并验证安全性，无需手写底层代码',
-        },
-        takeaway: '你只需关心「谁能花、什么时候花」，底层实现交给编译器。',
       },
-      portability: {
-        label: '可迁移性',
-        title: '一次编写，随处还原',
-        desc: '传统钱包的花费策略往往被锁定在特定软件中。Miniscript 通过标准化的 Output Descriptor，让你的花费规则可以在任何支持 Miniscript 的钱包之间无缝迁移——不丢信息，不需重建。',
-        walletA: '钱包 A',
-        walletADesc: '设计花费策略',
-        export: '导出',
-        descriptorNote: '标准格式，包含完整策略信息',
-        import: '导入',
-        walletB: '钱包 B',
-        walletBDesc: '完整还原策略',
-        takeaway: '不再被单一钱包软件绑定。你的花费规则属于你自己，随时可以迁移到下一个钱包。',
+
+      definition: {
+        eyebrow: '② Miniscript 是什么',
+        title: '那么，Miniscript 是什么？',
+        calloutStrong: 'Miniscript 是 Bitcoin Script 之上的一层结构化表达。',
+        calloutBody:
+          '它不是新的共识规则，也不是新的虚拟机——链上执行的仍然是 Bitcoin Script。它只是在你写脚本、工具分析脚本时，插入了一层可编译、可验证、可组合的中间语言。',
+        arrowLabel: '编译',
+        stack: {
+          policy: {
+            layer: 'Policy',
+            role: '人怎么想',
+            subtitle: '自然语义表达',
+            example: 'and / or / thresh …',
+          },
+          miniscript: {
+            layer: 'Miniscript',
+            role: '工具怎么分析',
+            subtitle: '标准化中间语言',
+            example: '带类型与属性，可验证',
+          },
+          script: {
+            layer: 'Bitcoin Script',
+            role: '链上怎么执行',
+            subtitle: '操作码序列',
+            example: 'OP_CHECKSIG / OP_CSV …',
+          },
+        },
       },
-      composability: {
-        label: '可组合性',
-        title: '像搭积木一样组合条件',
-        desc: '签名、时间锁、哈希锁——每个条件都是独立的积木，可以用 and、or、thresh 自由组合成任意复杂的花费策略。',
-        blocksLabel: '基础条件',
-        combineArrow: '自由组合',
-        resultLabel: '组合结果',
-        benefit1: {
-          title: '嵌套无限制',
-          desc: '条件可以任意层级嵌套，表达复杂的业务逻辑。',
+
+      features: {
+        eyebrow: '③ 写法带来的改变',
+        title: '这一层，让写法变了三件事',
+
+        readability: {
+          label: '可读性',
+          title: '结构即语义，一眼读懂',
+          scriptCaption: 'Bitcoin Script',
+          policyCaption: 'Miniscript Policy',
+          compareNote: '同一个 2-of-3 多签。右边你能一眼看出"门限 = 2"；左边需要先理解栈机才能读懂。',
+          takeaway: '你只需关心"谁能花、什么时候花"，底层实现交给编译器。',
         },
-        benefit2: {
-          title: '编译器保障安全',
-          desc: '无论怎么组合，编译器都会验证结果的正确性与安全性。',
+
+        composability: {
+          label: '可组合性',
+          title: '像积木一样组合，像工具一样分析',
+          desc: '签名、时间锁、哈希锁——每个条件都是独立的积木，可以用 and、or、thresh 自由组合成任意复杂的花费策略。',
+          blocksLabel: '基础条件',
+          combineArrow: '自由组合',
+          resultLabel: '组合结果',
+          benefit1: {
+            title: '独立的基础单元',
+            desc: 'pk、older、sha256 每一个都是独立条件，任意嵌套组合都合法。',
+          },
+          benefit2: {
+            title: '嵌套不会变差',
+            desc: '无论组合多深，编译器都会找到最小等价的 Bitcoin Script。',
+          },
+          benefit3: {
+            title: '结构化 = 可分析',
+            desc: '工具能自动回答"这段脚本有哪些花费路径、每条路径开销多大"——这正是 Playground 做到的事。',
+          },
         },
-        benefit3: {
-          title: '自动优化脚本',
-          desc: '编译器找到最小等价脚本，降低链上手续费。',
+
+        portability: {
+          label: '可迁移性',
+          title: '一次编写，任意钱包还原',
+          desc: '你的花费策略用标准化语言表达，不再依附于任何单一钱包软件。',
+          walletA: '钱包 A',
+          walletADesc: '设计花费策略',
+          export: '导出',
+          descriptorNote: '标准格式，包含完整策略信息',
+          import: '导入',
+          walletB: '钱包 B',
+          walletBDesc: '完整还原策略',
+          takeaway: '你的花费规则属于你自己，不再被单一钱包软件绑定。',
         },
       },
     },
@@ -179,7 +235,7 @@ export const zh = {
         desc: '三把钥匙中，任意两把即可花费。',
         code: 'thresh(2,\n  pk(Alice),\n  pk(Bob),\n  pk(Charlie)\n)',
       },
-      footer: '不止于多签——时间锁、哈希锁、门限组合……都可以写进花费条件。',
+      footer: '不止于多签——时间锁、哈希锁、门限组合……都能写进花费条件。但真要直接动手写，就会撞到另一层问题。',
     },
     challenge: {
       subtitle: 'Bitcoin Script 虽然强大，但存在着几个根本性的设计挑战。',
