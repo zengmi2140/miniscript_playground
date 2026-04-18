@@ -148,6 +148,119 @@ function DefinitionBlock() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Part ①½  Concept blocks — vertical Policy / Miniscript / Descriptor */
+/*  Uses original rich content from home.concepts.* i18n keys           */
+/* ------------------------------------------------------------------ */
+
+function ConceptBlock() {
+  const { t } = useI18n();
+
+  return (
+    <div>
+      <h3 className="mb-8 text-2xl font-semibold text-text-primary md:text-3xl">
+        {t('home.meetMiniscript.concepts.sectionTitle')}
+      </h3>
+
+      <div className="space-y-12">
+        {/* Policy */}
+        <div className="pb-12">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="inline-block shrink-0 rounded-full border border-btc-500/25 bg-btc-500/10 px-3 py-1 text-xs font-medium text-btc-500">
+              Policy
+            </span>
+            <h4 className="text-2xl font-semibold text-text-primary">Policy</h4>
+          </div>
+          <p className="mb-6 max-w-3xl leading-relaxed text-text-secondary">
+            {t('home.concepts.policy.desc')}
+          </p>
+          <div className="mb-4 rounded-xl border border-border-default bg-surface-card p-6">
+            <code className="font-mono text-sm text-btc-500">
+              or(pk(Alice), and(pk(Bob), after(block_height)))
+            </code>
+          </div>
+          <p className="text-sm text-text-muted">
+            {t('home.concepts.policy.example')}
+          </p>
+        </div>
+
+        {/* Miniscript */}
+        <div className="pb-12">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="inline-block shrink-0 rounded-full border border-violet-400/25 bg-violet-400/10 px-3 py-1 text-xs font-medium text-violet-400">
+              Miniscript
+            </span>
+            <h4 className="text-2xl font-semibold text-text-primary">Miniscript</h4>
+          </div>
+          <p className="mb-6 max-w-3xl leading-relaxed text-text-secondary">
+            {t('home.concepts.miniscript.desc')}
+          </p>
+          <div className="mb-4 grid gap-6 md:grid-cols-2">
+            <div className="rounded-xl border border-border-default bg-surface-card p-6">
+              <p className="mb-3 text-xs font-medium uppercase tracking-widest text-text-muted">
+                {t('home.concepts.miniscript.featuresLabel')}
+              </p>
+              <ul className="space-y-2 text-sm text-text-secondary">
+                <li>{t('home.concepts.miniscript.feature1')}</li>
+                <li>{t('home.concepts.miniscript.feature2')}</li>
+                <li>{t('home.concepts.miniscript.feature3')}</li>
+                <li>{t('home.concepts.miniscript.feature4')}</li>
+              </ul>
+            </div>
+            <div className="rounded-xl border border-border-default bg-surface-card p-6">
+              <p className="mb-3 text-xs font-medium uppercase tracking-widest text-text-muted">
+                {t('home.concepts.miniscript.compileLabel')}
+              </p>
+              <p className="mb-3 text-sm text-text-secondary">
+                {t('home.concepts.miniscript.compileDesc')}
+              </p>
+              <p className="rounded-lg bg-surface-base p-2 font-mono text-xs text-text-muted">
+                {t('home.concepts.miniscript.compileNote')}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Descriptor */}
+        <div className="pb-12">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="inline-block shrink-0 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-400">
+              Descriptor
+            </span>
+            <h4 className="text-2xl font-semibold text-text-primary">
+              Output Descriptor
+            </h4>
+          </div>
+          <p className="mb-6 max-w-3xl leading-relaxed text-text-secondary">
+            {t('home.concepts.descriptor.desc')}
+          </p>
+          <div className="space-y-4">
+            <div className="rounded-xl border border-border-default bg-surface-card p-6">
+              <p className="mb-3 text-xs font-medium uppercase tracking-widest text-text-muted">
+                {t('home.concepts.descriptor.multisigLabel')}
+              </p>
+              <code className="break-all font-mono text-sm text-btc-500">
+                wsh(multi(2,[abcd1234/44h/0h/0h]xpub...,[dcba4321/44h/0h/0h]xpub...))
+              </code>
+            </div>
+            <div className="rounded-xl border border-border-default bg-surface-card p-6">
+              <p className="mb-3 text-xs font-medium uppercase tracking-widest text-text-muted">
+                {t('home.concepts.descriptor.timelockLabel')}
+              </p>
+              <code className="break-all font-mono text-sm text-btc-500">
+                {`wsh(or_d(pk([fingerprint1]xpub.../0/*), and_v(v:pk([fingerprint2]xpub.../1/*), older(144))))`}
+              </code>
+            </div>
+          </div>
+          <p className="mt-4 text-sm text-text-muted">
+            {t('home.concepts.descriptor.note')}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Part ②  Features — three cards                                     */
 /* ------------------------------------------------------------------ */
 
@@ -429,6 +542,7 @@ export function MeetMiniscriptSection() {
 
         <div className="space-y-16">
           <DefinitionBlock />
+          <ConceptBlock />
           <FeaturesBlock />
         </div>
       </div>

@@ -10,7 +10,6 @@ import { TransitionSection } from '@/components/home/TransitionSection';
 import { ScriptComplexitySection } from '@/components/home/ScriptComplexitySection';
 import { MeetMiniscriptSection } from '@/components/home/MeetMiniscriptSection';
 import { IntroApplicationsSection } from '@/components/intro/IntroApplicationsSection';
-import { IntroCoreConceptsSection } from '@/components/intro/IntroCoreConceptsSection';
 
 export default function HomePage() {
   const { t } = useI18n();
@@ -48,7 +47,6 @@ export default function HomePage() {
       <ScriptComplexitySection />
       <MeetMiniscriptSection />
       <IntroApplicationsSection />
-      <IntroCoreConceptsSection hideStack />
 
       <HomepageWallets />
 
