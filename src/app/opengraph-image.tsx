@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'Miniscript Lab — Bitcoin 花费条件教学实验室';
+export const alt = 'ScriptWise — Bitcoin 花费条件教学实验室';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -83,7 +83,7 @@ export default function OGImage() {
               marginBottom: 16,
             }}
           >
-            Miniscript Lab
+            ScriptWise
           </div>
 
           <div

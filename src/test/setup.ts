@@ -7,6 +7,6 @@ import React from 'react';
 
 beforeEach(() => {
   try {
-    localStorage.removeItem('miniscript-lab-locale');
+    localStorage.removeItem('scriptwise-locale');
   } catch {}
 });

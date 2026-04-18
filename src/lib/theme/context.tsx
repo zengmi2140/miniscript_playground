@@ -17,7 +17,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('miniscript-lab-theme');
+      const stored = localStorage.getItem('scriptwise-theme');
       if (stored === 'dark' || stored === 'light') {
         setTheme(stored);
       }
@@ -39,7 +39,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setTheme((prev) => {
       const next = prev === 'dark' ? 'light' : 'dark';
       try {
-        localStorage.setItem('miniscript-lab-theme', next);
+        localStorage.setItem('scriptwise-theme', next);
       } catch {}
       return next;
     });
