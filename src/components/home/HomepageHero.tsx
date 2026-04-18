@@ -40,12 +40,8 @@ export function HomepageHero() {
               {t('home.hero.title')}
             </h1>
 
-            <p className="mb-3 text-sm leading-relaxed text-text-secondary md:text-base">
+            <p className="mb-8 text-sm leading-relaxed text-text-secondary md:text-base">
               {t('home.hero.subtitle')}
-            </p>
-
-            <p className="mb-8 text-sm leading-relaxed text-text-muted">
-              {t('home.hero.desc')}
             </p>
 
             <div className="flex flex-col gap-3 sm:flex-row">

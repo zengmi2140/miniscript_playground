@@ -1,10 +1,9 @@
 export const en = {
   home: {
     hero: {
-      title: 'Bitcoin Spending Conditions, Made Clear',
+      title: 'Understand Bitcoin spending conditions — start with Miniscript',
       subtitle:
-        'Understand Miniscript through real spending scenarios — from multisig to timelocks, from concepts to working scripts.',
-      desc: 'Behind every Bitcoin UTXO is a set of rules that determines who can spend it and when. Miniscript Lab helps you understand those rules.',
+        'Behind every Bitcoin UTXO is a set of rules that determines who can spend it and when. ScriptWise helps you understand those rules through real spending scenarios — from concepts to working scripts.',
       cta: {
         primary: 'View applications',
         secondary: 'Open Playground',
@@ -37,7 +36,7 @@ export const en = {
       mission: {
         label: 'Our Mission',
         title: 'Why We Built This',
-        desc: 'Miniscript tooling is scattered, documentation is dense, and there is a steep learning curve between wallet developers and advanced users. Miniscript Lab brings compilation, path analysis, and visual building into one interactive platform — so anyone can truly understand Bitcoin spending conditions.',
+        desc: 'Miniscript tooling is scattered, documentation is dense, and there is a steep learning curve between wallet developers and advanced users. ScriptWise brings compilation, path analysis, and visual building into one interactive platform — so anyone can truly understand Bitcoin spending conditions.',
       },
       comparison: {
         old: {
@@ -563,7 +562,7 @@ export const en = {
   },
 
   scenarios: {
-    title: 'Miniscript Lab',
+    title: 'ScriptWise',
     subtitle: 'Making Bitcoin spending conditions crystal clear',
     orWrite: 'or write your own',
     openBlank: 'Open Blank Playground',
@@ -576,8 +575,8 @@ export const en = {
   },
 
   footer: {
-    description: 'A scenario-first, spending-path-centered Miniscript educational lab',
-    rights: 'Miniscript Lab',
+    description: 'A scenario-first, spending-path-centered Miniscript educational playground',
+    rights: 'ScriptWise',
   },
 
   glossary: {

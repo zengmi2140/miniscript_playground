@@ -8,7 +8,7 @@ describe('storage (legacy key cleanup)', () => {
     localStorage.clear();
   });
 
-  it('clearSession removes miniscript-lab-session', () => {
+  it('clearSession removes scriptwise-session', () => {
     saveSession({
       policy: 'pk(Alice)',
       keyVariables: [
@@ -27,7 +27,7 @@ describe('storage (legacy key cleanup)', () => {
 
   it('loadSession returns null for invalid persisted body', () => {
     localStorage.setItem(
-      'miniscript-lab-session',
+      'scriptwise-session',
       JSON.stringify({
         policy: 'pk(A)',
         keyVariables: [],

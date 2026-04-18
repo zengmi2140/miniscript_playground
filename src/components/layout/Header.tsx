@@ -33,7 +33,7 @@ export function Header() {
               <Bitcoin className="h-5 w-5 text-text-inverse" />
             </div>
             <span className="text-[15px] font-semibold text-text-primary">
-              Miniscript Lab
+              ScriptWise
             </span>
           </Link>
 

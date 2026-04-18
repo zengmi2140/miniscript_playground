@@ -1,4 +1,4 @@
-# Miniscript Lab — 开发指南（AGENTS.md）
+# ScriptWise — 开发指南（AGENTS.md）
 
 ## 文档维护（本仓库硬约束）
 
