@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { INTRO_APPLICATION_EXAMPLES, type IntroApplicationExample } from '@/components/intro/data';
 import { useI18n } from '@/lib/i18n/context';
+import { ArrowRight } from 'lucide-react';
 
 export function IntroApplicationsSection() {
   const { t, locale } = useI18n();
@@ -19,14 +20,34 @@ export function IntroApplicationsSection() {
 
   const display = getDisplay(ex);
 
+  const [transitioning, setTransitioning] = useState(false);
+  const prevExample = useRef(activeExample);
+
+  useEffect(() => {
+    if (prevExample.current !== activeExample) {
+      setTransitioning(true);
+      const timer = setTimeout(() => {
+        setTransitioning(false);
+      }, 100);
+      prevExample.current = activeExample;
+      return () => clearTimeout(timer);
+    }
+  }, [activeExample]);
+
   return (
     <section
       id="applications"
       className="bg-surface-base py-16 md:py-24"
     >
+      <style>{`
+        @keyframes fadeSlideIn {
+          0% { opacity: 0; transform: translateY(4px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
       <div className="mx-auto max-w-6xl px-4">
         <h2 className="mb-4 text-center text-3xl font-bold tracking-tight text-text-primary md:text-4xl">
-          Applications
+          {t('intro.applications.title')}
         </h2>
         <p className="mx-auto mb-12 max-w-2xl text-center text-text-secondary">
           {t('intro.applications.subtitle')}
@@ -61,9 +82,10 @@ export function IntroApplicationsSection() {
                 </h3>
                 <Link
                   href={playgroundHref}
-                  className="inline-flex shrink-0 items-center rounded-button border border-border-default bg-surface-elevated px-3 py-1.5 text-sm font-medium text-btc-500 transition-colors hover:border-btc-500/40 hover:bg-surface-overlay"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-button border border-btc-500/40 bg-btc-500/15 px-4 py-2 text-sm font-semibold text-btc-500 transition-colors hover:border-btc-500/60 hover:bg-btc-500/25"
                 >
                   {t('intro.applications.tryIt')}
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
 
@@ -97,7 +119,13 @@ export function IntroApplicationsSection() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div
+            key={activeExample}
+            className="space-y-4"
+            style={{
+              animation: 'fadeSlideIn 0.5s ease-out',
+            }}
+          >
             <div className="overflow-hidden rounded-xl border border-border-default bg-surface-card">
               <div className="bg-surface-elevated px-6 py-3">
                 <p className="text-sm font-medium uppercase tracking-widest text-text-muted">

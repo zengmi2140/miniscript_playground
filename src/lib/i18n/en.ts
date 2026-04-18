@@ -1,11 +1,11 @@
 export const en = {
   home: {
     hero: {
-      title: 'Understand Bitcoin spending conditions — start with Miniscript',
+      title: 'See How Every Bitcoin Can Be Spent',
       subtitle:
         'Behind every Bitcoin UTXO is a set of rules that determines who can spend it and when. ScriptWise helps you understand those rules through real spending scenarios — from concepts to working scripts.',
       cta: {
-        primary: 'View applications',
+        primary: 'Start from a Real Scenario ↓',
         secondary: 'Open Playground',
       },
       card: {
@@ -14,6 +14,8 @@ export const en = {
         path2: 'Alice + wait 30 days',
         path3: 'Bob + wait 30 days',
       },
+      tagline: 'ScriptWise — Interactive Bitcoin Miniscript Learning Lab',
+      fastTrack: 'Already know Miniscript? Jump to the Playground →',
     },
     explainer: {
       label: 'The Basics',
@@ -204,6 +206,28 @@ export const en = {
           takeaway: 'Your spending rules belong to you — no vendor lock-in.',
         },
       },
+
+      concepts: {
+        sectionTitle: 'Understanding the Three Layers',
+        policy: {
+          badge: 'Policy',
+          title: 'How humans think',
+          desc: 'High-level policy language expressing who can spend and when, using natural semantics. Any combinatorial logic is valid.',
+          example: 'or(pk(Alice), and(pk(Bob), after(height)))',
+        },
+        miniscript: {
+          badge: 'Miniscript',
+          title: 'How tools analyze',
+          desc: 'A standardized bridge between Policy and Bitcoin Script. Every expression is typed, enabling automatic verification, analysis, and optimization.',
+          example: 'andor(pk(A),pk(B),and_v(v:pk(C),older(1000)))',
+        },
+        descriptor: {
+          badge: 'Descriptor',
+          title: 'How wallets migrate',
+          desc: 'A portable format that combines Miniscript with key info. Contains everything needed to generate addresses and build transactions — enabling seamless wallet migration.',
+          example: 'wsh(andor(pk(Alice),pk(Bob),and_v(v:pk(R),older(10000))))',
+        },
+      },
     },
     transition: {
       title: 'Behind Every Address, There Is a Script',
@@ -287,6 +311,7 @@ export const en = {
       },
     },
     concepts: {
+      title: 'Core Concepts',
       subtitle: 'Understand the relationship between Policy, Miniscript, and Descriptor.',
       policy: {
         desc: "A high-level, human-readable description of spending conditions. Policy expresses who can spend funds, and under what conditions, in natural language. It is the topmost abstraction layer — you can use any combinatorial logic without worrying about whether the compiled result will be valid.",
@@ -350,6 +375,7 @@ export const en = {
 
   intro: {
     applications: {
+      title: 'Applications',
       tryIt: 'Try it',
       subtitle: 'From Policy to on-chain script: watch the full compilation pipeline for real-world scenarios.',
       scenarioLabel: 'Scenario',

@@ -101,7 +101,7 @@ npm run test
 
 ### 各路由实现要点
 
-- **`/`** — `src/app/page.tsx`。顺序：`HomepageHero` → `TransitionSection` → `ScriptComplexitySection`（Bitcoin Script 复杂性的四堵墙 + 过渡尾句，作为进入 Miniscript 前的独立过渡章节） → `MeetMiniscriptSection`（两段式：`DefinitionBlock` ①Miniscript 是什么，含 Policy → Miniscript → Script 三层横向流水线 → `FeaturesBlock` ②可读性 / 可组合性 / 可迁移性 三张卡）→ `IntroApplicationsSection` → `IntroCoreConceptsSection`（`hideStack`；纵向四层堆栈含 Descriptor，与 `MeetMiniscriptSection` 的横向三层形成差异化）→ `HomepageWallets` → 底部 CTA + footer。Applications **7** 条卡片与 `playgroundScenarioId` 见 `src/components/intro/data.ts`（含 **「穿越牛熊」** `holder-timelock`）；其余未列入 Applications 的预设由 `sortScenariosForPlayground()` 排在末尾（见 `src/lib/scenarios/data.ts`）。**「原子交换」** 三列可用 `HEX` 作 hash160 占位，与 `htlc-atomic` Playground 展示一致，右栏真实输出见 §7。`requestIdleCallback` 可预热 Playground；窄屏 `home.playground.desktopHint`。历史首页区块 `IntroChallengeSection`、`IntroWhyMattersSection` 仍保留在 `components/intro/`，当前首页未挂载（见 §9）。  
+- **`/`** — `src/app/page.tsx`。顺序：`HomepageHero`（含产品定位一句话、短标题、主 CTA「从一个真实场景开始 ↓」、右侧静态代码卡片展示 Policy 示例与花费路径） → `TransitionSection`（地址背后的脚本 + 单签 vs 多签 + 过渡句） → `ScriptComplexitySection`（四堵墙 PainCard + outro） → `MeetMiniscriptSection`（三段式：`DefinitionBlock` ①Miniscript 是什么，含 Policy → Miniscript → Script 三层横向流水线 → `ConceptBlock` ②竖向三板块 Policy/Miniscript/Descriptor（标题「深入理解三层结构」，内容取自原 `IntroCoreConceptsSection` 的 `home.concepts.*` i18n 丰富描述与代码示例）→ `FeaturesBlock` ③可读性 / 可组合性 / 可迁移性 三张卡）→ `IntroApplicationsSection`（标题走 i18n；「上手一试」强化为半实心橙色按钮 + ArrowRight；编译演示切换场景带 fadeSlideIn 微交互） → `HomepageWallets` → 底部 CTA + footer。Applications **7** 条卡片与 `playgroundScenarioId` 见 `src/components/intro/data.ts`（含 **「穿越牛熊」** `holder-timelock`）；其余未列入 Applications 的预设由 `sortScenariosForPlayground()` 排在末尾（见 `src/lib/scenarios/data.ts`）。**「原子交换」** 三列可用 `HEX` 作 hash160 占位，与 `htlc-atomic` Playground 展示一致，右栏真实输出见 §7。`requestIdleCallback` 可预热 Playground；窄屏 `home.playground.desktopHint`。历史首页区块 `IntroChallengeSection`、`IntroWhyMattersSection`、`IntroCoreConceptsSection` 仍保留在 `components/` 中，当前首页未挂载（见 §9）。  
 - **`/intro`** — `src/app/intro/page.tsx`：`redirect('/')`。  
 - **`/playground`** — `src/app/playground/page.tsx` → `PlaygroundClient.tsx`：处理 `?s=`、`?scenario=`、`?mode=build`；`clearSession()`；挂载时 `fetchBlockTipHeight`；`useCompiler` + `useBuilderSync`；渐进式加载（`dynamic` 画布、`prefetch` 等）。  
 - **`/resources`** — `src/app/resources/page.tsx`：外链网格 +「推荐阅读」（数据：`src/lib/resources/recommended-reading.ts`）。  
@@ -149,7 +149,7 @@ npm run test
 | `flow/` | scenario 路径图：`PathMap`、`FlowNodes`、`PathEdge` |
 | `results/` | 右栏各 Tab（Policy / Miniscript / Script / Descriptor / Address / Paths） |
 | `intro/` | 首页通识区块与 `data.ts`（Applications） |
-| `home/` | `HomepageHero`、`HomepageWallets` 等 |
+| `home/` | `HomepageHero`、`TransitionSection`、`ScriptComplexitySection`、`MeetMiniscriptSection`、`HomepageWallets` 等 |
 | `scenarios/` | `ScenarioCard`、`ScenarioGallery`（未挂载路由时可仍存在） |
 | `shared/` | `ExplainPopover`、`GlossaryTooltip`、`CodeBlock` 等 |
 | `ui/` | shadcn 基础组件（`button` 等） |
@@ -263,6 +263,7 @@ npm run test
 10. **渐进式加载**、首页 **单一橙色 CTA** → `?mode=build`。  
 11. **htlc-atomic**：`HEX` 展示 vs 右栏真实 hex；见 §7 与 `htlc-display-mask.ts`。  
 12. **`IntroChallengeSection` / `IntroWhyMattersSection`**：源码仍在 `components/intro/`，**未**挂载于当前首页；若复用需自行挂到路由。
+13. **`IntroCoreConceptsSection`**：源码仍在 `components/intro/`，**未**挂载于当前首页；其内容已融合入 `MeetMiniscriptSection` 的 `ConceptBlock`（竖向三板块，标题「深入理解三层结构」，使用 `home.concepts.*` i18n 键）。
 
 ---
 
