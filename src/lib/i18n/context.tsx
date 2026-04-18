@@ -57,7 +57,7 @@ export function I18nProvider({
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('miniscript-lab-locale');
+      const stored = localStorage.getItem('scriptwise-locale');
       if (stored === 'zh' || stored === 'en') {
         setLocaleState(stored);
       }
@@ -67,7 +67,7 @@ export function I18nProvider({
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
     try {
-      localStorage.setItem('miniscript-lab-locale', newLocale);
+      localStorage.setItem('scriptwise-locale', newLocale);
     } catch {}
   }, []);
 

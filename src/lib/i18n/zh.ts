@@ -1,9 +1,8 @@
 export const zh = {
   home: {
     hero: {
-      title: '把 Bitcoin 的花费条件讲清楚',
-      subtitle: '用真实的花费场景理解 Miniscript，从多签到时间锁，从理论到可运行的脚本。',
-      desc: '每一个 Bitcoin UTXO 背后，都有一套决定"谁能花、什么时候花"的规则。Miniscript Lab 帮你读懂这套规则。',
+      title: '读懂 Bitcoin 的花费条件，从 Miniscript 开始',
+      subtitle: '每一个 Bitcoin UTXO 背后，都有一套决定"谁能花、什么时候花"的规则。ScriptWise 用真实的花费场景帮你读懂这套规则，从理论到可运行的脚本。',
       cta: {
         primary: '查看应用场景',
         secondary: '打开 Playground',
@@ -32,7 +31,7 @@ export const zh = {
       mission: {
         label: '我们的目标',
         title: '我们为什么做这个',
-        desc: 'Miniscript 的工具链分散、文档晦涩，钱包开发者和高级用户之间存在巨大的学习门槛。Miniscript Lab 把编译、路径分析、可视化搭建整合到一个交互式平台，让任何人都能真正读懂 Bitcoin 花费条件。',
+        desc: 'Miniscript 的工具链分散、文档晦涩，钱包开发者和高级用户之间存在巨大的学习门槛。ScriptWise 把编译、路径分析、可视化搭建整合到一个交互式平台，让任何人都能真正读懂 Bitcoin 花费条件。',
       },
       comparison: {
         old: {
@@ -549,7 +548,7 @@ export const zh = {
   },
 
   scenarios: {
-    title: 'Miniscript Lab',
+    title: 'ScriptWise',
     subtitle: '把 Bitcoin 的花费条件讲清楚',
     orWrite: '或者自己写',
     openBlank: '打开空白 Playground',
@@ -563,7 +562,7 @@ export const zh = {
 
   footer: {
     description: '一个场景优先、以花费路径为中心的 Miniscript 教学实验室',
-    rights: 'Miniscript Lab',
+    rights: 'ScriptWise',
   },
 
   glossary: {
