@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Bitcoin } from 'lucide-react';
+import { Bitcoin } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
 
 // A minimal animated code snippet to show what Miniscript looks like
@@ -50,7 +50,6 @@ export function HomepageHero() {
                 className="group inline-flex items-center justify-center gap-2 rounded-button bg-btc-500 px-5 py-2.5 text-sm font-semibold text-text-inverse transition-all hover:bg-btc-400"
               >
                 {t('home.hero.cta.primary')}
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <Link
                 href="/playground"

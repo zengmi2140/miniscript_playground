@@ -33,7 +33,7 @@ export function IntroCoreConceptsSection({ hideStack = false }: { hideStack?: bo
     >
       <div className="mx-auto max-w-6xl px-4">
         <h2 className="mb-4 text-center text-3xl font-bold tracking-tight text-text-primary md:text-4xl">
-          Core Concepts
+          {t('home.concepts.title')}
         </h2>
         <p className="mx-auto mb-12 max-w-2xl text-center text-text-secondary">
           {t('home.concepts.subtitle')}

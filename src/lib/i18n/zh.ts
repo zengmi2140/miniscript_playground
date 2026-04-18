@@ -1,10 +1,10 @@
 export const zh = {
   home: {
     hero: {
-      title: '读懂 Bitcoin 的花费条件，从 Miniscript 开始',
+      title: '看懂每一笔 Bitcoin 怎么花',
       subtitle: '每一个 Bitcoin UTXO 背后，都有一套决定"谁能花、什么时候花"的规则。ScriptWise 用真实的花费场景帮你读懂这套规则，从理论到可运行的脚本。',
       cta: {
-        primary: '查看应用场景',
+        primary: '从一个真实场景开始 ↓',
         secondary: '打开 Playground',
       },
       card: {
@@ -13,6 +13,8 @@ export const zh = {
         path2: 'Alice + 等待 30 天',
         path3: 'Bob + 等待 30 天',
       },
+      tagline: 'ScriptWise —— Bitcoin Miniscript 交互式学习平台',
+      fastTrack: '已经了解 Miniscript？直接进入 Playground →',
     },
     explainer: {
       label: '基础知识',
@@ -191,6 +193,28 @@ export const zh = {
           takeaway: '你的花费规则属于你自己，不再被单一钱包软件绑定。',
         },
       },
+
+      concepts: {
+        sectionTitle: '深入理解三层结构',
+        policy: {
+          badge: 'Policy',
+          title: '人怎么想',
+          desc: '高级策略语言，用自然语义表达"谁能花、何时花"。支持任意组合逻辑，无需担心编译后的有效性。',
+          example: 'or(pk(Alice), and(pk(Bob), after(height)))',
+        },
+        miniscript: {
+          badge: 'Miniscript',
+          title: '工具怎么分析',
+          desc: 'Policy 与 Bitcoin Script 之间的标准化桥梁。每个表达式具有明确类型，可由工具自动验证、分析和优化。',
+          example: 'andor(pk(A),pk(B),and_v(v:pk(C),older(1000)))',
+        },
+        descriptor: {
+          badge: 'Descriptor',
+          title: '钱包怎么迁移',
+          desc: '将 Miniscript 与密钥信息结合的可携式格式。包含生成地址和创建交易所需的全部信息，支持钱包间无缝迁移。',
+          example: 'wsh(andor(pk(Alice),pk(Bob),and_v(v:pk(R),older(10000))))',
+        },
+      },
     },
     transition: {
       title: '每个地址背后，都有一段脚本',
@@ -274,6 +298,7 @@ export const zh = {
       },
     },
     concepts: {
+      title: '核心概念',
       subtitle: '理解 Policy、Miniscript 和 Descriptor 之间的关系。',
       policy: {
         desc: '高级、人类可读的策略描述。用自然语言的方式表达谁可以花费资金以及如何花费。Policy 是最顶层的抽象，允许使用任意的组合逻辑而不用担心编译后的有效性。',
@@ -337,6 +362,7 @@ export const zh = {
 
   intro: {
     applications: {
+      title: '应用场景',
       tryIt: '上手一试',
       subtitle: '从 Policy 到最终脚本：实时查看真实应用场景的完整编译演化过程。',
       scenarioLabel: '使用场景',
