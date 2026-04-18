@@ -2,6 +2,9 @@
   "name": "miniscript-lab",
   "private": true,
   "version": "0.0.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "generate:block-height-fallback": "node scripts/generate-block-height-fallback.mjs",
     "prebuild": "npm run generate:block-height-fallback",
