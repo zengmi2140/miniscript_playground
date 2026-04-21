@@ -1,237 +1,41 @@
 export const en = {
   home: {
     hero: {
-      title: 'See How Every Bitcoin Can Be Spent',
-      subtitle:
-        'Behind every Bitcoin UTXO is a set of rules that determines who can spend it and when. ScriptWise helps you understand those rules through real spending scenarios — from concepts to working scripts.',
-      cta: {
-        primary: 'Start from a Real Scenario ↓',
-        secondary: 'Open Playground',
-      },
-      card: {
-        label: 'Spending Path Analysis',
-        path1: 'Alice + Bob sign',
-        path2: 'Alice + wait 30 days',
-        path3: 'Bob + wait 30 days',
-      },
-      tagline: 'ScriptWise — Interactive Bitcoin Miniscript Learning Lab',
-      fastTrack: 'Already know Miniscript? Jump to the Playground →',
-    },
-    explainer: {
-      label: 'The Basics',
-      title: 'What is Miniscript?',
-      subtitle:
-        'Every Bitcoin UTXO is governed by a script that defines who can spend it and when. Miniscript is a structured language that makes those rules readable, composable, and formally verifiable.',
-      what: {
-        title: 'What Miniscript Is',
-        desc: 'Bitcoin Script is a low-level stack language that is hard to write correctly and even harder to audit. Miniscript is a structured subset of Bitcoin Script — it expresses spending conditions as composable policy trees, which tools automatically compile into on-chain scripts, eliminating hand-crafting errors.',
-      },
-      why: {
-        title: 'Why It Matters',
-        benefit1:
-          'Human-readable semantics: and(), or(), thresh() map directly to business logic anyone can understand',
-        benefit2:
-          'Composable and auditable: conditions nest freely, tools auto-analyze all spending paths and minimal witnesses',
-        benefit3:
-          'On-chain safe: compiled output is formally verified against all Bitcoin Script safety constraints',
-      },
-      mission: {
-        label: 'Our Mission',
-        title: 'Why We Built This',
-        desc: 'Miniscript tooling is scattered, documentation is dense, and there is a steep learning curve between wallet developers and advanced users. ScriptWise brings compilation, path analysis, and visual building into one interactive platform — so anyone can truly understand Bitcoin spending conditions.',
-      },
-      comparison: {
-        old: {
-          title: 'Raw Bitcoin Script (hard to read)',
-          example: `OP_2\n<Alice> <Bob> <Carol>\nOP_3 OP_CHECKMULTISIG`,
-          problem1:
-            'Opcode stacks are non-intuitive — experts must trace every byte to understand intent',
-          problem2:
-            'Even slightly complex conditions are nearly impossible to hand-write correctly — one wrong byte locks funds forever',
-        },
-        new: {
-          title: 'Miniscript Policy (readable at a glance)',
-          example: `or(\n  thresh(2, pk(Alice), pk(Bob), pk(Carol)),\n  and(pk(Alice), older(52560))\n)`,
-          advantage1: 'Structure is semantics: or / and / thresh map directly to intent',
-          advantage2:
-            'Compiles to an optimal script automatically — tools verify safety, no low-level code needed',
-        },
-      },
-    },
-    how: {
-      label: 'How It Works',
-      title: 'Three Steps to Any Spending Policy',
-      subtitle:
-        'From scenario selection to a complete on-chain script — with visual feedback every step of the way.',
-      step1: {
-        title: 'Choose a Scenario',
-        desc: 'Start from a real use case: team multisig, multisig + timelock, recovery key, degrading vault...',
-        example: '2-of-3 Multisig · Multisig + Timelock · Recovery Key',
-      },
-      step2: {
-        title: 'Write or Build a Policy',
-        desc: 'Describe the rules in Policy language, or drag and drop condition nodes in the visual builder.',
-        example: 'thresh(2,pk(A),pk(B),older(4320))',
-      },
-      step3: {
-        title: 'See All Spending Paths',
-        desc: 'Every valid spending path is listed. Toggle signatures, slide the time — watch paths light up.',
-        example: 'Path 1: Alice + Bob · Path 2: Timeout',
-      },
-      step4: {
-        title: 'Get the On-Chain Script',
-        desc: 'Full output: Script, Descriptor, and P2WSH address ready for testnet deployment.',
-        example: 'OP_2 <Alice> <Bob> ... OP_CHECKMULTISIG',
-      },
-    },
-    features: {
-      label: 'Core Features',
-      title: 'More Than a Compiler',
-      subtitle: 'Designed for genuine understanding, not just script generation.',
-      f1: {
-        title: 'Real-Time Compilation',
-        desc: 'Type a Policy and instantly see the Miniscript, Script, Descriptor, and address. Syntax errors are pinpointed precisely.',
-      },
-      f2: {
-        title: 'Visual Path Explorer',
-        desc: 'Every valid spending combination is shown as an interactive tree. Simulate signatures and timelocks to see which paths open.',
-      },
-      f3: {
-        title: 'Visual Policy Builder',
-        desc: 'No code required. Click to add condition nodes, combine them on a canvas, and the system generates the Policy for you.',
-      },
-      f4: {
-        title: 'One-Click Sharing',
-        desc: 'Bundle your current policy, key variables, and simulation state into a shareable link for easy collaboration.',
-      },
-    },
-    scenarios: {
-      label: 'Scenario Library',
-      title: 'Start with a Real-World Scenario',
-      subtitle:
-        'Each scenario comes with an explanation, a complete Policy, and an interactive spending path diagram.',
-    },
-    wallets: {
-      label: 'Ecosystem',
-      title: 'Wallets Supporting Miniscript',
-      subtitle:
-        'These software and hardware wallets have native Miniscript support, ready for real-world use with complex spending conditions.',
-      software: 'Software Wallets',
-      hardware: 'Hardware Wallets',
-    },
-    cta: {
-      title: 'Ready to Design Your Own?',
-      subtitle:
-        'Use the visual canvas in the Playground to compose a policy and see Policy, Miniscript, and spending paths in real time.',
-      build: 'Build with Canvas',
-    },
-    playground: {
+      badge: 'Bitcoin Miniscript',
+      title: 'Miniscript: make Bitcoin spending conditions readable, analyzable, composable',
+      intro1:
+        'A structured language designed by Pieter Wuille, Andrew Poelstra, and Sanket Kanjalkar — it lifts multisig, timelocks, and hashlocks out of opaque opcodes.',
+      intro2:
+        'ScriptWise is a learning site that walks you through Miniscript with real-world scenarios — from a policy description to a runnable Bitcoin Script.',
+      ctaPrimary: 'Start from a Real Scenario ↓',
+      ctaSecondary: 'Open Playground',
       desktopHint: 'For the full experience, open the Playground on a desktop or larger screen.',
-    },
-    meetMiniscript: {
-      title: 'Meet Miniscript',
-      subtitle: "Bitcoin Script already has enough expressive power — the real bottleneck is how you write it. Miniscript doesn't change anything underneath; it adds one structured layer on top.",
-
-      definition: {
-        title: 'What is Miniscript',
-        calloutStrong: 'Miniscript — a compilable, verifiable, composable intermediate language.',
-        calloutBody:
-          'Not a new consensus rule, not a new virtual machine — what runs on-chain is still Bitcoin Script. It only inserts this layer between how you write scripts and how machines read them.',
-        arrowLabel: 'compiles to',
-        stack: {
-          policy: {
-            layer: 'Policy',
-            role: 'How humans think',
-            subtitle: 'Natural-language semantics',
-            example: 'and / or / thresh …',
-          },
-          miniscript: {
-            layer: 'Miniscript',
-            role: 'How tools analyze',
-            subtitle: 'Standardized IR',
-            example: 'Typed, verifiable',
-          },
-          script: {
-            layer: 'Bitcoin Script',
-            role: 'How chains execute',
-            subtitle: 'Opcode sequence',
-            example: 'OP_CHECKSIG / OP_CSV …',
-          },
-        },
+      card: {
+        filename: 'policy.miniscript',
+        tag: 'P2WSH',
+        compilesTo: '↓ compiles to',
+        statusNote: 'Example: compilation walkthrough',
+        replay: '↻ Replay',
       },
-
-      features: {
-        title: 'What Miniscript brings',
-
-        readability: {
-          label: 'Readability',
-          title: 'Structure is semantics — readable at a glance',
-          scriptCaption: 'Bitcoin Script',
-          policyCaption: 'Miniscript Policy',
-          compareNote:
-            'Same 2-of-3 multisig. On the right you instantly read "threshold = 2"; on the left you have to understand the stack machine first.',
-          takeaway: 'Just focus on "who can spend, and when." Leave the low-level details to the compiler.',
-        },
-
-        composability: {
-          label: 'Composability',
-          title: 'Compose like building blocks — analyze like tools',
-          blocksLabel: 'Basic conditions',
-          combineArrow: 'Freely combine',
-          resultLabel: 'Combined result',
-          benefit1: {
-            title: 'Standalone primitives',
-            desc: 'pk, older, sha256 — every one stands alone and stays valid under any nesting.',
-          },
-          benefit2: {
-            title: 'Nesting never hurts',
-            desc: 'No matter how deeply you nest, the compiler finds the smallest equivalent Bitcoin Script.',
-          },
-          benefit3: {
-            title: 'Structured = analyzable',
-            desc: 'Tools can automatically answer "what are the spending paths, and how expensive is each?" — which is exactly what this Playground does.',
-          },
-        },
-
-        portability: {
-          label: 'Portability',
-          title: 'Write once, restore in any wallet',
-          walletA: 'Wallet A',
-          walletADesc: 'Design spending policy',
-          export: 'Export',
-          descriptorNote: 'Standard format with full policy information',
-          import: 'Import',
-          walletB: 'Wallet B',
-          walletBDesc: 'Fully restored policy',
-          takeaway: 'Your spending rules belong to you — no vendor lock-in.',
-        },
-      },
-
-      concepts: {
-        sectionTitle: 'Understanding the Three Layers',
-        policy: {
-          badge: 'Policy',
-          title: 'How humans think',
-          desc: 'High-level policy language expressing who can spend and when, using natural semantics. Any combinatorial logic is valid.',
-          example: 'or(pk(Alice), and(pk(Bob), after(height)))',
-        },
-        miniscript: {
-          badge: 'Miniscript',
-          title: 'How tools analyze',
-          desc: 'A standardized bridge between Policy and Bitcoin Script. Every expression is typed, enabling automatic verification, analysis, and optimization.',
-          example: 'andor(pk(A),pk(B),and_v(v:pk(C),older(1000)))',
-        },
-        descriptor: {
-          badge: 'Descriptor',
-          title: 'How wallets migrate',
-          desc: 'A portable format that combines Miniscript with key info. Contains everything needed to generate addresses and build transactions — enabling seamless wallet migration.',
-          example: 'wsh(andor(pk(Alice),pk(Bob),and_v(v:pk(R),older(10000))))',
-        },
+      paths: {
+        path1: 'Alice + Bob co-sign',
+        path2: 'Alice + wait 30 days',
       },
     },
+
+    hook: {
+      eyebrow: 'Why this matters to you',
+      q1: 'You want to leave some Bitcoin for your family — will they be able to claim it if you are gone?',
+      q2: 'You want a 2-of-3 multisig — what happens if one of the keys is lost?',
+      q3: 'You want a third party to custody your assets while you keep an emergency recovery path?',
+      outro:
+        'These are all "spending condition" problems. Bitcoin natively supports them — but writing them is where you will want Miniscript.',
+    },
+
     transition: {
       title: 'Behind Every Address, There Is a Script',
-      subtitle: 'A Bitcoin address is not just a string of characters — it corresponds to a script that defines who can spend the funds.',
+      subtitle:
+        'A Bitcoin address is not just a string of characters — it corresponds to a script that defines who can spend the funds.',
       singleSig: {
         label: 'Single Signature',
         desc: 'One private key to spend.',
@@ -242,11 +46,14 @@ export const en = {
         desc: 'Any two of three keys can spend.',
         code: 'OP_2\n  <PubKey1>\n  <PubKey2>\n  <PubKey3>\nOP_3 OP_CHECKMULTISIG',
       },
-      footer: 'Beyond multisig — timelocks, hashlocks, threshold combinations… can all be written into spending conditions. But actually writing them runs into a whole other problem.',
+      footer:
+        'Beyond multisig — timelocks, hashlocks, threshold combinations… can all be written into spending conditions. But actually writing them runs into a whole other problem.',
     },
+
     scriptComplexity: {
       title: 'The Complexity of Bitcoin Script',
-      subtitle: 'The scripts above are the two simplest cases. Once you try to express anything more interesting, you run into four structural walls.',
+      subtitle:
+        'The scripts above are the two simplest cases. Once you try to express anything more interesting, you run into four hard limits of Bitcoin Script.',
       items: {
         lowLevel: {
           label: 'Low-level abstraction',
@@ -267,96 +74,189 @@ export const en = {
       },
       outro: 'None of these are unsolvable — Miniscript is designed exactly for this.',
     },
-    challenge: {
-      subtitle: 'Bitcoin Script is powerful, but it has several fundamental design challenges.',
-      scriptCol: {
-        lowLevel: {
-          label: 'Low-Level Abstraction',
-          desc: 'A stack-based assembly-style language where code looks like a mysterious chain of opcodes. Even simple logic requires a deep understanding of the stack machine.',
-        },
-        errorProne: {
-          label: 'Error-Prone',
-          desc: 'A tiny mistake can introduce a serious security flaw, and these are hard to detect automatically. Stack overflows, branch errors, and edge cases abound.',
-        },
-        nonComposable: {
-          label: 'Non-Composable',
-          desc: 'Hard to decompose into reusable components — every script must be built from scratch. Modular design, as in modern languages, is essentially impossible.',
-        },
-        hardToAnalyze: {
-          label: 'Hard to Analyze',
-          desc: 'Verifying the correctness and security of a script requires extensive manual inspection. No automated tools exist to audit script properties systematically.',
-        },
-      },
-      miniscriptCol: {
-        highLevel: {
-          label: 'High-Level Abstraction',
-          desc: 'Near-natural-language syntax makes intent obvious. Developers focus on business logic, not low-level stack mechanics.',
-        },
-        formalVerif: {
-          label: 'Formal Verification',
-          desc: 'The compiler has safety checks built in and automatically validates scripts for correctness. The type system prevents the most common classes of error.',
-        },
-        composable: {
-          label: 'Highly Composable',
-          desc: 'Combine conditions like LEGO bricks to build complex contracts. Standard composition operators guarantee that the output is always valid.',
-        },
-        autoOpt: {
-          label: 'Auto-Optimized',
-          desc: 'The compiler automatically minimizes script size. Analysis finds the smallest equivalent Bitcoin Script representation.',
+
+    meetMiniscript: {
+      title: 'Meet Miniscript',
+      subtitle:
+        "Bitcoin Script already has enough expressive power — the real bottleneck is how you write it. Miniscript doesn't change anything underneath; it adds one structured layer on top.",
+
+      definition: {
+        title: 'What is Miniscript',
+        calloutStrong: 'Miniscript — a compilable, verifiable, composable intermediate language.',
+        calloutBody:
+          "If Bitcoin Script is assembly, Miniscript is its high-level language — it doesn't alter the underlying consensus, only how you write things. It is not a new consensus rule, nor a new virtual machine — what runs on-chain is still Bitcoin Script. It simply inserts this layer between how you write scripts and how tools analyze them.",
+        arrowLabel: 'compiles to',
+        pipeline: {
+          policy: {
+            layer: 'Policy',
+            role: 'How you think',
+            desc: 'Describe "who can spend" in human-readable form. Any combinatorial logic is valid — no need to worry about whether the compiled script ends up valid.',
+            code: 'or(pk(Alice), and(pk(Bob), older(144)))',
+            note: 'Either Alice alone, or Bob once the block height passes 144.',
+          },
+          miniscript: {
+            layer: 'Miniscript',
+            role: 'How tools analyze',
+            desc: 'The bridge between Policy and Bitcoin Script. Every expression is typed, enabling automatic verification, analysis, and optimization.',
+            code: 'or_d(pk(Alice), and_v(v:pk(Bob), older(144)))',
+            note: "The standardized form after compiling a Policy — every node carries types and properties.",
+          },
+          script: {
+            layer: 'Bitcoin Script',
+            role: 'How chains execute',
+            desc: 'The opcode sequence that ultimately hits the chain, generated by Miniscript — no need to hand-write it.',
+            code: 'OP_DUP <Alice> OP_CHECKSIGVERIFY OP_IFDUP OP_NOTIF <Bob> OP_CHECKSIG OP_ENDIF',
+            note: 'On-chain nodes execute these opcodes one by one under the existing consensus rules.',
+          },
         },
       },
-      codeCompare: {
-        scriptCaption: 'An opaque sequence of opcodes',
-        miniscriptCaption: 'Clear, explicit logic',
+
+      features: {
+        title: 'What Miniscript brings',
+
+        readability: {
+          label: 'Readability',
+          title: 'Structure is semantics — readable at a glance',
+          scriptCaption: 'Bitcoin Script',
+          scriptExample: 'OP_2 <pk1> <pk2> <pk3>\nOP_3 OP_CHECKMULTISIG',
+          policyCaption: 'Miniscript Policy',
+          policyExample: 'thresh(2,\n  pk(Alice),\n  pk(Bob),\n  pk(Charlie)\n)',
+          compareNote:
+            'Same 2-of-3 multisig. On the right you instantly read "threshold = 2"; on the left you have to understand the stack machine first.',
+          takeaway:
+            'Just focus on "who can spend, and when." Leave the low-level details to the compiler.',
+        },
+
+        composability: {
+          label: 'Composability',
+          title: 'Compose like building blocks — analyze like tools',
+          blocksLabel: 'Basic conditions',
+          combineArrow: 'Freely combine',
+          resultLabel: 'Combined result',
+          resultCode: 'or(\n  and(pk(Alice), pk(Bob)),\n  and(pk(Bob), older(1000))\n)',
+          benefit1: {
+            title: 'Standalone primitives',
+            desc: 'pk, older, sha256 — each is an independent condition, and any nested combination remains valid.',
+          },
+          benefit2: {
+            title: 'Nesting never hurts',
+            desc: 'No matter how deeply you nest, the compiler finds the smallest equivalent Bitcoin Script.',
+          },
+          benefit3: {
+            title: 'Structured = analyzable',
+            desc: 'Tools can automatically answer "what are the spending paths, and how expensive is each?" — which is exactly what this Playground does.',
+          },
+        },
+
+        portability: {
+          label: 'Portability',
+          title: 'Write once, restore in any wallet',
+          intro:
+            'A Descriptor (Output Descriptor) packages Miniscript together with specific keys and derivation paths into a portable format. Wallets use it to generate addresses and build transactions — and different wallets can import and export it seamlessly. Your spending rules are no longer locked to a single piece of software.',
+          walletA: 'Wallet A',
+          walletADesc: 'Design spending policy',
+          exportLabel: 'Export',
+          descriptorLabel: 'Output Descriptor',
+          descriptorSample: 'wsh(andor(pk(Alice),pk(Bob),and_v(v:pk(Recovery),older(10000))))',
+          descriptorNote: 'Standard format with full policy information',
+          importLabel: 'Import',
+          walletB: 'Wallet B',
+          walletBDesc: 'Fully restored policy',
+          takeaway: 'Your spending rules belong to you — no vendor lock-in.',
+        },
       },
     },
-    concepts: {
-      title: 'Core Concepts',
-      subtitle: 'Understand the relationship between Policy, Miniscript, and Descriptor.',
-      policy: {
-        desc: "A high-level, human-readable description of spending conditions. Policy expresses who can spend funds, and under what conditions, in natural language. It is the topmost abstraction layer — you can use any combinatorial logic without worrying about whether the compiled result will be valid.",
-        example: "Either Alice's signature alone, or Bob's signature after a certain block height.",
+
+    history: {
+      title: 'Where Miniscript Comes From',
+      subtitle:
+        'Miniscript is not a brand-new invention — it is the product of Bitcoin protocol researchers iterating since 2019. It went from a paper to mainstream wallets and Bitcoin Core itself.',
+      milestones: {
+        m1: {
+          year: '2019',
+          title: 'First public proposal',
+          desc: "Pieter Wuille presents the design and compiler of Miniscript for the first time at SBC'19.",
+        },
+        m2: {
+          year: '2020–2022',
+          title: 'Reference implementations mature',
+          desc: 'Reference implementations in C++ and Rust land, and Miniscript gets experimental support in several wallets.',
+        },
+        m3: {
+          year: '2023+',
+          title: 'Adopted by mainstream wallets',
+          desc: 'Bitcoin Core 24.0 ships native Miniscript Descriptor support; Liana, Nunchuk, Bitcoin Keeper and others make it a product feature.',
+        },
       },
-      miniscript: {
-        desc: 'The bridge between high-level Policy and low-level Bitcoin Script. Miniscript is a standardized, verifiable, and analyzable intermediate representation. Every Miniscript expression has a well-defined type and set of properties, which lets the compiler perform safety checks and optimizations.',
-        featuresLabel: 'Core Features',
-        feature1: 'Type system (base types B, V, K, W plus modifiers z, o, n, d, u)',
-        feature2: 'Automatic script optimization',
-        feature3: 'Formal property verification',
-        feature4: 'Compile-time safety checks',
-        compileLabel: 'Compiled Output',
-        compileDesc: 'The final Bitcoin Script opcodes, submitted to the blockchain for execution.',
-        compileNote: 'Typically 20–40% smaller than hand-written Bitcoin Script',
-      },
-      descriptor: {
-        desc: 'A portable, universal way to specify the outputs a wallet can spend. Descriptors combine Miniscript with actual key information. A descriptor contains everything needed to generate addresses and create transactions — making wallet migrations seamless.',
-        multisigLabel: 'Multisig example',
-        timelockLabel: 'Timelock example',
-        note: 'Wallets use descriptors to derive addresses and build transactions, ensuring all participants share the same understanding of the script structure.',
-      },
-      stack: {
-        step1: { desc: 'High-level policy language', detail: 'Expresses signing conditions in natural language' },
-        step2: { desc: 'Intermediate representation', detail: 'Standardized, verifiable, and auto-optimized' },
-        step3: { desc: 'Low-level opcodes', detail: 'Executed on-chain, size-optimized' },
+      designers: {
+        d1: {
+          name: 'Pieter Wuille',
+          desc: 'Long-time Bitcoin Core maintainer and one of the principal designers behind SegWit and Taproot. Primary author of Miniscript.',
+        },
+        d2: {
+          name: 'Andrew Poelstra',
+          desc: "Blockstream's Director of Research and a core contributor to Bitcoin cryptography and Miniscript's type system.",
+        },
+        d3: {
+          name: 'Sanket Kanjalkar',
+          desc: 'A key contributor to the formalization and compiler implementation of Miniscript, and one of the maintainers of rust-miniscript.',
+        },
       },
     },
-    why: {
-      innovation: {
-        title: 'Enabling Innovation',
-        desc: 'By lowering the barrier to entry, more developers can participate in the Bitcoin ecosystem and build innovative applications. Complex scripts are no longer the exclusive territory of a small circle of cryptographers.',
+
+    wallets: {
+      label: 'Ecosystem',
+      title: 'Wallets Supporting Miniscript',
+      subtitle:
+        'These software and hardware wallets have native Miniscript support, ready for real-world use with complex spending conditions.',
+      software: 'Software Wallets',
+      hardware: 'Hardware Wallets',
+    },
+
+    faq: {
+      title: 'Frequently Asked Questions',
+      subtitle: 'The most common questions people ask about Miniscript.',
+      items: {
+        q1: {
+          q: 'Does using Miniscript require a Bitcoin soft fork?',
+          a: 'Miniscript compiles to ordinary valid Bitcoin Script; on-chain nodes execute it under the existing rules, with zero changes at the consensus layer.',
+        },
+        q2: {
+          q: 'Is Miniscript usable today, or still experimental?',
+          a: 'It is ready to use. Bitcoin Core 24.0 has native Miniscript Descriptor support, and wallets such as Liana, Nunchuk, and Bitcoin Keeper already ship it as a first-class feature.',
+        },
+        q3: {
+          q: 'Is Miniscript safe? Can I manage real funds with it?',
+          a: "Miniscript's type system rules out an entire class of \"unspendable on-chain\" errors at compile time, and each node's spendability and witness cost can be formally analyzed. That said, any complex spending condition should be rehearsed thoroughly on testnet/signet before it sees real funds.",
+        },
+        q4: {
+          q: 'Do I need to understand Bitcoin Script to use Miniscript?',
+          a: "No. For everyday use, Policy is enough — you describe who can spend and when, and the compiler generates the Bitcoin Script. The low-level details are the tools' and wallets' problem.",
+        },
+        q5: {
+          q: 'How does Miniscript relate to Output Descriptors?',
+          a: 'Miniscript describes the structure of spending conditions; a Descriptor takes that and adds concrete keys and derivation paths, giving wallets everything they need to derive addresses and build transactions. Think of it as: Descriptor = Miniscript + key information.',
+        },
+        q6: {
+          q: 'Is ScriptWise the official Miniscript website?',
+          a: 'No. ScriptWise is a community-maintained learning site whose goal is to help more people understand Miniscript through real scenarios. For the specification and reference implementations, consult the official repositories.',
+        },
       },
-      enterprise: {
-        title: 'Enterprise Adoption',
-        desc: 'Businesses and institutions can deploy complex Bitcoin contracts with confidence, without over-engineering security measures. Built-in verification and optimization deliver enterprise-grade guarantees.',
-      },
-      ecosystem: {
-        title: 'Ecosystem Growth',
-        desc: 'Miniscript lays the groundwork for advances like Taproot and helps push Bitcoin smart contracts forward. It provides a design reference for future scalability features.',
-      },
-      efficiency: {
-        title: 'Greater Efficiency',
-        desc: 'Development, testing, and deployment cycles shrink dramatically. Automatic script optimization reduces on-chain fees. Teams stay focused on business logic rather than low-level implementation details.',
-      },
+    },
+
+    cta: {
+      title: 'Ready to Design Your Own?',
+      subtitle:
+        'Use the visual canvas in the Playground to compose a policy and see Policy, Miniscript, and spending paths in real time.',
+      primary: 'Build: open the Playground',
+      secondary: 'Read: browse learning resources',
+      desktopHint: 'For the full experience, open the Playground on a desktop or larger screen.',
+    },
+
+    footer: {
+      description:
+        'ScriptWise — a scenario-first, spending-path-centered Bitcoin Miniscript educational playground.',
+      rights: '© 2024 ScriptWise. All rights reserved.',
     },
   },
 
