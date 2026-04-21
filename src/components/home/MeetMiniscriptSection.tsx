@@ -3,26 +3,6 @@
 import { ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
 
-/* ------------------------------------------------------------------ */
-/*  Code samples reused from the old benefits section                  */
-/* ------------------------------------------------------------------ */
-
-const SCRIPT_EXAMPLE = `OP_2 <pk1> <pk2> <pk3>
-OP_3 OP_CHECKMULTISIG`;
-
-const POLICY_EXAMPLE = `thresh(2,
-  pk(Alice),
-  pk(Bob),
-  pk(Charlie)
-)`;
-
-const DESCRIPTOR_SAMPLE = 'wsh(andor(pk(Alice),pk(Bob),and_v(v:pk(Recovery),older(10000))))';
-
-const COMPOSABILITY_RESULT = `or(
-  and(pk(Alice), pk(Bob)),
-  and(pk(Bob), older(1000))
-)`;
-
 const BUILDING_BLOCKS = [
   {
     code: 'pk(Alice)',
@@ -45,20 +25,22 @@ const BUILDING_BLOCKS = [
 ] as const;
 
 /* ------------------------------------------------------------------ */
-/*  Part ①  Definition + 3-layer horizontal pipeline                   */
+/*  Pipeline StackColumn + Arrow                                       */
 /* ------------------------------------------------------------------ */
 
-function StackColumn({
+function PipelineCard({
   layer,
   role,
-  subtitle,
-  example,
+  desc,
+  code,
+  note,
   accent,
 }: {
   layer: string;
   role: string;
-  subtitle: string;
-  example: string;
+  desc: string;
+  code: string;
+  note: string;
   accent: string;
 }) {
   return (
@@ -70,23 +52,21 @@ function StackColumn({
         {layer}
       </p>
       <p className="mb-1 text-sm font-semibold text-text-primary">{role}</p>
-      <p className="mb-3 text-xs text-text-muted">{subtitle}</p>
-      <code className="mt-auto block rounded-md bg-surface-elevated px-3 py-2 font-mono text-[11px] leading-relaxed text-text-secondary">
-        {example}
+      <p className="mb-3 text-xs leading-relaxed text-text-secondary">{desc}</p>
+      <code className="mb-2 mt-auto block rounded-md bg-surface-elevated p-3 font-mono text-xs text-text-secondary">
+        {code}
       </code>
+      <p className="text-xs text-text-muted">{note}</p>
     </div>
   );
 }
 
-function PipelineArrow() {
-  const { t } = useI18n();
+function PipelineArrow({ label }: { label: string }) {
   return (
     <>
       <div className="hidden items-center justify-center md:flex">
         <div className="flex flex-col items-center gap-1">
-          <span className="text-[11px] uppercase tracking-widest text-text-muted">
-            {t('home.meetMiniscript.definition.arrowLabel')}
-          </span>
+          <span className="text-[11px] uppercase tracking-widest text-text-muted">{label}</span>
           <ArrowRight className="h-5 w-5 text-btc-500/70" />
         </div>
       </div>
@@ -96,6 +76,10 @@ function PipelineArrow() {
     </>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/*  Part ①  Definition + 3-layer pipeline                              */
+/* ------------------------------------------------------------------ */
 
 function DefinitionBlock() {
   const { t } = useI18n();
@@ -119,27 +103,30 @@ function DefinitionBlock() {
       </div>
 
       <div className="grid items-stretch gap-4 md:grid-cols-[1fr_auto_1fr_auto_1fr]">
-        <StackColumn
-          layer={t('home.meetMiniscript.definition.stack.policy.layer')}
-          role={t('home.meetMiniscript.definition.stack.policy.role')}
-          subtitle={t('home.meetMiniscript.definition.stack.policy.subtitle')}
-          example={t('home.meetMiniscript.definition.stack.policy.example')}
+        <PipelineCard
+          layer={t('home.meetMiniscript.definition.pipeline.policy.layer')}
+          role={t('home.meetMiniscript.definition.pipeline.policy.role')}
+          desc={t('home.meetMiniscript.definition.pipeline.policy.desc')}
+          code={t('home.meetMiniscript.definition.pipeline.policy.code')}
+          note={t('home.meetMiniscript.definition.pipeline.policy.note')}
           accent="var(--semantic-key, #EAB308)"
         />
-        <PipelineArrow />
-        <StackColumn
-          layer={t('home.meetMiniscript.definition.stack.miniscript.layer')}
-          role={t('home.meetMiniscript.definition.stack.miniscript.role')}
-          subtitle={t('home.meetMiniscript.definition.stack.miniscript.subtitle')}
-          example={t('home.meetMiniscript.definition.stack.miniscript.example')}
+        <PipelineArrow label={t('home.meetMiniscript.definition.arrowLabel')} />
+        <PipelineCard
+          layer={t('home.meetMiniscript.definition.pipeline.miniscript.layer')}
+          role={t('home.meetMiniscript.definition.pipeline.miniscript.role')}
+          desc={t('home.meetMiniscript.definition.pipeline.miniscript.desc')}
+          code={t('home.meetMiniscript.definition.pipeline.miniscript.code')}
+          note={t('home.meetMiniscript.definition.pipeline.miniscript.note')}
           accent="#F7931A"
         />
-        <PipelineArrow />
-        <StackColumn
-          layer={t('home.meetMiniscript.definition.stack.script.layer')}
-          role={t('home.meetMiniscript.definition.stack.script.role')}
-          subtitle={t('home.meetMiniscript.definition.stack.script.subtitle')}
-          example={t('home.meetMiniscript.definition.stack.script.example')}
+        <PipelineArrow label={t('home.meetMiniscript.definition.arrowLabel')} />
+        <PipelineCard
+          layer={t('home.meetMiniscript.definition.pipeline.script.layer')}
+          role={t('home.meetMiniscript.definition.pipeline.script.role')}
+          desc={t('home.meetMiniscript.definition.pipeline.script.desc')}
+          code={t('home.meetMiniscript.definition.pipeline.script.code')}
+          note={t('home.meetMiniscript.definition.pipeline.script.note')}
           accent="var(--text-muted, #A8A29E)"
         />
       </div>
@@ -148,120 +135,7 @@ function DefinitionBlock() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Part ①½  Concept blocks — vertical Policy / Miniscript / Descriptor */
-/*  Uses original rich content from home.concepts.* i18n keys           */
-/* ------------------------------------------------------------------ */
-
-function ConceptBlock() {
-  const { t } = useI18n();
-
-  return (
-    <div>
-      <h3 className="mb-8 text-2xl font-semibold text-text-primary md:text-3xl">
-        {t('home.meetMiniscript.concepts.sectionTitle')}
-      </h3>
-
-      <div className="space-y-12">
-        {/* Policy */}
-        <div className="pb-12">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="inline-block shrink-0 rounded-full border border-btc-500/25 bg-btc-500/10 px-3 py-1 text-xs font-medium text-btc-500">
-              Policy
-            </span>
-            <h4 className="text-2xl font-semibold text-text-primary">Policy</h4>
-          </div>
-          <p className="mb-6 max-w-3xl leading-relaxed text-text-secondary">
-            {t('home.concepts.policy.desc')}
-          </p>
-          <div className="mb-4 rounded-xl border border-border-default bg-surface-card p-6">
-            <code className="font-mono text-sm text-btc-500">
-              or(pk(Alice), and(pk(Bob), after(block_height)))
-            </code>
-          </div>
-          <p className="text-sm text-text-muted">
-            {t('home.concepts.policy.example')}
-          </p>
-        </div>
-
-        {/* Miniscript */}
-        <div className="pb-12">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="inline-block shrink-0 rounded-full border border-violet-400/25 bg-violet-400/10 px-3 py-1 text-xs font-medium text-violet-400">
-              Miniscript
-            </span>
-            <h4 className="text-2xl font-semibold text-text-primary">Miniscript</h4>
-          </div>
-          <p className="mb-6 max-w-3xl leading-relaxed text-text-secondary">
-            {t('home.concepts.miniscript.desc')}
-          </p>
-          <div className="mb-4 grid gap-6 md:grid-cols-2">
-            <div className="rounded-xl border border-border-default bg-surface-card p-6">
-              <p className="mb-3 text-xs font-medium uppercase tracking-widest text-text-muted">
-                {t('home.concepts.miniscript.featuresLabel')}
-              </p>
-              <ul className="space-y-2 text-sm text-text-secondary">
-                <li>{t('home.concepts.miniscript.feature1')}</li>
-                <li>{t('home.concepts.miniscript.feature2')}</li>
-                <li>{t('home.concepts.miniscript.feature3')}</li>
-                <li>{t('home.concepts.miniscript.feature4')}</li>
-              </ul>
-            </div>
-            <div className="rounded-xl border border-border-default bg-surface-card p-6">
-              <p className="mb-3 text-xs font-medium uppercase tracking-widest text-text-muted">
-                {t('home.concepts.miniscript.compileLabel')}
-              </p>
-              <p className="mb-3 text-sm text-text-secondary">
-                {t('home.concepts.miniscript.compileDesc')}
-              </p>
-              <p className="rounded-lg bg-surface-base p-2 font-mono text-xs text-text-muted">
-                {t('home.concepts.miniscript.compileNote')}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Descriptor */}
-        <div className="pb-12">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="inline-block shrink-0 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-400">
-              Descriptor
-            </span>
-            <h4 className="text-2xl font-semibold text-text-primary">
-              Output Descriptor
-            </h4>
-          </div>
-          <p className="mb-6 max-w-3xl leading-relaxed text-text-secondary">
-            {t('home.concepts.descriptor.desc')}
-          </p>
-          <div className="space-y-4">
-            <div className="rounded-xl border border-border-default bg-surface-card p-6">
-              <p className="mb-3 text-xs font-medium uppercase tracking-widest text-text-muted">
-                {t('home.concepts.descriptor.multisigLabel')}
-              </p>
-              <code className="break-all font-mono text-sm text-btc-500">
-                wsh(multi(2,[abcd1234/44h/0h/0h]xpub...,[dcba4321/44h/0h/0h]xpub...))
-              </code>
-            </div>
-            <div className="rounded-xl border border-border-default bg-surface-card p-6">
-              <p className="mb-3 text-xs font-medium uppercase tracking-widest text-text-muted">
-                {t('home.concepts.descriptor.timelockLabel')}
-              </p>
-              <code className="break-all font-mono text-sm text-btc-500">
-                {`wsh(or_d(pk([fingerprint1]xpub.../0/*), and_v(v:pk([fingerprint2]xpub.../1/*), older(144))))`}
-              </code>
-            </div>
-          </div>
-          <p className="mt-4 text-sm text-text-muted">
-            {t('home.concepts.descriptor.note')}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Part ②  Features — three cards                                     */
+/*  Features — three cards (Readability / Composability / Portability)  */
 /* ------------------------------------------------------------------ */
 
 function FeatureHeader({
@@ -308,7 +182,7 @@ function ReadabilityCard() {
             {t('home.meetMiniscript.features.readability.scriptCaption')}
           </p>
           <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-red-400/80">
-            <code>{SCRIPT_EXAMPLE}</code>
+            <code>{t('home.meetMiniscript.features.readability.scriptExample')}</code>
           </pre>
         </div>
         <div className="rounded-xl border border-btc-500/20 bg-surface-elevated p-5">
@@ -316,7 +190,7 @@ function ReadabilityCard() {
             {t('home.meetMiniscript.features.readability.policyCaption')}
           </p>
           <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-btc-500">
-            <code>{POLICY_EXAMPLE}</code>
+            <code>{t('home.meetMiniscript.features.readability.policyExample')}</code>
           </pre>
         </div>
       </div>
@@ -375,7 +249,7 @@ function ComposabilityCard() {
               {t('home.meetMiniscript.features.composability.resultLabel')}
             </p>
             <code className="block whitespace-pre-wrap font-mono text-sm leading-relaxed text-btc-500">
-              {COMPOSABILITY_RESULT}
+              {t('home.meetMiniscript.features.composability.resultCode')}
             </code>
           </div>
         </div>
@@ -433,6 +307,10 @@ function PortabilityCard() {
         accent="emerald"
       />
 
+      <p className="mb-6 text-sm leading-relaxed text-text-secondary">
+        {t('home.meetMiniscript.features.portability.intro')}
+      </p>
+
       <div className="grid items-stretch gap-4 md:grid-cols-[1fr_auto_1fr_auto_1fr]">
         <div className="flex flex-col items-center rounded-xl border border-border-default bg-surface-elevated p-5">
           <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-btc-500/10">
@@ -449,7 +327,7 @@ function PortabilityCard() {
         <div className="hidden items-center md:flex">
           <div className="flex flex-col items-center gap-1">
             <span className="text-xs text-text-muted">
-              {t('home.meetMiniscript.features.portability.export')}
+              {t('home.meetMiniscript.features.portability.exportLabel')}
             </span>
             <ArrowRight className="h-5 w-5 text-btc-500/60" />
           </div>
@@ -460,10 +338,10 @@ function PortabilityCard() {
 
         <div className="flex flex-col items-center rounded-xl border border-btc-500/30 bg-btc-500/5 p-5">
           <p className="mb-2 text-xs font-medium uppercase tracking-widest text-btc-500">
-            Output Descriptor
+            {t('home.meetMiniscript.features.portability.descriptorLabel')}
           </p>
           <code className="mb-2 block max-w-full break-all text-center font-mono text-[11px] leading-relaxed text-btc-500">
-            {DESCRIPTOR_SAMPLE}
+            {t('home.meetMiniscript.features.portability.descriptorSample')}
           </code>
           <p className="text-center text-xs text-text-muted">
             {t('home.meetMiniscript.features.portability.descriptorNote')}
@@ -473,7 +351,7 @@ function PortabilityCard() {
         <div className="hidden items-center md:flex">
           <div className="flex flex-col items-center gap-1">
             <span className="text-xs text-text-muted">
-              {t('home.meetMiniscript.features.portability.import')}
+              {t('home.meetMiniscript.features.portability.importLabel')}
             </span>
             <ArrowRight className="h-5 w-5 text-btc-500/60" />
           </div>
@@ -542,7 +420,6 @@ export function MeetMiniscriptSection() {
 
         <div className="space-y-16">
           <DefinitionBlock />
-          <ConceptBlock />
           <FeaturesBlock />
         </div>
       </div>
