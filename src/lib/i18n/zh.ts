@@ -1,221 +1,36 @@
 export const zh = {
   home: {
     hero: {
-      title: '看懂每一笔 Bitcoin 怎么花',
-      subtitle: '每一个 Bitcoin UTXO 背后，都有一套决定"谁能花、什么时候花"的规则。ScriptWise 用真实的花费场景帮你读懂这套规则，从理论到可运行的脚本。',
-      cta: {
-        primary: '从一个真实场景开始 ↓',
-        secondary: '打开 Playground',
-      },
-      card: {
-        label: '花费路径分析',
-        path1: 'Alice + Bob 签名',
-        path2: 'Alice + 等待 30 天',
-        path3: 'Bob + 等待 30 天',
-      },
-      tagline: 'ScriptWise —— Bitcoin Miniscript 交互式学习平台',
-      fastTrack: '已经了解 Miniscript？直接进入 Playground →',
-    },
-    explainer: {
-      label: '基础知识',
-      title: '什么是 Miniscript？',
-      subtitle: '每一个 Bitcoin UTXO 背后，都有一套规定"谁能花、何时能花"的脚本。Miniscript 是一种更结构化的语言，让这套规则变得可读、可组合、可验证。',
-      what: {
-        title: 'Miniscript 是什么',
-        desc: 'Bitcoin Script 是图灵不完备的低级脚本语言，直接编写容易出错且难以审计。Miniscript 是 Bitcoin Script 的一个结构化子集——它把花费条件表达为可组合的策略树，由工具自动编译为链上脚本，杜绝手写错误。',
-      },
-      why: {
-        title: '为什么需要它',
-        benefit1: '策略语义清晰：and()、or()、thresh() 直接描述业务逻辑，任何人都能读懂',
-        benefit2: '可组合可审计：子条件自由嵌套，工具自动分析所有花费路径和最小 Witness',
-        benefit3: '链上安全：编译结果经过形式化验证，满足 Bitcoin Script 的所有安全约束',
-      },
-      mission: {
-        label: '我们的目标',
-        title: '我们为什么做这个',
-        desc: 'Miniscript 的工具链分散、文档晦涩，钱包开发者和高级用户之间存在巨大的学习门槛。ScriptWise 把编译、路径分析、可视化搭建整合到一个交互式平台，让任何人都能真正读懂 Bitcoin 花费条件。',
-      },
-      comparison: {
-        old: {
-          title: '传统 Bitcoin Script（难以读懂）',
-          example: `OP_2\n<Alice> <Bob> <Carol>\nOP_3 OP_CHECKMULTISIG`,
-          problem1: '操作码堆叠，语义不直观，需要专家逐行解读',
-          problem2: '稍微复杂的条件组合极难手写正确，一个字节错误就会锁死资金',
-        },
-        new: {
-          title: 'Miniscript Policy（一眼读懂）',
-          example: `or(\n  thresh(2, pk(Alice), pk(Bob), pk(Carol)),\n  and(pk(Alice), older(52560))\n)`,
-          advantage1: '结构即语义：or / and / thresh 直接映射业务意图',
-          advantage2: '自动编译为最优脚本，工具验证安全性，无需手写底层代码',
-        },
-      },
-    },
-    how: {
-      label: '使用流程',
-      title: '三步理解任意花费策略',
-      subtitle: '从场景选择到完整链上脚本，每一步都有可视化反馈。',
-      step1: {
-        title: '选择或描述场景',
-        desc: '从真实使用场景出发：团队多签、多签与时间锁、恢复密钥、退化金库……',
-        example: '2-of-3 多签 · 多签+时间锁 · 恢复密钥',
-      },
-      step2: {
-        title: '编写或搭建策略',
-        desc: '用 Policy 语言描述规则，或在可视化画布上拖拽组合，实时看到 Miniscript 输出。',
-        example: 'thresh(2,pk(A),pk(B),older(4320))',
-      },
-      step3: {
-        title: '看懂所有花费路径',
-        desc: '每一条能花的路径都被列出，并可交互模拟：勾选签名、拨动时间，看哪条路径点亮。',
-        example: 'Path 1: Alice + Bob · Path 2: 超时',
-      },
-      step4: {
-        title: '拿到链上可用脚本',
-        desc: '完整输出 Script、Descriptor 和 P2WSH 地址，可直接用于测试网部署。',
-        example: 'OP_2 <Alice> <Bob> ... OP_CHECKMULTISIG',
-      },
-    },
-    features: {
-      label: '核心能力',
-      title: '不只是编译器',
-      subtitle: '为真正理解而设计，而不仅仅是生成脚本。',
-      f1: {
-        title: '实时编译反馈',
-        desc: '输入 Policy 即时看到 Miniscript、Script、Descriptor 和地址，语法错误精确定位。',
-      },
-      f2: {
-        title: '花费路径可视化',
-        desc: '所有满足条件组合都以树状路径展示，可交互模拟签名和时间锁状态。',
-      },
-      f3: {
-        title: '可视化策略搭建',
-        desc: '无需写代码，在画布上点选条件节点，拖拽组合，系统自动生成对应的 Policy 语法。',
-      },
-      f4: {
-        title: '一键分享',
-        desc: '将当前策略、密钥变量和模拟状态打包成可分享链接，方便协作讨论。',
-      },
-    },
-    scenarios: {
-      label: '场景库',
-      title: '从真实场景开始探索',
-      subtitle: '每个场景都配有解释说明、完整 Policy 和交互式花费路径图。',
-    },
-    wallets: {
-      label: '生态支持',
-      title: '已支持 Miniscript 的钱包',
-      subtitle: '以下钱包已原生支持 Miniscript，可用于管理复杂的花费条件。',
-      software: '软件钱包',
-      hardware: '硬件钱包',
-    },
-    cta: {
-      title: '准备好自己设计了吗？',
-      subtitle: '在 Playground 里用可视化画布搭建策略，实时看到 Policy、Miniscript 与花费路径。',
-      build: '用画布搭建策略',
-    },
-    playground: {
+      badge: 'Bitcoin Miniscript',
+      title: 'Miniscript：让 Bitcoin 的花费条件可读、可分析、可组合',
+      intro1:
+        '一种由 Pieter Wuille、Andrew Poelstra 和 Sanket Kanjalkar 设计的结构化语言，把多签、时间锁、哈希锁等花费条件，从晦涩的操作码中解放出来。',
+      intro2:
+        'ScriptWise 是一个用真实场景带你读懂 Miniscript 的学习站点——从一段策略描述，到可运行的 Bitcoin Script。',
+      ctaPrimary: '从一个真实场景开始 ↓',
+      ctaSecondary: '打开 Playground',
       desktopHint: 'Playground 建议在桌面端打开以获得完整体验。',
-    },
-    meetMiniscript: {
-      title: '认识 Miniscript',
-      subtitle: 'Bitcoin Script 的表达力已经够用，真正的瓶颈在于"怎么写"。Miniscript 不改动底层，只在上面加了一层结构化的写法。',
-
-      definition: {
-        title: 'Miniscript 是什么',
-        calloutStrong: 'Miniscript，一种可编译、可验证、可组合的中间语言。',
-        calloutBody:
-          '它不是新的共识规则，也不是新的虚拟机——链上执行的仍然是 Bitcoin Script。它只是在你写脚本、工具分析脚本时，插入了这一层。',
-        arrowLabel: '编译',
-        stack: {
-          policy: {
-            layer: 'Policy',
-            role: '人怎么想',
-            subtitle: '自然语义表达',
-            example: 'and / or / thresh …',
-          },
-          miniscript: {
-            layer: 'Miniscript',
-            role: '工具怎么分析',
-            subtitle: '标准化中间语言',
-            example: '带类型与属性，可验证',
-          },
-          script: {
-            layer: 'Bitcoin Script',
-            role: '链上怎么执行',
-            subtitle: '操作码序列',
-            example: 'OP_CHECKSIG / OP_CSV …',
-          },
-        },
+      card: {
+        filename: 'policy.miniscript',
+        tag: 'P2WSH',
+        compilesTo: '↓ compiles to',
+        statusNote: '示例：编译过程示意',
+        replay: '↻ 重播',
       },
-
-      features: {
-        title: 'Miniscript 带来了什么',
-
-        readability: {
-          label: '可读性',
-          title: '结构即语义，一眼读懂',
-          scriptCaption: 'Bitcoin Script',
-          policyCaption: 'Miniscript Policy',
-          compareNote: '同一个 2-of-3 多签。右边你能一眼看出"门限 = 2"；左边需要先理解栈机才能读懂。',
-          takeaway: '你只需关心"谁能花、什么时候花"，底层实现交给编译器。',
-        },
-
-        composability: {
-          label: '可组合性',
-          title: '像积木一样组合，像工具一样分析',
-          blocksLabel: '基础条件',
-          combineArrow: '自由组合',
-          resultLabel: '组合结果',
-          benefit1: {
-            title: '独立的基础单元',
-            desc: 'pk、older、sha256 每一个都是独立条件，任意嵌套组合都合法。',
-          },
-          benefit2: {
-            title: '嵌套不会变差',
-            desc: '无论组合多深，编译器都会找到最小等价的 Bitcoin Script。',
-          },
-          benefit3: {
-            title: '结构化 = 可分析',
-            desc: '工具能自动回答"这段脚本有哪些花费路径、每条路径开销多大"——这正是 Playground 做到的事。',
-          },
-        },
-
-        portability: {
-          label: '可迁移性',
-          title: '一次编写，任意钱包还原',
-          walletA: '钱包 A',
-          walletADesc: '设计花费策略',
-          export: '导出',
-          descriptorNote: '标准格式，包含完整策略信息',
-          import: '导入',
-          walletB: '钱包 B',
-          walletBDesc: '完整还原策略',
-          takeaway: '你的花费规则属于你自己，不再被单一钱包软件绑定。',
-        },
-      },
-
-      concepts: {
-        sectionTitle: '深入理解三层结构',
-        policy: {
-          badge: 'Policy',
-          title: '人怎么想',
-          desc: '高级策略语言，用自然语义表达"谁能花、何时花"。支持任意组合逻辑，无需担心编译后的有效性。',
-          example: 'or(pk(Alice), and(pk(Bob), after(height)))',
-        },
-        miniscript: {
-          badge: 'Miniscript',
-          title: '工具怎么分析',
-          desc: 'Policy 与 Bitcoin Script 之间的标准化桥梁。每个表达式具有明确类型，可由工具自动验证、分析和优化。',
-          example: 'andor(pk(A),pk(B),and_v(v:pk(C),older(1000)))',
-        },
-        descriptor: {
-          badge: 'Descriptor',
-          title: '钱包怎么迁移',
-          desc: '将 Miniscript 与密钥信息结合的可携式格式。包含生成地址和创建交易所需的全部信息，支持钱包间无缝迁移。',
-          example: 'wsh(andor(pk(Alice),pk(Bob),and_v(v:pk(R),older(10000))))',
-        },
+      paths: {
+        path1: 'Alice + Bob 共同签名',
+        path2: 'Alice + 等待 30 天',
       },
     },
+
+    hook: {
+      eyebrow: '为什么这件事和你有关',
+      q1: '你想给家人留一笔比特币，万一你不在了他们能拿到吗？',
+      q2: '你想做 2-of-3 多签，但其中一把钥匙丢了怎么办？',
+      q3: '你想让一个第三方托管你的资产，但保留紧急回收权？',
+      outro: '这些都是"花费条件"问题。Bitcoin 原生支持，但写起来——你会想要 Miniscript。',
+    },
+
     transition: {
       title: '每个地址背后，都有一段脚本',
       subtitle: '比特币地址不只是一串字符——它对应着一段脚本，定义了「谁能花费这笔资金」。',
@@ -231,9 +46,11 @@ export const zh = {
       },
       footer: '不止于多签——时间锁、哈希锁、门限组合……都能写进花费条件。但真要直接动手写，就会撞到另一层问题。',
     },
+
     scriptComplexity: {
       title: 'Bitcoin Script 的复杂性',
-      subtitle: '上面那段脚本只是最朴素的两个例子。一旦你尝试表达更有意思的花费条件，就会撞上 Bitcoin Script 的四堵墙。',
+      subtitle:
+        '上面那段脚本只是最朴素的两个例子。一旦你尝试表达更有意思的花费条件，就会撞上 Bitcoin Script 的四个限制。',
       items: {
         lowLevel: {
           label: '低级抽象',
@@ -254,96 +71,186 @@ export const zh = {
       },
       outro: '这些问题并非无解——Miniscript 正是为此而生。',
     },
-    challenge: {
-      subtitle: 'Bitcoin Script 虽然强大，但存在着几个根本性的设计挑战。',
-      scriptCol: {
-        lowLevel: {
-          label: '低级抽象',
-          desc: '基于堆栈的汇编风格语言，代码看似一连串神秘的操作码。即使是简单的逻辑也需要深入理解栈机制。',
-        },
-        errorProne: {
-          label: '容易出错',
-          desc: '微小的错误就可能导致严重的安全漏洞，难以自动检测。栈深度溢出、条件分支错误等问题层出不穷。',
-        },
-        nonComposable: {
-          label: '缺乏可组合性',
-          desc: '难以分解为可重用组件，每次都需要从头开始。无法像现代编程语言那样进行模块化设计。',
-        },
-        hardToAnalyze: {
-          label: '难以分析',
-          desc: '对脚本的正确性、安全性验证需要大量手工分析。没有自动化工具来检查脚本的属性。',
-        },
-      },
-      miniscriptCol: {
-        highLevel: {
-          label: '高级抽象',
-          desc: '使用接近自然语言的语法，表达意图更加直观。开发者可以关注业务逻辑而不是底层细节。',
-        },
-        formalVerif: {
-          label: '形式化验证',
-          desc: '编译器内置安全检查，自动验证脚本的正确性。通过类型系统和属性分析防止常见错误。',
-        },
-        composable: {
-          label: '高度可组合',
-          desc: '像乐高积木一样组合条件，构建复杂的合约。标准的组合操作符确保结果始终有效。',
-        },
-        autoOpt: {
-          label: '自动优化',
-          desc: '编译器自动优化生成的脚本大小。通过分析找到最小的等价 Bitcoin Script 表示。',
+
+    meetMiniscript: {
+      title: '认识 Miniscript',
+      subtitle:
+        'Bitcoin Script 的表达力已经够用，真正的瓶颈在于"怎么写"。Miniscript 不改动底层，只在上面加了一层结构化的写法。',
+
+      definition: {
+        title: 'Miniscript 是什么',
+        calloutStrong: 'Miniscript，一种可编译、可验证、可组合的中间语言。',
+        calloutBody:
+          '如果说 Bitcoin Script 是汇编，Miniscript 就是它的高级语言——不改动底层共识，只改写"怎么写"。它不是新的共识规则，也不是新的虚拟机——链上执行的仍然是 Bitcoin Script。它只是在你写脚本、工具分析脚本时，插入了这一层。',
+        arrowLabel: '编译',
+        pipeline: {
+          policy: {
+            layer: 'Policy',
+            role: '你怎么想',
+            desc: '用人类可读的方式描述"谁能花"。支持任意组合逻辑，无需担心编译后的有效性。',
+            code: 'or(pk(Alice), and(pk(Bob), older(144)))',
+            note: '要么 Alice 一人签；要么 Bob 签且区块高度过了 144。',
+          },
+          miniscript: {
+            layer: 'Miniscript',
+            role: '工具怎么分析',
+            desc: 'Policy 与 Bitcoin Script 之间的桥梁。每个表达式具有明确类型，可由工具自动验证、分析和优化。',
+            code: 'or_d(pk(Alice), and_v(v:pk(Bob), older(144)))',
+            note: 'Policy 编译后的标准形式，每个节点都带有类型与属性。',
+          },
+          script: {
+            layer: 'Bitcoin Script',
+            role: '链上怎么执行',
+            desc: '最终提交到区块链的操作码序列。由 Miniscript 编译生成，无需手写。',
+            code: 'OP_DUP <Alice> OP_CHECKSIGVERIFY OP_IFDUP OP_NOTIF <Bob> OP_CHECKSIG OP_ENDIF',
+            note: '链上节点按现有共识规则逐条执行这些操作码。',
+          },
         },
       },
-      codeCompare: {
-        scriptCaption: '难以理解的操作码序列',
-        miniscriptCaption: '清晰明确的逻辑表达',
+
+      features: {
+        title: 'Miniscript 带来了什么',
+
+        readability: {
+          label: '可读性',
+          title: '结构即语义，一眼读懂',
+          scriptCaption: 'Bitcoin Script',
+          scriptExample: 'OP_2 <pk1> <pk2> <pk3>\nOP_3 OP_CHECKMULTISIG',
+          policyCaption: 'Miniscript Policy',
+          policyExample: 'thresh(2,\n  pk(Alice),\n  pk(Bob),\n  pk(Charlie)\n)',
+          compareNote:
+            '同一个 2-of-3 多签。右边你能一眼看出"门限 = 2"；左边需要先理解栈机才能读懂。',
+          takeaway: '你只需关心"谁能花、什么时候花"，底层实现交给编译器。',
+        },
+
+        composability: {
+          label: '可组合性',
+          title: '像积木一样组合，像工具一样分析',
+          blocksLabel: '基础条件',
+          combineArrow: '自由组合',
+          resultLabel: '组合结果',
+          resultCode: 'or(\n  and(pk(Alice), pk(Bob)),\n  and(pk(Bob), older(1000))\n)',
+          benefit1: {
+            title: '独立的基础单元',
+            desc: 'pk、older、sha256 每一个都是独立条件，任意嵌套组合都合法。',
+          },
+          benefit2: {
+            title: '嵌套不会变差',
+            desc: '无论组合多深，编译器都会找到最小等价的 Bitcoin Script。',
+          },
+          benefit3: {
+            title: '结构化 = 可分析',
+            desc: '工具能自动回答"这段脚本有哪些花费路径、每条路径开销多大"——这正是 Playground 做到的事。',
+          },
+        },
+
+        portability: {
+          label: '可迁移性',
+          title: '一次编写，任意钱包还原',
+          intro:
+            'Descriptor（Output Descriptor）把 Miniscript 与具体的密钥、派生路径打包成一个可携式格式。钱包据此生成地址、构造交易，不同钱包之间可以无缝导入导出——你的花费规则不再被单一软件绑定。',
+          walletA: '钱包 A',
+          walletADesc: '设计花费策略',
+          exportLabel: '导出',
+          descriptorLabel: 'Output Descriptor',
+          descriptorSample: 'wsh(andor(pk(Alice),pk(Bob),and_v(v:pk(Recovery),older(10000))))',
+          descriptorNote: '标准格式，包含完整策略信息',
+          importLabel: '导入',
+          walletB: '钱包 B',
+          walletBDesc: '完整还原策略',
+          takeaway: '你的花费规则属于你自己，不再被单一钱包软件绑定。',
+        },
       },
     },
-    concepts: {
-      title: '核心概念',
-      subtitle: '理解 Policy、Miniscript 和 Descriptor 之间的关系。',
-      policy: {
-        desc: '高级、人类可读的策略描述。用自然语言的方式表达谁可以花费资金以及如何花费。Policy 是最顶层的抽象，允许使用任意的组合逻辑而不用担心编译后的有效性。',
-        example: '要么需要 Alice 的签名，要么 Bob 签名且时间已过某个区块高度。',
+
+    history: {
+      title: 'Miniscript 从哪里来',
+      subtitle:
+        'Miniscript 不是一个全新的发明，而是一群 Bitcoin 协议研究者在 2019 年起持续打磨的产物。它从一篇论文，逐步走入主流钱包和 Bitcoin Core。',
+      milestones: {
+        m1: {
+          year: '2019',
+          title: '初次公开提出',
+          desc: "Pieter Wuille 在 SBC'19 会议上首次系统性地介绍 Miniscript 的设计与编译器。",
+        },
+        m2: {
+          year: '2020–2022',
+          title: '参考实现成熟',
+          desc: 'C++ 与 Rust 两套参考实现陆续完成，Miniscript 进入多家钱包的实验性支持。',
+        },
+        m3: {
+          year: '2023+',
+          title: '主流钱包采纳',
+          desc: 'Bitcoin Core 24.0 起内置 Miniscript Descriptor 支持；Liana、Nunchuk、Bitcoin Keeper 等钱包将其作为产品特性。',
+        },
       },
-      miniscript: {
-        desc: '高级 Policy 和底层 Bitcoin Script 之间的桥梁。Miniscript 提供标准化、可验证且可分析的中间表示。每个 Miniscript 表达式都有明确的类型和属性，这使得编译器可以进行安全性验证和优化。',
-        featuresLabel: '核心特点',
-        feature1: '类型系统（B、V、K、W 基础类型 + z、o、n、d、u 修饰符）',
-        feature2: '自动脚本优化',
-        feature3: '形式化属性验证',
-        feature4: '编译时安全检查',
-        compileLabel: '编译结果',
-        compileDesc: '最终的 Bitcoin Script 操作码，提交到区块链执行。',
-        compileNote: '通常比原始 Bitcoin Script 小 20-40%',
-      },
-      descriptor: {
-        desc: '便携、通用的方式来指定钱包可以花费的输出。将 Miniscript 与实际密钥信息结合。Descriptor 包含了生成地址和创建交易所需的所有信息，支持钱包间的无缝迁移。',
-        multisigLabel: '多签示例',
-        timelockLabel: '带时间锁示例',
-        note: '钱包可以据此生成地址、创建交易，确保所有参与者理解脚本结构并能无缝协作。',
-      },
-      stack: {
-        step1: { desc: '高级策略语言', detail: '用自然语言表达签名条件' },
-        step2: { desc: '中间表示层', detail: '标准化、可验证、自动优化' },
-        step3: { desc: '底层操作码', detail: '链上执行，已优化' },
+      designers: {
+        d1: {
+          name: 'Pieter Wuille',
+          desc: 'Bitcoin Core 长期维护者，Segwit、Taproot 等关键提案的核心设计者。Miniscript 主要作者。',
+        },
+        d2: {
+          name: 'Andrew Poelstra',
+          desc: 'Blockstream 研究主管，Bitcoin 密码学与 Miniscript 类型系统的核心贡献者。',
+        },
+        d3: {
+          name: 'Sanket Kanjalkar',
+          desc: 'Miniscript 形式化与编译器实现的主要工作者，rust-miniscript 维护者之一。',
+        },
       },
     },
-    why: {
-      innovation: {
-        title: '促进创新',
-        desc: '通过降低开发门槛，更多开发者可以参与到比特币生态的建设中，创造出更多创新应用。不再只有少数密码学专家能编写复杂的脚本。',
+
+    wallets: {
+      label: '生态支持',
+      title: '已支持 Miniscript 的钱包',
+      subtitle: '以下钱包已原生支持 Miniscript，可用于管理复杂的花费条件。',
+      software: '软件钱包',
+      hardware: '硬件钱包',
+    },
+
+    faq: {
+      title: '常见问题',
+      subtitle: '关于 Miniscript 最常被问到的几个问题。',
+      items: {
+        q1: {
+          q: '使用 Miniscript 需要 Bitcoin 软分叉吗？',
+          a: 'Miniscript 编译产生的是合法的 Bitcoin Script，链上节点按现有规则执行，不引入任何共识层变更。',
+        },
+        q2: {
+          q: 'Miniscript 现在能用吗，还是处于实验阶段？',
+          a: '已经可以用。Bitcoin Core 24.0 起原生支持 Miniscript Descriptor，Liana、Nunchuk、Bitcoin Keeper 等钱包也已将其作为正式功能。',
+        },
+        q3: {
+          q: 'Miniscript 安全吗？我可以用它管理真实资金吗？',
+          a: 'Miniscript 的类型系统在编译期就能排除一类"链上无法被花费"的错误，且每个节点的可花费性、见证大小都可形式化分析。但任何复杂花费条件在投入真实资金前，都建议在 testnet/signet 上充分演练。',
+        },
+        q4: {
+          q: '我必须懂底层 Bitcoin Script 才能用 Miniscript 吗？',
+          a: '不需要。日常使用 Policy 这一层就够了——你描述"谁能花、什么时候花"，编译器负责生成对应的 Bitcoin Script。底层细节是工具与钱包的事。',
+        },
+        q5: {
+          q: 'Miniscript 与 Output Descriptor 是什么关系？',
+          a: 'Miniscript 描述的是"花费条件的结构"；Descriptor 在此基础上加上具体的密钥与派生路径，是钱包用来生成地址、构造交易的完整描述。可以理解为：Descriptor = Miniscript + 钥匙信息。',
+        },
+        q6: {
+          q: 'ScriptWise 是 Miniscript 的官方网站吗？',
+          a: '不是。ScriptWise 是一个由社区个人维护的学习站点，目标是用真实场景帮助更多人理解 Miniscript。Miniscript 的规范与参考实现请以官方仓库为准。',
+        },
       },
-      enterprise: {
-        title: '企业应用',
-        desc: '企业和机构可以更放心地部署复杂的比特币合约，而不用过度担心安全风险。内置的验证和优化提供了企业级的质量保证。',
-      },
-      ecosystem: {
-        title: '生态发展',
-        desc: 'Miniscript 为 Taproot 等比特币升级的发展奠定基础，推动比特币智能合约的演进。为未来的扩展性功能提供设计参考。',
-      },
-      efficiency: {
-        title: '提高效率',
-        desc: '开发、测试和部署时间大幅减少。自动脚本优化减少链上成本。让团队可以专注于业务逻辑而不是低级实现细节。',
-      },
+    },
+
+    cta: {
+      title: '准备好自己设计了吗？',
+      subtitle:
+        '在 Playground 里用可视化画布搭建策略，实时看到 Policy、Miniscript 与花费路径。',
+      primary: '去做：打开 Playground',
+      secondary: '去读：浏览学习资源',
+      desktopHint: 'Playground 建议在桌面端打开以获得完整体验。',
+    },
+
+    footer: {
+      description: 'ScriptWise — 场景优先、以花费路径为中心的 Bitcoin Miniscript 教学实验室。',
+      rights: '© 2024 ScriptWise. All rights reserved.',
     },
   },
 

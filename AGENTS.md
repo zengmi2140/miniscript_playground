@@ -101,7 +101,7 @@ npm run test
 
 ### 各路由实现要点
 
-- **`/`** — `src/app/page.tsx`。顺序：`HomepageHero`（含产品定位一句话、短标题、主 CTA「从一个真实场景开始 ↓」、右侧静态代码卡片展示 Policy 示例与花费路径） → `TransitionSection`（地址背后的脚本 + 单签 vs 多签 + 过渡句） → `ScriptComplexitySection`（四堵墙 PainCard + outro） → `MeetMiniscriptSection`（三段式：`DefinitionBlock` ①Miniscript 是什么，含 Policy → Miniscript → Script 三层横向流水线 → `ConceptBlock` ②竖向三板块 Policy/Miniscript/Descriptor（标题「深入理解三层结构」，内容取自原 `IntroCoreConceptsSection` 的 `home.concepts.*` i18n 丰富描述与代码示例）→ `FeaturesBlock` ③可读性 / 可组合性 / 可迁移性 三张卡）→ `IntroApplicationsSection`（标题走 i18n；「上手一试」强化为半实心橙色按钮 + ArrowRight；编译演示切换场景带 fadeSlideIn 微交互） → `HomepageWallets` → 底部 CTA + footer。Applications **7** 条卡片与 `playgroundScenarioId` 见 `src/components/intro/data.ts`（含 **「穿越牛熊」** `holder-timelock`）；其余未列入 Applications 的预设由 `sortScenariosForPlayground()` 排在末尾（见 `src/lib/scenarios/data.ts`）。**「原子交换」** 三列可用 `HEX` 作 hash160 占位，与 `htlc-atomic` Playground 展示一致，右栏真实输出见 §7。`requestIdleCallback` 可预热 Playground；窄屏 `home.playground.desktopHint`。历史首页区块 `IntroChallengeSection`、`IntroWhyMattersSection`、`IntroCoreConceptsSection` 仍保留在 `components/` 中，当前首页未挂载（见 §9）。  
+- **`/`** — `src/app/page.tsx`。顺序：`HomepageHero`（双主角结构：Miniscript 技术定位 + ScriptWise 站点身份；右侧代码卡片含 Policy → Bitcoin Script 编译动画，桌面端首次进入视口自动播放，移动端直接展示终态；两条花费路径） → `HookSection`（"为什么这件事和你有关"三个场景问句） → `TransitionSection`（地址背后的脚本 + 单签 vs 多签 + 过渡句） → `ScriptComplexitySection`（四个限制 PainCard + outro） → `MeetMiniscriptSection`（两段式：`DefinitionBlock` ①Miniscript 是什么，含 Policy → Miniscript → Bitcoin Script 三层横向流水线（每张卡片含定位说明 + 代码示例 + 注释）→ `FeaturesBlock` ②可读性 / 可组合性 / 可迁移性 三张卡，其中可迁移性卡片包含 Descriptor 概念说明）→ `IntroApplicationsSection`（标题走 i18n；「上手一试」强化为半实心橙色按钮 + ArrowRight；编译演示切换场景带 fadeSlideIn 微交互） → `HistorySection`（Miniscript 简史：3 个时间线里程碑 + 3 位设计者卡片） → `HomepageWallets` → `FAQSection`（6 条可折叠问答） → 双路径 CTA（`home.cta.primary` + `home.cta.secondary`） + footer。所有 section 通过 `ScrollReveal` 包裹实现滚动淡入动效（`IntersectionObserver`，尊重 `prefers-reduced-motion`）。**所有首页文案均通过 `t()` 读取 i18n**，`home.*` 命名空间下提供完整中英文（`zh.ts` / `en.ts`）。Applications **7** 条卡片与 `playgroundScenarioId` 见 `src/components/intro/data.ts`（含 **「穿越牛熊」** `holder-timelock`）；其余未列入 Applications 的预设由 `sortScenariosForPlayground()` 排在末尾（见 `src/lib/scenarios/data.ts`）。`requestIdleCallback` 可预热 Playground。  
 - **`/intro`** — `src/app/intro/page.tsx`：`redirect('/')`。  
 - **`/playground`** — `src/app/playground/page.tsx` → `PlaygroundClient.tsx`：处理 `?s=`、`?scenario=`、`?mode=build`；`clearSession()`；挂载时 `fetchBlockTipHeight`；`useCompiler` + `useBuilderSync`；渐进式加载（`dynamic` 画布、`prefetch` 等）。  
 - **`/resources`** — `src/app/resources/page.tsx`：外链网格 +「推荐阅读」（数据：`src/lib/resources/recommended-reading.ts`）。  
@@ -149,7 +149,7 @@ npm run test
 | `flow/` | scenario 路径图：`PathMap`、`FlowNodes`、`PathEdge` |
 | `results/` | 右栏各 Tab（Policy / Miniscript / Script / Descriptor / Address / Paths） |
 | `intro/` | 首页通识区块与 `data.ts`（Applications） |
-| `home/` | `HomepageHero`、`TransitionSection`、`ScriptComplexitySection`、`MeetMiniscriptSection`、`HomepageWallets` 等 |
+| `home/` | `HomepageHero`、`HookSection`、`TransitionSection`、`ScriptComplexitySection`、`MeetMiniscriptSection`、`HistorySection`、`HomepageWallets`、`FAQSection`、`ScrollReveal` 等 |
 | `scenarios/` | `ScenarioCard`、`ScenarioGallery`（未挂载路由时可仍存在） |
 | `shared/` | `ExplainPopover`、`GlossaryTooltip`、`CodeBlock` 等 |
 | `ui/` | shadcn 基础组件（`button` 等） |
@@ -260,10 +260,9 @@ npm run test
 7. 无 **regtest**。  
 8. 路径图**根节点**即顶层逻辑（都需要 / **二选一** / k-of-n），单叶子可无根节点。  
 9. **build** 为 MVP：受约束树 + 同步；非任意拖线。  
-10. **渐进式加载**、首页 **单一橙色 CTA** → `?mode=build`。  
+10. **渐进式加载**、首页 **双路径 CTA**（「去做：打开 Playground」+「去读：浏览学习资源」）。  
 11. **htlc-atomic**：`HEX` 展示 vs 右栏真实 hex；见 §7 与 `htlc-display-mask.ts`。  
-12. **`IntroChallengeSection` / `IntroWhyMattersSection`**：源码仍在 `components/intro/`，**未**挂载于当前首页；若复用需自行挂到路由。
-13. **`IntroCoreConceptsSection`**：源码仍在 `components/intro/`，**未**挂载于当前首页；其内容已融合入 `MeetMiniscriptSection` 的 `ConceptBlock`（竖向三板块，标题「深入理解三层结构」，使用 `home.concepts.*` i18n 键）。
+12. 旧版首页区块（`HomepageFeatures` / `HomepageHowItWorks` / `HomepageMission` / `HomepageMiniscriptExplainer` / `IntroChallengeSection` / `IntroCoreConceptsSection` / `IntroWhyMattersSection`）已随本次 i18n 清理一并删除；对应的 `home.explainer.* / home.how.* / home.features.* / home.challenge.* / home.concepts.* / home.why.* / home.scenarios.*` 旧 key 亦从 `zh.ts` / `en.ts` 移除。当前 `home.*` 命名空间只保留新首页实际使用的 key：`hero / hook / transition / scriptComplexity / meetMiniscript / history / wallets / faq / cta / footer`。
 
 ---
 
@@ -279,5 +278,5 @@ npm run test
 | Policy 编辑器 | `PolicyEditor.tsx`、`htlc-display-mask.ts`、`policy-errors` 等 |
 | 右栏结果 | `RightPanel.tsx`、`components/results/*` |
 | 资源页 | `src/app/resources/page.tsx`、`recommended-reading.ts`、`resources.*` |
-| 首页 / Intro | `src/app/page.tsx`、`src/components/home/*`（Hero / Transition / ScriptComplexity / MeetMiniscript / Wallets 等）、`src/components/intro/*` |
+| 首页 / Intro | `src/app/page.tsx`、`src/components/home/*`（Hero / Hook / Transition / ScriptComplexity / MeetMiniscript / History / Wallets / FAQ / ScrollReveal 等）、`src/components/intro/*` |
 | 设计 token | [DESIGN.md](DESIGN.md) |
