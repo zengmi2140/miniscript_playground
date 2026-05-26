@@ -11,6 +11,7 @@ import {
   resolveThemePreference,
   type ThemePreference,
 } from '@/lib/preferences';
+import { APP_URL } from '@/lib/app-url';
 import './globals.css';
 import '@xyflow/react/dist/style.css';
 
@@ -27,8 +28,6 @@ const ibmPlexMono = IBM_Plex_Mono({
   variable: '--font-mono',
   display: 'swap',
 });
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://miniscript-lab.replit.app';
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
