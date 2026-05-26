@@ -410,6 +410,7 @@ export const zh = {
     conditions: { title: '条件模拟' },
     timeslider: {
       label: '时间流逝',
+      sliderAriaLabel: '模拟流逝时间（区块）',
       blocks: '区块',
       current: '当前: 第 {tipHeight} 区块',
       elapsedInline: '{count} · {human}',
