@@ -12,7 +12,7 @@
 
 ## 功能特性
 
-- **场景画廊** — 8 个预设场景（另含「自己动手」）：2-of-3 多签、多签 + 时间锁定、恢复密钥（`recoverykey`）、退化多签金库、保险柜、原子交换 HTLC（`htlc-atomic`）、DLC 简化（`dlc-simple`）、批量支付（`batch-payment`）
+- **场景画廊** — 9 个预设场景（另含「自己动手」）：2-of-3 多签、多签 + 时间锁定、恢复密钥（`recoverykey`）、退化多签金库、保险柜、原子交换 HTLC（`htlc-atomic`）、DLC 简化（`dlc-simple`）、批量支付（`batch-payment`）、穿越牛熊（`holder-timelock`）
 - **Playground** — 三栏 IDE，实时编译 Policy → Miniscript → Script → Descriptor → Address
 - **编译错误体验** — 中英文摘要、可展开原始错误与复制、分类与建议（hints）；启发式在 Policy 编辑器内标出可能问题区间（非 IDE 级精度）
 - **花费路径地图** — React Flow 可视化，节点颜色实时反映当前条件满足状态（framer-motion 300ms 过渡动画）
