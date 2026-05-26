@@ -407,7 +407,15 @@ export const zh = {
       network: '网络',
     },
     pathmap: { title: '花费路径地图' },
-    conditions: { title: '条件模拟' },
+    conditions: {
+      title: '条件模拟',
+      toggleAria: {
+        key: '切换签名条件 {name}，当前{state}',
+        hash: '切换哈希条件 {name}，当前{state}',
+        stateOn: '已满足',
+        stateOff: '未满足',
+      },
+    },
     timeslider: {
       label: '时间流逝',
       sliderAriaLabel: '模拟流逝时间（区块）',
