@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Pause, Play } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
 
 interface Wallet {
@@ -28,21 +29,27 @@ const HARDWARE_WALLETS: Wallet[] = [
   { name: 'TAPSIGNER', url: 'https://tapsigner.com', logoUrl: 'https://www.google.com/s2/favicons?domain=tapsigner.com&sz=128', initials: 'TS' },
 ];
 
-function WalletPill({ wallet }: { wallet: Wallet }) {
+function WalletPill({
+  wallet,
+  isInteractive,
+}: {
+  wallet: Wallet;
+  /** False for cloned marquee copies — they're decorative and out of tab order. */
+  isInteractive: boolean;
+}) {
   const [logoFailed, setLogoFailed] = useState(false);
 
-  return (
-    <a
-      href={wallet.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group flex shrink-0 items-center gap-2.5 rounded-full border border-border-subtle bg-surface-elevated px-4 py-2 text-sm text-text-secondary transition-all duration-200 hover:border-btc-500/50 hover:bg-btc-500/10 hover:text-text-primary"
-    >
+  const commonClasses =
+    'group flex shrink-0 items-center gap-2.5 rounded-full border border-border-subtle bg-surface-elevated px-4 py-2 text-sm text-text-secondary transition-all duration-200 hover:border-btc-500/50 hover:bg-btc-500/10 hover:text-text-primary';
+
+  const inner = (
+    <>
       <span className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full">
         {!logoFailed ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={wallet.logoUrl}
-            alt={wallet.name}
+            alt={isInteractive ? wallet.name : ''}
             width={20}
             height={20}
             className="h-5 w-5 object-contain opacity-60 transition-opacity duration-200 group-hover:opacity-100"
@@ -53,12 +60,42 @@ function WalletPill({ wallet }: { wallet: Wallet }) {
         )}
       </span>
       <span className="whitespace-nowrap font-medium">{wallet.name}</span>
+    </>
+  );
+
+  if (!isInteractive) {
+    return (
+      <span aria-hidden="true" className={commonClasses}>
+        {inner}
+      </span>
+    );
+  }
+
+  return (
+    <a
+      href={wallet.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={commonClasses}
+    >
+      {inner}
     </a>
   );
 }
 
-function MarqueeRow({ wallets, reverse = false, label }: { wallets: Wallet[]; reverse?: boolean; label: string }) {
-  const doubled = [...wallets, ...wallets, ...wallets, ...wallets];
+function MarqueeRow({
+  wallets,
+  reverse = false,
+  label,
+  paused,
+}: {
+  wallets: Wallet[];
+  reverse?: boolean;
+  label: string;
+  paused: boolean;
+}) {
+  // First copy is keyboard-accessible; remaining 3 copies are decorative and aria-hidden.
+  const COPIES = 4;
 
   return (
     <div className="flex items-center gap-5">
@@ -66,15 +103,25 @@ function MarqueeRow({ wallets, reverse = false, label }: { wallets: Wallet[]; re
 
       <div
         className="marquee-track relative min-w-0 flex-1 overflow-hidden"
+        data-paused={paused ? 'true' : 'false'}
         style={{
           maskImage: 'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
           WebkitMaskImage: 'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
         }}
       >
-        <div className={`flex gap-3 ${reverse ? 'animate-marquee-reverse' : 'animate-marquee'}`} style={{ width: 'max-content' }}>
-          {doubled.map((wallet, i) => (
-            <WalletPill key={`${wallet.name}-${i}`} wallet={wallet} />
-          ))}
+        <div
+          className={`flex gap-3 ${reverse ? 'animate-marquee-reverse' : 'animate-marquee'}`}
+          style={{ width: 'max-content' }}
+        >
+          {Array.from({ length: COPIES }).map((_, copyIdx) =>
+            wallets.map((wallet, i) => (
+              <WalletPill
+                key={`${wallet.name}-${copyIdx}-${i}`}
+                wallet={wallet}
+                isInteractive={copyIdx === 0}
+              />
+            )),
+          )}
         </div>
       </div>
     </div>
@@ -83,6 +130,7 @@ function MarqueeRow({ wallets, reverse = false, label }: { wallets: Wallet[]; re
 
 export function HomepageWallets() {
   const { t } = useI18n();
+  const [paused, setPaused] = useState(false);
 
   return (
     <section className="border-b border-border-subtle bg-surface-base py-14 md:py-20">
@@ -100,8 +148,20 @@ export function HomepageWallets() {
         </div>
 
         <div className="flex flex-col gap-4">
-          <MarqueeRow wallets={SOFTWARE_WALLETS} label={t('home.wallets.software')} />
-          <MarqueeRow wallets={HARDWARE_WALLETS} reverse label={t('home.wallets.hardware')} />
+          <MarqueeRow wallets={SOFTWARE_WALLETS} label={t('home.wallets.software')} paused={paused} />
+          <MarqueeRow wallets={HARDWARE_WALLETS} reverse label={t('home.wallets.hardware')} paused={paused} />
+        </div>
+
+        <div className="mt-6 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setPaused((p) => !p)}
+            aria-pressed={paused}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border-subtle bg-surface-elevated px-3 py-1.5 text-xs text-text-muted transition-colors hover:border-border-default hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-btc-500/40"
+          >
+            {paused ? <Play className="h-3 w-3" aria-hidden="true" /> : <Pause className="h-3 w-3" aria-hidden="true" />}
+            {paused ? t('home.wallets.resume') : t('home.wallets.pause')}
+          </button>
         </div>
       </div>
     </section>

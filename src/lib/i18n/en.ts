@@ -211,6 +211,8 @@ export const en = {
         'These software and hardware wallets have native Miniscript support, ready for real-world use with complex spending conditions.',
       software: 'Software Wallets',
       hardware: 'Hardware Wallets',
+      pause: 'Pause scroll',
+      resume: 'Resume scroll',
     },
 
     faq: {

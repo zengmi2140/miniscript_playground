@@ -211,7 +211,9 @@ npm run test
 
 - `compiler.ts`：`compilePolicy` → 替换 key → `compileMiniscript` → `wsh(...)` descriptor → 地址 / scriptPubKey → `satisfier` → `analyzeSpendingPaths`。若 **`context === 'tr'`**，在编译 Policy 之前即返回 **`limit` 类友好错误**（不产出地址），与左栏 P2TR 占位一致，避免误以为已生成 Taproot 输出。  
 - 错误链：`policy-errors` → `policy-preflight` → `policy-error-highlight`（编辑器标红区间）。  
-- **Descriptor**：从 `@bitcoinerlab/descriptors/dist/descriptors` 导入；`@ledgerhq/ledger-bitcoin` → `ledger-bitcoin-stub`（`next.config` / `vitest.config`）。
+- **Descriptor**：从 `@bitcoinerlab/descriptors/dist/descriptors` 导入；`@ledgerhq/ledger-bitcoin` → `ledger-bitcoin-stub`（`next.config` / `vitest.config`）。  
+- **Key 名替换**：`replaceKeyNames` 通过共享 helper `src/lib/utils/policy-identifiers.ts` 做 **token-aware** 替换（`\b<name>\b`）。这保证 `pk(A)` 与 `pk(Alice)` / `Key1` 与 `Key10` 不会互相吞噬，也不会把名为 `or` 的 key 与 `or_b` / `or_i` 混淆（同一 helper 也用于 `renameKeyVariable` 原子重命名）。  
+- **链尖与 `after(<height>)`**：`compile()` 接受可选 `blockTipHeight`；`useCompiler` 在 `blockTipHeightReady` 之前传 `undefined`。`path-analyzer` 与 `tree-to-flow`、`StatusBanner` 共用 `time-utils.ts` 的 `isPathTimelockSatisfied` / `getPathTimelockRemainingBlocks`，确保 `after(<height>)` 与 `older()` 在「编译 → 路径分析 → 路径图 → 状态横幅」全链路使用同一语义（`blockTipHeight + currentTimeBlocks ≥ afterValue`）。
 
 ### 语义树与路径图（scenario）
 
@@ -225,7 +227,8 @@ npm run test
 
 ### 花费路径
 
-- `path-analyzer.ts` → `Paths`、`StatusBanner`。同一 **公钥** 在 `keyVariables` 中重复出现时，路径标签取 **首次出现** 的变量名。路径卡片标题由 `path-analyzer` 产出 `labelVariant`，UI 经 `path-label.ts` 的 `formatSpendingPathLabel` 按当前语言拼接（不再在引擎内写死中文串）。
+- `path-analyzer.ts` → `Paths`、`StatusBanner`。同一 **公钥** 在 `keyVariables` 中重复出现时，路径标签取 **首次出现** 的变量名。路径卡片标题由 `path-analyzer` 产出 `labelVariant`，UI 经 `path-label.ts` 的 `formatSpendingPathLabel` 按当前语言拼接（不再在引擎内写死中文串）。  
+- **Key 身份**：`KeyVariable.policyName` 是稳定 ID，贯穿 semantic tree、`availableKeys`、`PathCondition.keyName` 与 builder `roleId`；`name` 仅作为 UI 显示标签（`PathCondition.signature` 携带可选 `displayName`，UI 优先使用，否则回退到 `keyName`）。重命名走 `playground-store` 的 `renameKeyVariable`：原子地改 `name`/`policyName` 并 token-aware 重写 `policy` 文本。`share.ts` / 旧 session 解码额外校验 `policyName` 为合法 identifier 且唯一。
 
 ### 分享与会话
 
@@ -252,7 +255,7 @@ npm run test
 ## 9. 限制与易误判点
 
 1. 仅 **wsh** 有实际编译产出；左栏 **tr** 为占位（禁用）。若 `context === 'tr'`，编译器返回明确错误（见 §6 编译管线）。  
-2. **时间模拟**：`older()` 与区块高度型 **`after()`** 可与链尖结合，在时间轴上混合排序；**Unix 时间戳型 `after()`** 等路径仍可能简化或未完全模拟（以代码为准）。  
+2. **时间模拟**：`older()` 与区块高度型 **`after()`** 可与链尖结合，在时间轴上混合排序；**Unix 时间戳型 `after()`** 等路径仍可能简化或未完全模拟（以代码为准）。从「编译 → 路径分析 → 路径图 → 状态横幅」**共用** `time-utils.ts` 的 `isPathTimelockSatisfied` / `getPathTimelockRemainingBlocks`，区块高度型 `after()` 在链尖未就绪时一律视为 pending 而非 satisfied。  
 3. **signet** 地址派生可能复用 testnet 网络对象（教学折中）。  
 4. **/compare** 未实现；导航指向 **Resources**。  
 5. 多数页面为 **'use client'**。  
@@ -272,11 +275,13 @@ npm run test
 |------|------|
 | 预设场景 | `src/lib/scenarios/data.ts`、`playground-order.ts`、`intro/data.ts`、tags / `ScenarioCard` |
 | Policy 语法 / 编译 | `policy-language.ts`、`compiler.ts`、`miniscript-parser.ts`、`glossary/data.ts`、`*__tests__/*` |
-| 路径判定 / 模拟 | `path-analyzer.ts`、`time-utils.ts`、`block-height.ts`、`block-height-fallback.generated.ts`（`prebuild`）、`StatusBanner`、`ConditionToggles`、`TimeSlider`、`PathsTab` |
+| 路径判定 / 模拟 | `path-analyzer.ts`、`time-utils.ts`（`isPathTimelockSatisfied` / `getPathTimelockRemainingBlocks` 共享 helper）、`block-height.ts`、`block-height-fallback.generated.ts`（`prebuild`）、`StatusBanner`、`ConditionToggles`、`TimeSlider`、`PathsTab` |
+| Key 名替换 / 重命名 | `src/lib/utils/policy-identifiers.ts`（token-aware `\b<name>\b`）、`compiler.ts`（`replaceKeyNames`）、`playground-store.ts`（`renameKeyVariable`）、`KeyVariableManager.tsx`、`share.ts` |
 | scenario 路径图 | `tree-to-flow.ts`、`PathMap`（传入 `blockTipHeight`）、`FlowNodes`、`PathEdge` |
 | build 画布 | `src/lib/builder/*`、`BuilderCanvas`、`useBuilderSync.ts`、`playground-store.ts` |
 | Policy 编辑器 | `PolicyEditor.tsx`、`htlc-display-mask.ts`、`policy-errors` 等 |
 | 右栏结果 | `RightPanel.tsx`、`components/results/*` |
 | 资源页 | `src/app/resources/page.tsx`、`recommended-reading.ts`、`resources.*` |
 | 首页 / Intro | `src/app/page.tsx`、`src/components/home/*`（Hero / Hook / Transition / ScriptComplexity / MeetMiniscript / History / Wallets / FAQ / ScrollReveal 等）、`src/components/intro/*` |
+| 动效兜底 | `globals.css` 中的 `@media (prefers-reduced-motion: reduce)` 全局兜底；`HomepageWallets` 钱包 marquee 仅首份副本可聚焦，其余 3 份 `aria-hidden`，并提供显式暂停/恢复按钮（`home.wallets.pause` / `resume`）；动画 keyframes 集中在 `globals.css`（不再用组件内 inline `<style>`） |
 | 设计 token | [DESIGN.md](DESIGN.md) |
