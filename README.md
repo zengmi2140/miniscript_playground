@@ -21,7 +21,7 @@
 - **双语支持** — 中文 / English 完整双语，一键切换
 - **分享链接** — 将 Policy、变量、模式等编码为 `?s=` 参数，一键复制分享；通过该链接可还原会话
 - **钱包支持** — 首页展示「已支持 Miniscript 的钱包」板块（软件 / 硬件两组）；旧 `/intro` 已重定向至首页
-- **首页** — Miniscript 通识长文（挑战与对比、核心概念与技术栈、应用场景与局限等）；**页尾 CTA** 为单一橙色主按钮（`home.cta.build`）进入 `/playground?mode=build`（可视化画布 / build 模式）。Applications 内 **Try it / 上手一试**：有对应预设时跳转 `/playground?scenario=<id>`；`playgroundScenarioId` 为 `null` 时仅进入 `/playground`（详见 `src/components/intro/data.ts`）。「原子交换」卡片三列使用 `HEX` 占位表示 hash160；Playground 中栏与路径图见 [`AGENTS.md`](AGENTS.md) §4、§7、§9
+- **首页** — Miniscript 通识长文（挑战与对比、核心概念与技术栈、应用场景与局限等）；**页尾 CTA** 为双按钮：主按钮 `home.cta.primary` 进入 `/playground`，次按钮 `home.cta.secondary` 进入 `/resources`。Applications 内 **Try it / 上手一试**：有对应预设时跳转 `/playground?scenario=<id>`；`playgroundScenarioId` 为 `null` 时仅进入 `/playground`（详见 `src/components/intro/data.ts`）。「原子交换」卡片三列使用 `HEX` 占位表示 hash160；Playground 中栏与路径图见 [`AGENTS.md`](AGENTS.md) §4、§7、§9
 - **首页导航** — 顶栏：首页 / Playground / Resources（`nav.scenarios` 等 i18n）
 
 ## 技术栈
