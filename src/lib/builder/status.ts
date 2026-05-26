@@ -7,6 +7,7 @@
 
 import type { StrategyNode } from './types';
 import { effectiveThresholdK } from './threshold';
+import { isPathTimelockSatisfied } from '../engine/time-utils';
 
 export type BuilderNodeStatus = 'satisfied' | 'pending' | 'missing';
 
@@ -16,16 +17,20 @@ export interface BuilderStatusMap {
 
 /**
  * Compute the status of each node in a builder strategy tree.
- * 
+ *
  * @param tree - The root StrategyNode
  * @param availableKeys - Set of role names that have been toggled on
- * @param currentTimeBlocks - Current simulated block height
+ * @param currentTimeBlocks - Current simulated elapsed blocks (slider value)
+ * @param blockTipHeight - Current mainnet chain tip; pass `undefined` to keep
+ *   "tip not ready" behavior (block-height `after()` treated as not satisfied),
+ *   matching the shared semantics used by path-analyzer / tree-to-flow / StatusBanner.
  * @returns A map of node IDs to their status
  */
 export function computeBuilderStatus(
   tree: StrategyNode,
   availableKeys: Set<string>,
-  currentTimeBlocks: number
+  currentTimeBlocks: number,
+  blockTipHeight?: number,
 ): BuilderStatusMap {
   const statusMap: BuilderStatusMap = {};
 
@@ -46,14 +51,19 @@ export function computeBuilderStatus(
       }
 
       case 'timelock': {
-        if (node.mode === 'relative') {
-          // Relative timelock: satisfied if currentTimeBlocks >= required blocks
-          status = currentTimeBlocks >= node.value ? 'satisfied' : 'pending';
-        } else {
-          // Absolute timelock (`after()`): not fully simulated in MVP — always pending
-          // (see path-analyzer / scenario flow; slider 主要对 older 有效)
-          status = 'pending';
-        }
+        // Reuse the shared time-utils predicate so build-mode node status,
+        // scenario path-map, path-analyzer and StatusBanner agree on
+        // `older()` and `after(<height>)` semantics. For absolute `after()`
+        // we use `blockTipHeight + currentTimeBlocks >= value`; if
+        // `blockTipHeight` is undefined the helper treats block-height locks
+        // as not satisfied (consistent with "tip not ready").
+        const cond =
+          node.mode === 'relative'
+            ? ({ type: 'timelock_relative', blocks: node.value } as const)
+            : ({ type: 'timelock_absolute', value: node.value } as const);
+        status = isPathTimelockSatisfied(cond, currentTimeBlocks, blockTipHeight)
+          ? 'satisfied'
+          : 'pending';
         break;
       }
 

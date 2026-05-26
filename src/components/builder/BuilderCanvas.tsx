@@ -21,6 +21,8 @@ function BuilderCanvasInner() {
   const builderSyncState = usePlaygroundStore((s) => s.builderSyncState);
   const availableKeys = usePlaygroundStore((s) => s.availableKeys);
   const currentTimeBlocks = usePlaygroundStore((s) => s.currentTimeBlocks);
+  const blockTipHeight = usePlaygroundStore((s) => s.blockTipHeight);
+  const blockTipHeightReady = usePlaygroundStore((s) => s.blockTipHeightReady);
   const keyVariables = usePlaygroundStore((s) => s.keyVariables);
   const selectedBuilderNodeId = usePlaygroundStore((s) => s.selectedBuilderNodeId);
   const operatorSwitchNodeId = usePlaygroundStore((s) => s.operatorSwitchNodeId);
@@ -67,6 +69,7 @@ function BuilderCanvasInner() {
     return builderTreeToFlow(strategyTree, {
       availableKeys,
       currentTimeBlocks,
+      blockTipHeight: blockTipHeightReady ? blockTipHeight : undefined,
       highlightedIds,
       definedRoles,
       isReadOnly,
@@ -75,7 +78,7 @@ function BuilderCanvasInner() {
         addConditionLine: `+ ${t('builder.node.addChild')}`,
       },
     });
-  }, [strategyTree, availableKeys, currentTimeBlocks, highlightedIds, definedRoles, isReadOnly, locale, t]);
+  }, [strategyTree, availableKeys, currentTimeBlocks, blockTipHeight, blockTipHeightReady, highlightedIds, definedRoles, isReadOnly, locale, t]);
 
   const operatorSwitchGroup = useMemo(() => {
     if (!strategyTree || !operatorSwitchNodeId) return null;
