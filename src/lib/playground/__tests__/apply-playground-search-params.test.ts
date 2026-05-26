@@ -13,6 +13,7 @@ describe('applyPlaygroundSearchParams', () => {
     const restoreSession = vi.fn();
     const loadScenario = vi.fn();
     const enterBuildMode = vi.fn();
+    const notifyInvalidSharePayload = vi.fn();
     const decode = vi.fn((): SharePayload | null => ({
       policy: 'pk(A)',
       keyVariables: [],
@@ -22,7 +23,7 @@ describe('applyPlaygroundSearchParams', () => {
 
     applyPlaygroundSearchParams(
       params({ s: 'x', scenario: '2fa-recovery', mode: 'build' }),
-      { restoreSession, loadScenario, enterBuildMode },
+      { restoreSession, loadScenario, enterBuildMode, notifyInvalidSharePayload },
       decode,
     );
 
@@ -30,22 +31,25 @@ describe('applyPlaygroundSearchParams', () => {
     expect(restoreSession).toHaveBeenCalledTimes(1);
     expect(loadScenario).not.toHaveBeenCalled();
     expect(enterBuildMode).not.toHaveBeenCalled();
+    expect(notifyInvalidSharePayload).not.toHaveBeenCalled();
   });
 
   it('falls back to scenario when s decode fails', () => {
     const restoreSession = vi.fn();
     const loadScenario = vi.fn();
     const enterBuildMode = vi.fn();
+    const notifyInvalidSharePayload = vi.fn();
     const decode = vi.fn(() => null);
 
     applyPlaygroundSearchParams(
       params({ s: 'bad', scenario: '2fa-recovery' }),
-      { restoreSession, loadScenario, enterBuildMode },
+      { restoreSession, loadScenario, enterBuildMode, notifyInvalidSharePayload },
       decode,
     );
 
     expect(restoreSession).not.toHaveBeenCalled();
     expect(loadScenario).toHaveBeenCalledWith('2fa-recovery');
+    expect(notifyInvalidSharePayload).toHaveBeenCalledTimes(1);
   });
 
   it('uses mode=build when no s and no scenario', () => {
@@ -61,6 +65,25 @@ describe('applyPlaygroundSearchParams', () => {
     expect(restoreSession).not.toHaveBeenCalled();
     expect(loadScenario).not.toHaveBeenCalled();
     expect(enterBuildMode).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses mode=build and notifies when s decode fails and no scenario', () => {
+    const restoreSession = vi.fn();
+    const loadScenario = vi.fn();
+    const enterBuildMode = vi.fn();
+    const notifyInvalidSharePayload = vi.fn();
+    const decode = vi.fn(() => null);
+
+    applyPlaygroundSearchParams(
+      params({ s: 'bad', mode: 'build' }),
+      { restoreSession, loadScenario, enterBuildMode, notifyInvalidSharePayload },
+      decode,
+    );
+
+    expect(restoreSession).not.toHaveBeenCalled();
+    expect(loadScenario).not.toHaveBeenCalled();
+    expect(enterBuildMode).toHaveBeenCalledTimes(1);
+    expect(notifyInvalidSharePayload).toHaveBeenCalledTimes(1);
   });
 
   it('does nothing when query is empty', () => {

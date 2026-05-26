@@ -387,6 +387,9 @@ export const en = {
       shareUrlTooLong:
         'This share link is long and may fail in some environments; copied to clipboard. Shorten the policy if opening fails.',
     },
+    share: {
+      invalidPayload: 'Could not restore from this share link. It is invalid or exceeds the size limit.',
+    },
     error: {
       hints: 'Suggestions',
       expandDetails: 'Show technical details',
