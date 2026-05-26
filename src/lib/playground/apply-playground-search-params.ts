@@ -5,6 +5,7 @@ export interface ApplyPlaygroundSearchParamsActions {
   restoreSession: (payload: SharePayload) => void;
   loadScenario: (scenarioId: string) => void;
   enterBuildMode: () => void;
+  notifyInvalidSharePayload?: () => void;
 }
 
 /**
@@ -23,6 +24,7 @@ export function applyPlaygroundSearchParams(
       actions.restoreSession(payload);
       return;
     }
+    actions.notifyInvalidSharePayload?.();
   }
 
   const scenarioId = searchParams.get('scenario');

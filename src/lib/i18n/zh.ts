@@ -380,6 +380,9 @@ export const zh = {
       shareUrlTooLong:
         '链接较长，部分环境可能无法打开；已复制到剪贴板，若失败可缩短策略后再试。',
     },
+    share: {
+      invalidPayload: '无法从该分享链接恢复会话：链接无效或超过大小限制。',
+    },
     error: {
       hints: '建议',
       expandDetails: '显示技术详情',

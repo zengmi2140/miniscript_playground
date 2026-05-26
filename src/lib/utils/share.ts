@@ -10,6 +10,10 @@ const CONTEXTS = new Set<ScriptContext>(['wsh', 'tr']);
 export const MAX_SHARE_POLICY_LENGTH = 200_000;
 /** Per-field bound for key variable strings. */
 export const MAX_SHARE_KEY_FIELD_LENGTH = 50_000;
+/** Key variables upper bound for share payloads. */
+export const MAX_SHARE_KEY_VARIABLES = 32;
+/** Decoded JSON payload upper bound (bytes). */
+export const MAX_SHARE_DECODED_PAYLOAD_BYTES = 16 * 1024;
 
 /** Full URL length above which we warn the user (proxies / older browsers). */
 export const SHARE_URL_WARNING_LENGTH = 2048;
@@ -31,7 +35,7 @@ export interface ValidatedPlaygroundFields {
 }
 
 function validateKeyVariablesList(arr: unknown): KeyVariable[] | null {
-  if (!Array.isArray(arr)) return null;
+  if (!Array.isArray(arr) || arr.length > MAX_SHARE_KEY_VARIABLES) return null;
   const out: KeyVariable[] = [];
   const seenPolicyNames = new Set<string>();
   for (const item of arr) {
@@ -98,14 +102,38 @@ export function parseValidPlaygroundPayload(
   };
 }
 
+const UTF8_ENCODER = new TextEncoder();
+const UTF8_DECODER = new TextDecoder('utf-8', { fatal: true });
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+  return btoa(binary);
+}
+
+function decodeBase64ToBytes(encoded: string): Uint8Array {
+  const binary = atob(encoded);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
 export function encodeSharePayload(payload: SharePayload): string {
   const json = JSON.stringify(payload);
-  return btoa(unescape(encodeURIComponent(json)));
+  return bytesToBase64(UTF8_ENCODER.encode(json));
 }
 
 export function decodeSharePayload(encoded: string): SharePayload | null {
   try {
-    const json = decodeURIComponent(escape(atob(encoded)));
+    const bytes = decodeBase64ToBytes(encoded);
+    if (bytes.length > MAX_SHARE_DECODED_PAYLOAD_BYTES) return null;
+    const json = UTF8_DECODER.decode(bytes);
     const parsed: unknown = JSON.parse(json);
     if (typeof parsed !== 'object' || parsed === null) return null;
     const body = parseValidPlaygroundPayload(parsed as Record<string, unknown>);

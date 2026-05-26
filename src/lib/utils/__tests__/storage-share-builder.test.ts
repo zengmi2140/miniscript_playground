@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { saveSession, loadSession, clearSession } from '../storage';
-import { encodeSharePayload, decodeSharePayload } from '../share';
+import {
+  encodeSharePayload,
+  decodeSharePayload,
+  MAX_SHARE_DECODED_PAYLOAD_BYTES,
+  MAX_SHARE_KEY_VARIABLES,
+} from '../share';
 import type { SharePayload } from '../share';
 
 describe('storage (legacy key cleanup)', () => {
@@ -80,7 +85,7 @@ describe('share with playgroundMode', () => {
 
   it('decodeSharePayload returns null for invalid network', () => {
     const bad = { policy: 'pk(A)', keyVariables: [], context: 'wsh', network: 'mainnet' };
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(bad))));
+    const encoded = encodeSharePayload(bad as SharePayload);
     expect(decodeSharePayload(encoded)).toBeNull();
   });
 
@@ -91,7 +96,7 @@ describe('share with playgroundMode', () => {
       context: 'p2pkh',
       network: 'testnet',
     };
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(bad))));
+    const encoded = encodeSharePayload(bad as SharePayload);
     expect(decodeSharePayload(encoded)).toBeNull();
   });
 
@@ -102,7 +107,7 @@ describe('share with playgroundMode', () => {
       context: 'wsh',
       network: 'testnet',
     };
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(bad))));
+    const encoded = encodeSharePayload(bad as SharePayload);
     expect(decodeSharePayload(encoded)).toBeNull();
   });
 
@@ -120,5 +125,53 @@ describe('share with playgroundMode', () => {
 
     expect(decoded).not.toBeNull();
     expect(decoded!.playgroundMode).toBeUndefined();
+  });
+});
+
+describe('share payload hardening (P2-13)', () => {
+  it('rejects payloads whose decoded JSON exceeds 16KB', () => {
+    const payload: SharePayload = {
+      policy: 'a'.repeat(MAX_SHARE_DECODED_PAYLOAD_BYTES + 128),
+      keyVariables: [],
+      context: 'wsh',
+      network: 'testnet',
+    };
+    const encoded = encodeSharePayload(payload);
+    expect(decodeSharePayload(encoded)).toBeNull();
+  });
+
+  it('rejects payloads with more than 32 key variables', () => {
+    const keyVariables = Array.from({ length: MAX_SHARE_KEY_VARIABLES + 1 }, (_, i) => ({
+      name: `K${i}`,
+      policyName: `K${i}`,
+      publicKey: `pub-${i}`,
+    }));
+    const payload: SharePayload = {
+      policy: 'pk(K0)',
+      keyVariables,
+      context: 'wsh',
+      network: 'testnet',
+    };
+    const encoded = encodeSharePayload(payload);
+    expect(decodeSharePayload(encoded)).toBeNull();
+  });
+
+  it('rejects corrupted base64 payloads', () => {
+    expect(decodeSharePayload('!@#$%^&*not-base64')).toBeNull();
+  });
+
+  it('accepts valid payloads within limits', () => {
+    const payload: SharePayload = {
+      policy: 'pk(Alice)',
+      keyVariables: [{ name: 'Alice', policyName: 'Alice', publicKey: 'pub-Alice' }],
+      context: 'wsh',
+      network: 'testnet',
+      playgroundMode: 'scenario',
+    };
+
+    const encoded = encodeSharePayload(payload);
+    const decoded = decodeSharePayload(encoded);
+
+    expect(decoded).toEqual(payload);
   });
 });
