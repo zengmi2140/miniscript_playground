@@ -67,7 +67,7 @@ describe('computeBuilderStatus', () => {
       expect(statusMap['time-1']).toBe('satisfied');
     });
 
-    it('absolute timelock (`after`) stays pending in MVP (not fully simulated)', () => {
+    it('absolute timelock (`after`) stays pending when chain tip is not ready', () => {
       const tree: StrategyNode = {
         id: 'time-abs',
         kind: 'timelock',
@@ -76,8 +76,34 @@ describe('computeBuilderStatus', () => {
         unit: 'blocks',
       };
 
+      // blockTipHeight omitted → treated as "tip not ready" → pending regardless of slider.
       expect(computeBuilderStatus(tree, new Set(), 0)['time-abs']).toBe('pending');
       expect(computeBuilderStatus(tree, new Set(), 2_000_000)['time-abs']).toBe('pending');
+    });
+
+    it('absolute timelock (`after`) becomes satisfied once tip + slider reaches the height', () => {
+      const tree: StrategyNode = {
+        id: 'time-abs',
+        kind: 'timelock',
+        mode: 'absolute',
+        value: 1_000_000,
+        unit: 'blocks',
+      };
+
+      // tip below value, slider 0 → still pending
+      expect(
+        computeBuilderStatus(tree, new Set(), 0, 950_000)['time-abs']
+      ).toBe('pending');
+
+      // tip + slider just reaches value → satisfied
+      expect(
+        computeBuilderStatus(tree, new Set(), 50_000, 950_000)['time-abs']
+      ).toBe('satisfied');
+
+      // tip already past value with slider 0 → satisfied
+      expect(
+        computeBuilderStatus(tree, new Set(), 0, 1_500_000)['time-abs']
+      ).toBe('satisfied');
     });
   });
 

@@ -354,6 +354,13 @@ function layoutBuilderTree(
 export interface BuilderTreeToFlowOptions {
   availableKeys: Set<string>;
   currentTimeBlocks: number;
+  /**
+   * Mainnet chain tip height; pass `undefined` to keep "tip not ready"
+   * behavior for block-height `after()` (treated as not satisfied),
+   * mirroring the shared semantics used by scenario path-map and
+   * StatusBanner.
+   */
+  blockTipHeight?: number;
   highlightedIds?: Set<string>;
   definedRoles?: Set<string>;
   isReadOnly?: boolean;
@@ -377,6 +384,7 @@ export function builderTreeToFlow(
   const {
     availableKeys,
     currentTimeBlocks,
+    blockTipHeight,
     highlightedIds = new Set(),
     definedRoles = new Set(),
     isReadOnly = false,
@@ -388,7 +396,7 @@ export function builderTreeToFlow(
     labels?.addConditionLine ?? (locale === 'zh' ? '+ 添加条件' : '+ Add Condition');
 
   const statusMap = builderStatusRecordToMap(
-    computeBuilderStatus(tree, availableKeys, currentTimeBlocks)
+    computeBuilderStatus(tree, availableKeys, currentTimeBlocks, blockTipHeight)
   );
 
   const ctx: BuildContext = {
