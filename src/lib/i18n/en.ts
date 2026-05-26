@@ -475,6 +475,12 @@ export const en = {
       tabPlaceholder: 'Compilation results will appear here',
       divider: 'Resize spending paths and results panels',
     },
+    panels: {
+      collapseLeft: 'Collapse left panel',
+      expandLeft: 'Expand left panel',
+      collapseRight: 'Collapse right panel',
+      expandRight: 'Expand right panel',
+    },
     paths: {
       empty: 'No spending paths available. All paths are unsatisfiable under current conditions.',
       malleable: 'Malleable',
