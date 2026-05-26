@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { effectiveThresholdK } from '../threshold';
+import { effectiveThresholdK, clampStoredThresholdK } from '../threshold';
 import { serializeStrategyTree } from '../serialize';
-import { removeNode } from '../node-ops';
+import { removeNode, wrapNodeInGroup, changeGroupOp } from '../node-ops';
 import type { StrategyGroupNode, StrategyNode } from '../types';
 
 function makeGroup(
@@ -60,5 +60,39 @@ describe('effectiveThresholdK', () => {
 
   it('returns 0 for non-group nodes', () => {
     expect(effectiveThresholdK(sigA)).toBe(0);
+  });
+});
+
+describe('clampStoredThresholdK', () => {
+  it('clamps k into [1, n] for non-empty groups', () => {
+    expect(clampStoredThresholdK(99, 3)).toBe(3);
+    expect(clampStoredThresholdK(2, 3)).toBe(2);
+    expect(clampStoredThresholdK(0, 3)).toBe(1);
+    expect(clampStoredThresholdK(-5, 3)).toBe(1);
+  });
+
+  it('returns 1 for empty groups so newly constructed groups have a sensible default', () => {
+    expect(clampStoredThresholdK(0, 0)).toBe(1);
+    expect(clampStoredThresholdK(99, 0)).toBe(1);
+  });
+});
+
+describe('node-ops write paths use the shared clamp', () => {
+  it('wrapNodeInGroup stores threshold = 1 (single wrapped child)', () => {
+    const wrapped = wrapNodeInGroup(sigA, sigA.id, 'threshold', 99) as StrategyGroupNode;
+    expect(wrapped.kind).toBe('group');
+    expect(wrapped.op).toBe('threshold');
+    expect(wrapped.threshold).toBe(1);
+  });
+
+  it('changeGroupOp clamps stored k to real child count when switching to threshold', () => {
+    const initial: StrategyGroupNode = {
+      id: 'g1',
+      kind: 'group',
+      op: 'all',
+      children: [sigA, sigB],
+    };
+    const next = changeGroupOp(initial, initial.id, 'threshold', 99) as StrategyGroupNode;
+    expect(next.threshold).toBe(2);
   });
 });
