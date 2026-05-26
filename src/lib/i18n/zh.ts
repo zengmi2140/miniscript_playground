@@ -468,6 +468,12 @@ export const zh = {
       tabPlaceholder: '编译结果将在此显示',
       divider: '调整路径列表与结果面板的高度',
     },
+    panels: {
+      collapseLeft: '收起左侧面板',
+      expandLeft: '展开左侧面板',
+      collapseRight: '收起右侧面板',
+      expandRight: '展开右侧面板',
+    },
     paths: {
       empty: '此 Policy 无可用花费路径。所有路径当前条件下不可满足。',
       malleable: '可延展',

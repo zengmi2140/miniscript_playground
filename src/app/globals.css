@@ -19,6 +19,10 @@
     --border-hover: #A8A29E;
     --border-active: #F7931A;
 
+    --playground-left-panel-width: 240px;
+    --playground-right-panel-width: 320px;
+    --playground-panel-toggle-edge-offset: 12px;
+
     --semantic-key: #EAB308;
     --semantic-timelock: #F7931A;
     --semantic-hashlock: #A78BFA;
