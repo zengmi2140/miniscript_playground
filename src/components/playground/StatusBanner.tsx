@@ -5,7 +5,7 @@ import { CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils/cn';
-import { blocksToHumanLocale } from '@/lib/engine/time-utils';
+import { blocksToHumanLocale, getPathTimelockRemainingBlocks } from '@/lib/engine/time-utils';
 import { formatSpendingPathLabel } from '@/lib/engine/path-label';
 
 type BannerStatus = 'canSpend' | 'waiting' | 'cannotSpend';
@@ -20,6 +20,8 @@ export function StatusBanner() {
   const spendingPaths = usePlaygroundStore((s) => s.spendingPaths);
   const availableKeys = usePlaygroundStore((s) => s.availableKeys);
   const currentTimeBlocks = usePlaygroundStore((s) => s.currentTimeBlocks);
+  const blockTipHeight = usePlaygroundStore((s) => s.blockTipHeight);
+  const blockTipHeightReady = usePlaygroundStore((s) => s.blockTipHeightReady);
 
   const banner = useMemo((): BannerInfo | null => {
     if (spendingPaths.length === 0) return null;
@@ -35,12 +37,10 @@ export function StatusBanner() {
     }
 
     const pendingPath = spendingPaths.find((p) => {
-      const missingOnlySig = p.missingConditions.every((c) => c.type === 'signature');
       const missingOnlyTime = p.missingConditions.every(
         (c) => c.type === 'timelock_relative' || c.type === 'timelock_absolute',
       );
-      if (missingOnlySig) return false;
-      if (!missingOnlyTime) return false;
+      if (!missingOnlyTime || p.missingConditions.length === 0) return false;
 
       const hasAllSigs = p.conditions
         .filter((c) => c.type === 'signature')
@@ -50,10 +50,18 @@ export function StatusBanner() {
 
     if (pendingPath) {
       const timeMissing = pendingPath.missingConditions.find(
-        (c) => c.type === 'timelock_relative',
+        (c) => c.type === 'timelock_relative' || c.type === 'timelock_absolute',
       );
-      if (timeMissing && timeMissing.type === 'timelock_relative') {
-        const remaining = timeMissing.blocks - currentTimeBlocks;
+      if (
+        timeMissing &&
+        (timeMissing.type === 'timelock_relative' || timeMissing.type === 'timelock_absolute')
+      ) {
+        const tipForCalc = blockTipHeightReady ? blockTipHeight : undefined;
+        const remaining = getPathTimelockRemainingBlocks(
+          timeMissing,
+          currentTimeBlocks,
+          tipForCalc,
+        );
         return {
           status: 'waiting',
           message: t('playground.status.waiting', {
@@ -67,7 +75,7 @@ export function StatusBanner() {
     const allMissing = new Set<string>();
     for (const p of spendingPaths) {
       for (const mc of p.missingConditions) {
-        if (mc.type === 'signature') allMissing.add(mc.keyName);
+        if (mc.type === 'signature') allMissing.add(mc.displayName ?? mc.keyName);
       }
     }
 
@@ -78,7 +86,15 @@ export function StatusBanner() {
         missing: missingList || t('playground.status.someConditions'),
       }),
     };
-  }, [spendingPaths, availableKeys, currentTimeBlocks, t, locale]);
+  }, [
+    spendingPaths,
+    availableKeys,
+    currentTimeBlocks,
+    blockTipHeight,
+    blockTipHeightReady,
+    t,
+    locale,
+  ]);
 
   if (!banner) return null;
 

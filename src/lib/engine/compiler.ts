@@ -54,6 +54,7 @@ export async function compile(
   availableKeys: Set<string> = new Set(),
   availableHashes: Set<string> = new Set(),
   currentTimeBlocks: number = 0,
+  blockTipHeight?: number,
 ): Promise<CompileOutput> {
   try {
     await policiesReady;
@@ -130,6 +131,7 @@ export async function compile(
       availableKeys,
       availableHashes,
       currentTimeBlocks,
+      blockTipHeight,
     );
 
     return {
