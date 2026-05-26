@@ -54,11 +54,13 @@ npm run build          # 会先运行 prebuild：生成 block-height-fallback.ge
 npm run lint
 npm run typecheck
 npm run test
+npm run test:coverage
 ```
 
 - **`generate:block-height-fallback`**：单独抓取主网链尖并写入 `block-height-fallback.generated.ts`（与 `prebuild` 相同逻辑；可在不跑完整 `next build` 时刷新仓库内该文件）。  
 - **仅使用 npm**；锁文件为 `package-lock.json`（勿提交 pnpm/yarn 锁）。  
 - `npm run test` 即 `vitest run`（配置：`vitest.config.ts`；全局 setup：`src/test/setup.ts`）。  
+- `npm run test:coverage` 运行 Vitest 覆盖率报告（`vitest run --coverage`）。  
 - dev server 默认 `http://localhost:3000`（端口占用时以终端为准）。
 
 ### 测试代码布局
