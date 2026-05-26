@@ -1,13 +1,21 @@
 'use client';
 
-import { ThemeProvider } from '@/lib/theme/context';
-import { I18nProvider } from '@/lib/i18n/context';
+import { ThemeProvider, type Theme } from '@/lib/theme/context';
+import { I18nProvider, type Locale } from '@/lib/i18n/context';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({
+  children,
+  initialLocale,
+  initialTheme,
+}: {
+  children: React.ReactNode;
+  initialLocale: Locale;
+  initialTheme: Theme;
+}) {
   return (
-    <ThemeProvider>
-      <I18nProvider>
+    <ThemeProvider initialTheme={initialTheme}>
+      <I18nProvider initialLocale={initialLocale}>
         <TooltipProvider delayDuration={200}>
           {children}
         </TooltipProvider>
