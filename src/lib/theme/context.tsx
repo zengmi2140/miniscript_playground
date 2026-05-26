@@ -1,8 +1,14 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import {
+  DEFAULT_THEME,
+  SCRIPTWISE_THEME_COOKIE,
+  toPreferenceCookie,
+  type ThemePreference,
+} from '@/lib/preferences';
 
-export type Theme = 'dark' | 'light';
+export type Theme = ThemePreference;
 
 interface ThemeContextValue {
   theme: Theme;
@@ -11,35 +17,30 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('dark');
-  const [mounted, setMounted] = useState(false);
+export function ThemeProvider({
+  children,
+  initialTheme = DEFAULT_THEME,
+}: {
+  children: ReactNode;
+  initialTheme?: Theme;
+}) {
+  const [theme, setTheme] = useState<Theme>(initialTheme);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('scriptwise-theme');
-      if (stored === 'dark' || stored === 'light') {
-        setTheme(stored);
-      }
-    } catch {}
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
     const root = document.documentElement;
     if (theme === 'dark') {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
-  }, [theme, mounted]);
+    root.style.colorScheme = theme;
+  }, [theme]);
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => {
       const next = prev === 'dark' ? 'light' : 'dark';
       try {
-        localStorage.setItem('scriptwise-theme', next);
+        document.cookie = toPreferenceCookie(SCRIPTWISE_THEME_COOKIE, next);
       } catch {}
       return next;
     });

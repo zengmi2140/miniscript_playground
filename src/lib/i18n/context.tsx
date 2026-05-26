@@ -3,8 +3,15 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { zh } from './zh';
 import { en } from './en';
+import {
+  DEFAULT_LOCALE,
+  SCRIPTWISE_LOCALE_COOKIE,
+  localeToHtmlLang,
+  toPreferenceCookie,
+  type LocalePreference,
+} from '@/lib/preferences';
 
-export type Locale = 'zh' | 'en';
+export type Locale = LocalePreference;
 
 type DotPaths<T, P extends string = ''> = {
   [K in keyof T & string]: T[K] extends string
@@ -47,7 +54,7 @@ const I18nContext = createContext<I18nContextValue | null>(null);
 
 export function I18nProvider({
   children,
-  initialLocale = 'zh',
+  initialLocale = DEFAULT_LOCALE,
 }: {
   children: ReactNode;
   /** For tests or SSR; default is zh. */
@@ -55,21 +62,16 @@ export function I18nProvider({
 }) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('scriptwise-locale');
-      if (stored === 'zh' || stored === 'en') {
-        setLocaleState(stored);
-      }
-    } catch {}
-  }, []);
-
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
     try {
-      localStorage.setItem('scriptwise-locale', newLocale);
+      document.cookie = toPreferenceCookie(SCRIPTWISE_LOCALE_COOKIE, newLocale);
     } catch {}
   }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = localeToHtmlLang(locale);
+  }, [locale]);
 
   const t = useCallback(
     (key: I18nKey, params?: Record<string, string | number>) => {
