@@ -224,7 +224,7 @@ npm run test
 
 ### 可视化构建（build）
 
-核心模块：`src/lib/builder/`（`types`、`serialize`、`node-ops`、`from-semantic-tree`、`status.ts`、`tree-to-flow.ts`）、`src/components/builder/*`、`useBuilderSync.ts`。要点：二元 `all`/`any`、门限与 `clampThresholdK`、虚拟「+」与子占位、`OperatorSwitchPopover` / `BuilderPopover`、包裹进组、深度 ≤5 提示。细节以源码为准。
+核心模块：`src/lib/builder/`（`types`、`serialize`、`node-ops`、`from-semantic-tree`、`status.ts`、`tree-to-flow.ts`、`threshold.ts`）、`src/components/builder/*`、`useBuilderSync.ts`。要点：二元 `all`/`any`、门限通过 `threshold.ts` 的 `effectiveThresholdK`（读取层）/ `clampStoredThresholdK`（写入层）共享同一份 clamp 逻辑、虚拟「+」与子占位、`OperatorSwitchPopover` / `BuilderPopover`、包裹进组、深度 ≤5 提示。细节以源码为准。
 
 ### 花费路径
 
@@ -279,7 +279,7 @@ npm run test
 | 路径判定 / 模拟 | `path-analyzer.ts`、`time-utils.ts`（`isPathTimelockSatisfied` / `getPathTimelockRemainingBlocks` 共享 helper）、`block-height.ts`、`block-height-fallback.generated.ts`（`prebuild`）、`StatusBanner`、`ConditionToggles`、`TimeSlider`、`PathsTab` |
 | Key 名替换 / 重命名 | `src/lib/utils/policy-identifiers.ts`（token-aware `\b<name>\b`）、`compiler.ts`（`replaceKeyNames`）、`playground-store.ts`（`renameKeyVariable`）、`KeyVariableManager.tsx`、`share.ts` |
 | scenario 路径图 | `tree-to-flow.ts`、`PathMap`（传入 `blockTipHeight`）、`FlowNodes`、`PathEdge` |
-| build 画布 | `src/lib/builder/*`（含 `threshold.ts` 提供的 `effectiveThresholdK`）、`BuilderCanvas`、`useBuilderSync.ts`、`playground-store.ts` |
+| build 画布 | `src/lib/builder/*`（含 `threshold.ts` 的 `effectiveThresholdK` / `clampStoredThresholdK` 共享 clamp）、`BuilderCanvas`、`useBuilderSync.ts`、`playground-store.ts` |
 | Policy 编辑器 | `PolicyEditor.tsx`、`htlc-display-mask.ts`、`policy-errors` 等 |
 | 右栏结果 | `RightPanel.tsx`、`components/results/*` |
 | 资源页 | `src/app/resources/page.tsx`、`recommended-reading.ts`、`resources.*` |
