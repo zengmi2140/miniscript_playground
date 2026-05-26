@@ -1,4 +1,5 @@
 import type { KeyVariable, ScriptContext, Network, PlaygroundMode } from '@/lib/engine/types';
+import { isValidPolicyIdentifier } from '@/lib/utils/policy-identifiers';
 
 const PLAYGROUND_MODES = new Set<PlaygroundMode>(['scenario', 'build']);
 
@@ -32,6 +33,7 @@ export interface ValidatedPlaygroundFields {
 function validateKeyVariablesList(arr: unknown): KeyVariable[] | null {
   if (!Array.isArray(arr)) return null;
   const out: KeyVariable[] = [];
+  const seenPolicyNames = new Set<string>();
   for (const item of arr) {
     if (typeof item !== 'object' || item === null) return null;
     const o = item as Record<string, unknown>;
@@ -49,6 +51,11 @@ function validateKeyVariablesList(arr: unknown): KeyVariable[] | null {
     ) {
       return null;
     }
+    // P1-02: policyName is the stable ID inside policy text — enforce
+    // valid identifier shape and uniqueness across the payload.
+    if (!isValidPolicyIdentifier(policyName)) return null;
+    if (seenPolicyNames.has(policyName)) return null;
+    seenPolicyNames.add(policyName);
     out.push({ name, policyName, publicKey });
   }
   return out;
