@@ -11,13 +11,12 @@ import { RightPanel } from '@/components/playground/RightPanel';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useCompiler } from '@/lib/hooks/useCompiler';
 import { useBuilderSync } from '@/lib/hooks/useBuilderSync';
-import { clearSession } from '@/lib/utils/storage';
-import { fetchBlockTipHeight } from '@/lib/engine/block-height';
+import { useDesktopBootstrap, type ViewportMode } from '@/lib/hooks/useDesktopBootstrap';
 import { applyPlaygroundSearchParams } from '@/lib/playground/apply-playground-search-params';
 import { useI18n } from '@/lib/i18n/context';
 
 function useViewportMode() {
-  const [mode, setMode] = useState<'loading' | 'desktop' | 'mobile'>('loading');
+  const [mode, setMode] = useState<ViewportMode>('loading');
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 768px)');
@@ -29,6 +28,21 @@ function useViewportMode() {
   }, []);
 
   return mode;
+}
+
+function PlaygroundLoadingPlaceholder() {
+  return (
+    <div className="flex flex-1 items-center justify-center px-6 py-10 md:px-8">
+      <div className="w-full max-w-5xl space-y-4" aria-hidden="true">
+        <div className="h-10 w-56 animate-pulse rounded-lg bg-surface-elevated" />
+        <div className="grid gap-4 md:grid-cols-[240px_1fr_320px]">
+          <div className="h-[520px] animate-pulse rounded-xl bg-surface-elevated/80" />
+          <div className="h-[520px] animate-pulse rounded-xl bg-surface-elevated/80" />
+          <div className="hidden h-[520px] animate-pulse rounded-xl bg-surface-elevated/80 md:block" />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function MobileFallback() {
@@ -63,18 +77,8 @@ function DesktopPlayground() {
   const loadScenario = usePlaygroundStore((s) => s.loadScenario);
   const restoreSession = usePlaygroundStore((s) => s.restoreSession);
   const enterBuildMode = usePlaygroundStore((s) => s.enterBuildMode);
-  const setBlockTipHeight = usePlaygroundStore((s) => s.setBlockTipHeight);
-  const setBlockTipHeightReady = usePlaygroundStore((s) => s.setBlockTipHeightReady);
   useCompiler();
   useBuilderSync();
-
-  useEffect(() => {
-    clearSession();
-    fetchBlockTipHeight().then((h) => {
-      setBlockTipHeight(h);
-      setBlockTipHeightReady(true);
-    });
-  }, [setBlockTipHeight, setBlockTipHeightReady]);
 
   useEffect(() => {
     applyPlaygroundSearchParams(searchParams, {
@@ -95,10 +99,9 @@ function DesktopPlayground() {
 
 function PlaygroundContent() {
   const mode = useViewportMode();
+  useDesktopBootstrap(mode);
 
-  // On mobile, show fallback. During SSR / hydration ('loading'),
-  // render the desktop shell immediately — the user sees the frame
-  // right away instead of a blank screen, then viewport-check resolves.
+  if (mode === 'loading') return <PlaygroundLoadingPlaceholder />;
   if (mode === 'mobile') return <MobileFallback />;
   return <DesktopPlayground />;
 }
