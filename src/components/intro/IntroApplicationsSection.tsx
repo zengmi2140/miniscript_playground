@@ -39,12 +39,6 @@ export function IntroApplicationsSection() {
       id="applications"
       className="bg-surface-base py-16 md:py-24"
     >
-      <style>{`
-        @keyframes fadeSlideIn {
-          0% { opacity: 0; transform: translateY(4px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
       <div className="mx-auto max-w-6xl px-4">
         <h2 className="mb-4 text-center text-3xl font-bold tracking-tight text-text-primary md:text-4xl">
           {t('intro.applications.title')}
@@ -121,10 +115,7 @@ export function IntroApplicationsSection() {
 
           <div
             key={activeExample}
-            className="space-y-4"
-            style={{
-              animation: 'fadeSlideIn 0.5s ease-out',
-            }}
+            className="animate-fade-slide-in space-y-4"
           >
             <div className="overflow-hidden rounded-xl border border-border-default bg-surface-card">
               <div className="bg-surface-elevated px-6 py-3">

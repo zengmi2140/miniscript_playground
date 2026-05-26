@@ -161,6 +161,34 @@
 }
 
 .marquee-track:hover .animate-marquee,
-.marquee-track:hover .animate-marquee-reverse {
+.marquee-track:hover .animate-marquee-reverse,
+.marquee-track[data-paused="true"] .animate-marquee,
+.marquee-track[data-paused="true"] .animate-marquee-reverse {
   animation-play-state: paused;
+}
+
+/* P1-10 + P2-15: respect users who request reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-marquee,
+  .animate-marquee-reverse {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* Inline animation moved out of IntroApplicationsSection (P2-15). */
+@keyframes fadeSlideIn {
+  0%   { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-slide-in {
+  animation: fadeSlideIn 0.5s ease-out;
 }
