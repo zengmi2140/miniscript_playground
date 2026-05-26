@@ -8,19 +8,28 @@ import { DEFAULT_TEST_KEYS } from '@/lib/scenarios/data';
 import { createNextKeyVariable, generateRandomPubkey } from '@/lib/playground/add-next-key-variable';
 import { cn } from '@/lib/utils/cn';
 import type { KeyVariable } from '@/lib/engine/types';
+import { isValidPolicyIdentifier } from '@/lib/utils/policy-identifiers';
 
 function KeyRow({ kv, onRemove }: { kv: KeyVariable; onRemove: () => void }) {
   const updateKeyVariable = usePlaygroundStore((s) => s.updateKeyVariable);
+  const renameKeyVariable = usePlaygroundStore((s) => s.renameKeyVariable);
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(kv.name);
   const [editKey, setEditKey] = useState(kv.publicKey);
 
   const handleSave = () => {
-    updateKeyVariable(kv.name, {
-      name: editName,
-      policyName: editName,
-      publicKey: editKey,
-    });
+    const trimmed = editName.trim();
+    const renaming = trimmed !== kv.policyName;
+    if (renaming) {
+      // Reject invalid identifiers; keep edit panel open so the user can fix it.
+      if (!isValidPolicyIdentifier(trimmed)) return;
+      renameKeyVariable(kv.policyName, trimmed, editKey);
+    } else {
+      updateKeyVariable(kv.policyName, {
+        name: trimmed,
+        publicKey: editKey,
+      });
+    }
     setEditing(false);
   };
 
@@ -101,7 +110,7 @@ export function KeyVariableManager() {
   const handleRestore = useCallback(() => {
     const restored: KeyVariable[] = keyVariables.map((kv) => ({
       ...kv,
-      publicKey: DEFAULT_TEST_KEYS[kv.name] || kv.publicKey,
+      publicKey: DEFAULT_TEST_KEYS[kv.policyName] || kv.publicKey,
     }));
     setKeyVariables(restored);
   }, [keyVariables, setKeyVariables]);
@@ -118,9 +127,9 @@ export function KeyVariableManager() {
         <div className="flex flex-col gap-0.5">
           {keyVariables.map((kv) => (
             <KeyRow
-              key={kv.name}
+              key={kv.policyName}
               kv={kv}
-              onRemove={() => removeKeyVariable(kv.name)}
+              onRemove={() => removeKeyVariable(kv.policyName)}
             />
           ))}
         </div>

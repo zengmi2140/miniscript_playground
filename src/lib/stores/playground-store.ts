@@ -18,6 +18,10 @@ import { serializeStrategyTree } from '@/lib/builder/serialize';
 import { changeGroupOp, wrapNodeInGroup, computeTreeDepth, findNode } from '@/lib/builder/node-ops';
 import { createRootPlaceholderTree } from '@/lib/builder/root-placeholder';
 import { FALLBACK_BLOCK_HEIGHT } from '@/lib/engine/block-height';
+import {
+  isValidPolicyIdentifier,
+  replaceIdentifierToken,
+} from '@/lib/utils/policy-identifiers';
 
 interface PlaygroundActions {
   setPlaygroundMode: (mode: PlaygroundMode) => void;
@@ -26,8 +30,16 @@ interface PlaygroundActions {
   setNetwork: (network: Network) => void;
   setKeyVariables: (keyVariables: KeyVariable[]) => void;
   addKeyVariable: (kv: KeyVariable) => void;
-  removeKeyVariable: (name: string) => void;
-  updateKeyVariable: (name: string, updates: Partial<KeyVariable>) => void;
+  removeKeyVariable: (policyName: string) => void;
+  /** Update display label / public key for a key variable identified by its `policyName`. */
+  updateKeyVariable: (policyName: string, updates: Partial<KeyVariable>) => void;
+  /**
+   * Atomically rename a key variable: update both `name` and `policyName`, and
+   * rewrite the current policy text so `pk(<old>)` becomes `pk(<new>)`. Word-
+   * boundary rewrite keeps `or_b` / `Alice` substrings intact (P1-02 + P1-03).
+   * No-op if the new policyName is invalid or already used by another key.
+   */
+  renameKeyVariable: (oldPolicyName: string, newName: string, publicKey?: string) => void;
 
   setCompilationResult: (result: CompilationResult | null) => void;
   setCompilationError: (error: FriendlyError | null) => void;
@@ -131,17 +143,51 @@ export const usePlaygroundStore = create<PlaygroundStore>((set) => ({
       keyVariables: [...state.keyVariables, kv],
     })),
 
-  removeKeyVariable: (name) =>
+  removeKeyVariable: (policyName) =>
     set((state) => ({
-      keyVariables: state.keyVariables.filter((k) => k.name !== name),
+      keyVariables: state.keyVariables.filter((k) => k.policyName !== policyName),
     })),
 
-  updateKeyVariable: (name, updates) =>
+  updateKeyVariable: (policyName, updates) =>
     set((state) => ({
       keyVariables: state.keyVariables.map((k) =>
-        k.name === name ? { ...k, ...updates } : k,
+        k.policyName === policyName ? { ...k, ...updates } : k,
       ),
     })),
+
+  renameKeyVariable: (oldPolicyName, newName, publicKey) =>
+    set((state) => {
+      if (!isValidPolicyIdentifier(newName)) return {};
+      if (newName === oldPolicyName) {
+        return {
+          keyVariables: state.keyVariables.map((k) =>
+            k.policyName === oldPolicyName
+              ? { ...k, name: newName, ...(publicKey ? { publicKey } : {}) }
+              : k,
+          ),
+        };
+      }
+      const collision = state.keyVariables.some(
+        (k) => k.policyName !== oldPolicyName && k.policyName === newName,
+      );
+      if (collision) return {};
+
+      const renamedKeys = state.keyVariables.map((k) =>
+        k.policyName === oldPolicyName
+          ? {
+              ...k,
+              name: newName,
+              policyName: newName,
+              ...(publicKey ? { publicKey } : {}),
+            }
+          : k,
+      );
+      const newPolicy = replaceIdentifierToken(state.policy, oldPolicyName, newName);
+      return {
+        keyVariables: renamedKeys,
+        policy: newPolicy,
+      };
+    }),
 
   setCompilationResult: (compilationResult) => set({ compilationResult }),
   setCompilationError: (compilationError) => set({ compilationError }),
