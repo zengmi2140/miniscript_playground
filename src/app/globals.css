@@ -117,8 +117,8 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: #F7931A;
-    border: 2px solid #0C0A09;
+    background: var(--semantic-timelock);
+    border: 2px solid var(--bg-base);
     cursor: pointer;
     transition: transform 0.15s ease;
   }
@@ -131,8 +131,8 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: #F7931A;
-    border: 2px solid #0C0A09;
+    background: var(--semantic-timelock);
+    border: 2px solid var(--bg-base);
     cursor: pointer;
   }
 

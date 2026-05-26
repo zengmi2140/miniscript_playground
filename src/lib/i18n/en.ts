@@ -417,6 +417,7 @@ export const en = {
     conditions: { title: 'Condition Simulator' },
     timeslider: {
       label: 'Time Elapsed',
+      sliderAriaLabel: 'Simulated elapsed time in blocks',
       blocks: 'blocks',
       current: 'Current: Block {tipHeight}',
       elapsedInline: '{count} · {human}',
