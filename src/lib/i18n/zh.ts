@@ -206,6 +206,8 @@ export const zh = {
       subtitle: '以下钱包已原生支持 Miniscript，可用于管理复杂的花费条件。',
       software: '软件钱包',
       hardware: '硬件钱包',
+      pause: '暂停滚动',
+      resume: '恢复滚动',
     },
 
     faq: {
