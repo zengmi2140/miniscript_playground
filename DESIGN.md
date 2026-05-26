@@ -16,7 +16,7 @@
 
 ### 首页通识区（`/`）
 
-首屏与 **HomepageHero**、**HomepageWallets**、底部 CTA 与全站一致；**页尾 CTA 区**仅保留一个主按钮，**橙色实心**（`btc-500` / `hover:bg-btc-400`），文案 `home.cta.build`，指向 `/playground?mode=build`。中间各节（**TransitionSection**：地址背后的脚本 + 单签 vs 多签；**ScriptComplexitySection**：Script 复杂性四堵墙；**MeetMiniscriptSection**：定义 + 竖向概念板块 + 特性卡；**IntroApplicationsSection**：场景卡片，实现为 `src/components/home/*` 与 `src/components/intro/*`）使用与全站一致的 **surface / border / btc-500 / text-*** token。大节标题与引导句可采用 **居中** 排版以区分于 Playground 工作台；正文卡片与代码块仍遵循 §4 间距与圆角。
+首屏与 **HomepageHero**、**HomepageWallets**、底部 CTA 与全站一致；**页尾 CTA 区**为双按钮：主按钮 **橙色实心**（`btc-500` / `hover:bg-btc-400`，`home.cta.primary`）指向 `/playground`，次按钮（`home.cta.secondary`）指向 `/resources`。中间各节（**TransitionSection**：地址背后的脚本 + 单签 vs 多签；**ScriptComplexitySection**：Script 复杂性四堵墙；**MeetMiniscriptSection**：定义 + 竖向概念板块 + 特性卡；**IntroApplicationsSection**：场景卡片，实现为 `src/components/home/*` 与 `src/components/intro/*`）使用与全站一致的 **surface / border / btc-500 / text-*** token。大节标题与引导句可采用 **居中** 排版以区分于 Playground 工作台；正文卡片与代码块仍遵循 §4 间距与圆角。
 
 **Applications「原子交换」**：Policy / Miniscript / Bitcoin Script 三列以 **`HEX`** 表示 hash160 摘要占位（非具体 hex）；Playground 中栏与路径图在 `htlc-atomic` 预设下语义一致（`--semantic-hashlock` 仍用于哈希条件节点与 chip）。
 
