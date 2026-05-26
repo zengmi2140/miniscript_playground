@@ -186,4 +186,79 @@ describe('useBuilderSync', () => {
     expect(mockSetStrategyTree).not.toHaveBeenCalled();
     expect(mockUpdateStrategyTree).not.toHaveBeenCalled();
   });
+
+  it('recovers from compile-error to synced when policy === snapshot and no compile error (P1-04)', () => {
+    const mockUsePlaygroundStore = usePlaygroundStore as unknown as ReturnType<typeof vi.fn>;
+    mockUsePlaygroundStore.mockImplementation((selector: (state: Record<string, unknown>) => unknown) => {
+      const state = {
+        playgroundMode: 'build',
+        policy: 'pk(Alice)',
+        semanticTree: { type: 'pk', name: 'Alice' },
+        compilationError: null,
+        lastBuilderPolicySnapshot: 'pk(Alice)',
+        builderSyncState: 'compile-error',
+        setStrategyTree: mockSetStrategyTree,
+        updateStrategyTree: mockUpdateStrategyTree,
+        setBuilderSyncState: mockSetBuilderSyncState,
+        setLastBuilderPolicySnapshot: mockSetLastBuilderPolicySnapshot,
+      };
+      return selector(state);
+    });
+
+    renderHook(() => useBuilderSync());
+
+    expect(mockSetBuilderSyncState).toHaveBeenCalledWith('synced');
+    expect(mockSetStrategyTree).not.toHaveBeenCalled();
+    expect(mockUpdateStrategyTree).not.toHaveBeenCalled();
+  });
+
+  it('recovers from text-led to synced when policy === snapshot (P1-04)', () => {
+    const mockUsePlaygroundStore = usePlaygroundStore as unknown as ReturnType<typeof vi.fn>;
+    mockUsePlaygroundStore.mockImplementation((selector: (state: Record<string, unknown>) => unknown) => {
+      const state = {
+        playgroundMode: 'build',
+        policy: 'pk(Alice)',
+        semanticTree: { type: 'pk', name: 'Alice' },
+        compilationError: null,
+        lastBuilderPolicySnapshot: 'pk(Alice)',
+        builderSyncState: 'text-led',
+        setStrategyTree: mockSetStrategyTree,
+        updateStrategyTree: mockUpdateStrategyTree,
+        setBuilderSyncState: mockSetBuilderSyncState,
+        setLastBuilderPolicySnapshot: mockSetLastBuilderPolicySnapshot,
+      };
+      return selector(state);
+    });
+
+    renderHook(() => useBuilderSync());
+
+    expect(mockSetBuilderSyncState).toHaveBeenCalledWith('synced');
+  });
+
+  it('does not flip to synced when there is still a compilation error (P1-04 guard)', () => {
+    const mockUsePlaygroundStore = usePlaygroundStore as unknown as ReturnType<typeof vi.fn>;
+    mockUsePlaygroundStore.mockImplementation((selector: (state: Record<string, unknown>) => unknown) => {
+      const state = {
+        playgroundMode: 'build',
+        policy: 'pk(Alice)',
+        semanticTree: null,
+        compilationError: {
+          raw: 'Syntax error',
+          category: 'syntax' as const,
+          friendly: { zh: '语法错误', en: 'Syntax error' },
+        },
+        lastBuilderPolicySnapshot: 'pk(Alice)',
+        builderSyncState: 'compile-error',
+        setStrategyTree: mockSetStrategyTree,
+        updateStrategyTree: mockUpdateStrategyTree,
+        setBuilderSyncState: mockSetBuilderSyncState,
+        setLastBuilderPolicySnapshot: mockSetLastBuilderPolicySnapshot,
+      };
+      return selector(state);
+    });
+
+    renderHook(() => useBuilderSync());
+
+    expect(mockSetBuilderSyncState).not.toHaveBeenCalledWith('synced');
+  });
 });
