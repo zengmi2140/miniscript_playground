@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { APP_URL_DISPLAY } from '@/lib/app-url';
 
 export const runtime = 'edge';
 export const alt = 'ScriptWise — Bitcoin 花费条件教学实验室';
@@ -133,7 +134,7 @@ export default function OGImage() {
             fontSize: 15,
           }}
         >
-          <span>miniscript-lab.replit.app</span>
+          <span>{APP_URL_DISPLAY}</span>
         </div>
       </div>
     ),
