@@ -33,7 +33,7 @@
 
 **技术边界**：纯前端；无后端 API / 数据库；所有计算在浏览器本地完成，**不依赖 LLM 或外部服务**。地址仅用于 **testnet / signet** 教学展示，**不得**将主网地址作为默认或隐式行为。**MVP** 实际编译与地址以 **P2WSH** 为主；**P2TR** 可为占位，UI 中通常禁用（以代码为准）。
 
-**与「不连接区块链」的区分**：应用**不会**作为钱包去查询 UTXO、广播交易或同步链状态。唯一例外是 Playground 为教学展示 **after(区块高度)** 与混合时间轴，**只读**请求公共 API 获取**当前主网链尖高度**（实现上为多个端点顺序回退；短 TTL 内存缓存；全部失败时使用 [`block-height-fallback.generated.ts`](src/lib/engine/block-height-fallback.generated.ts) 中**构建时写入**的回退高度，由 `npm run build` 的 `prebuild` 抓取主网链尖并生成该文件；抓取失败时写入脚本内固定桩值，以免阻塞构建）。这不改变「不上传策略、不托管密钥」的边界。
+**与「不连接区块链」的区分**：应用**不会**作为钱包去查询 UTXO、广播交易或同步链状态。唯一例外是 Playground 为教学展示 **after(区块高度)** 与混合时间轴，**只读**请求公共 API 获取**当前主网链尖高度**（实现上为多个端点顺序回退；短 TTL 内存缓存；全部失败时使用 [`block-height-fallback.generated.ts`](src/lib/engine/block-height-fallback.generated.ts) 中**构建时写入**的回退高度，由 `npm run build` 的 `prebuild` 抓取主网链尖并生成该文件；抓取失败时**优先保留**该文件中已有的高度，避免回退到更旧的值；若文件不存在或解析失败，CI 环境（`process.env.CI` truthy）下以非零退出码失败、本地环境写入脚本内的固定桩值以免阻塞构建）。这不改变「不上传策略、不托管密钥」的边界。
 
 ---
 
@@ -214,7 +214,7 @@ npm run test
 - 错误链：`policy-errors` → `policy-preflight` → `policy-error-highlight`（编辑器标红区间）。  
 - **Descriptor**：从 `@bitcoinerlab/descriptors/dist/descriptors` 导入；`@ledgerhq/ledger-bitcoin` → `ledger-bitcoin-stub`（`next.config` / `vitest.config`）。  
 - **Key 名替换**：`replaceKeyNames` 通过共享 helper `src/lib/utils/policy-identifiers.ts` 做 **token-aware** 替换（`\b<name>\b`）。这保证 `pk(A)` 与 `pk(Alice)` / `Key1` 与 `Key10` 不会互相吞噬，也不会把名为 `or` 的 key 与 `or_b` / `or_i` 混淆（同一 helper 也用于 `renameKeyVariable` 原子重命名）。  
-- **链尖与 `after(<height>)`**：`compile()` 接受可选 `blockTipHeight`；`useCompiler` 在 `blockTipHeightReady` 之前传 `undefined`。`path-analyzer` 与 `tree-to-flow`、`StatusBanner` 共用 `time-utils.ts` 的 `isPathTimelockSatisfied` / `getPathTimelockRemainingBlocks`，确保 `after(<height>)` 与 `older()` 在「编译 → 路径分析 → 路径图 → 状态横幅」全链路使用同一语义（`blockTipHeight + currentTimeBlocks ≥ afterValue`）。
+- **链尖与 `after(<height>)`**：`compile()` 接受可选 `blockTipHeight`；`useCompiler` 在 `blockTipHeightReady` 之前传 `undefined`。`path-analyzer`、scenario `tree-to-flow`、`StatusBanner` **以及 build 模式的** `builder/status.ts`（经 `BuilderCanvas` → `builderTreeToFlow` 注入 `blockTipHeight`）共用 `time-utils.ts` 的 `isPathTimelockSatisfied` / `getPathTimelockRemainingBlocks`，确保 `after(<height>)` 与 `older()` 在「编译 → 路径分析 → 路径图 → 状态横幅 → build 节点状态」全链路使用同一语义（`blockTipHeight + currentTimeBlocks ≥ afterValue`）。
 
 ### 语义树与路径图（scenario）
 
@@ -256,7 +256,7 @@ npm run test
 ## 9. 限制与易误判点
 
 1. 仅 **wsh** 有实际编译产出；左栏 **tr** 为占位（禁用）。若 `context === 'tr'`，编译器返回明确错误（见 §6 编译管线）。  
-2. **时间模拟**：`older()` 与区块高度型 **`after()`** 可与链尖结合，在时间轴上混合排序；**Unix 时间戳型 `after()`** 等路径仍可能简化或未完全模拟（以代码为准）。从「编译 → 路径分析 → 路径图 → 状态横幅」**共用** `time-utils.ts` 的 `isPathTimelockSatisfied` / `getPathTimelockRemainingBlocks`，区块高度型 `after()` 在链尖未就绪时一律视为 pending 而非 satisfied。  
+2. **时间模拟**：`older()` 与区块高度型 **`after()`** 可与链尖结合，在时间轴上混合排序；**Unix 时间戳型 `after()`** 等路径仍可能简化或未完全模拟（以代码为准）。从「编译 → 路径分析 → 路径图 → 状态横幅 → build 模式节点状态」**共用** `time-utils.ts` 的 `isPathTimelockSatisfied` / `getPathTimelockRemainingBlocks`，区块高度型 `after()` 在链尖未就绪时一律视为 pending 而非 satisfied。  
 3. **signet** 地址派生可能复用 testnet 网络对象（教学折中）。  
 4. **/compare** 未实现；导航指向 **Resources**。  
 5. 多数页面为 **'use client'**。  
