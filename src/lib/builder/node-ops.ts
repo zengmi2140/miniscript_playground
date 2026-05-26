@@ -6,7 +6,7 @@
  */
 
 import type { StrategyNode, StrategyGroupNode } from './types';
-import { effectiveThresholdK } from './threshold';
+import { effectiveThresholdK, clampStoredThresholdK } from './threshold';
 
 let nodeIdCounter = 1000;
 
@@ -44,11 +44,7 @@ export function defaultThresholdK(realChildCount: number): number {
   return Math.min(2, Math.max(1, realChildCount));
 }
 
-/** Clamp stored k so 1 <= k <= max(1, realChildCount). */
-export function clampThresholdK(k: number, realChildCount: number): number {
-  const n = Math.max(1, realChildCount);
-  return Math.min(Math.max(1, k), n);
-}
+
 
 /**
  * Find a node by ID in the tree
@@ -180,7 +176,7 @@ export function wrapNodeInGroup(
   const realAfterWrap = 1;
   const rawK = threshold ?? defaultThresholdK(realAfterWrap);
   const thresholdClamped =
-    op === 'threshold' ? clampThresholdK(rawK, realAfterWrap) : undefined;
+    op === 'threshold' ? clampStoredThresholdK(rawK, realAfterWrap) : undefined;
 
   const newGroup: StrategyNode = {
     id: generateNodeId(),
@@ -218,7 +214,7 @@ export function changeGroupOp(
 
     if (newOp === 'threshold') {
       const rawK = newThreshold ?? defaultThresholdK(realChildCount);
-      const k = clampThresholdK(rawK, realChildCount);
+      const k = clampStoredThresholdK(rawK, realChildCount);
       return { ...node, op: 'threshold', threshold: k };
     }
 
@@ -440,7 +436,7 @@ export function convertChildPlaceholder(
       kind: 'group',
       op,
       threshold:
-        op === 'threshold' ? clampThresholdK(options.threshold ?? defaultThresholdK(0), 0) : undefined,
+        op === 'threshold' ? clampStoredThresholdK(options.threshold ?? defaultThresholdK(0), 0) : undefined,
       children: [],
     };
   });
