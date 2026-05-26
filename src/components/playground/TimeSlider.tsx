@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useId } from 'react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
 import { blocksToHumanLocale } from '@/lib/engine/time-utils';
@@ -103,6 +103,7 @@ export function TimeSlider() {
   const setCurrentTimeBlocks = usePlaygroundStore((s) => s.setCurrentTimeBlocks);
   const blockTipHeight = usePlaygroundStore((s) => s.blockTipHeight);
   const blockTipHeightReady = usePlaygroundStore((s) => s.blockTipHeightReady);
+  const sliderInputId = useId();
 
   const { timelockValues, maxBlocks, anchors } = useMemo(() => {
     if (!semanticTree) return { timelockValues: [], maxBlocks: 0, anchors: [0, 0] };
@@ -203,7 +204,11 @@ export function TimeSlider() {
           </div>
         </div>
 
+        <label htmlFor={sliderInputId} className="sr-only">
+          {t('playground.timeslider.sliderAriaLabel')}
+        </label>
         <input
+          id={sliderInputId}
           type="range"
           min={0}
           max={SLIDER_MAX}
@@ -212,7 +217,7 @@ export function TimeSlider() {
           aria-valuetext={ariaValueText}
           className="slider-input w-full"
           style={{
-            background: `linear-gradient(to right, #F7931A ${progress}%, #292524 ${progress}%)`,
+            background: `linear-gradient(to right, var(--semantic-timelock) ${progress}%, var(--bg-elevated) ${progress}%)`,
           }}
         />
 
