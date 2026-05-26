@@ -24,7 +24,7 @@ export function FAQSection() {
                 <span className="pr-4 font-medium">
                   {t(`home.faq.items.${key}.q` as const)}
                 </span>
-                <span className="flex-shrink-0 text-text-tertiary transition-transform group-open:rotate-45">
+                <span className="flex-shrink-0 text-text-muted transition-transform group-open:rotate-45">
                   +
                 </span>
               </summary>
