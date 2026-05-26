@@ -16,6 +16,7 @@ import { mapError } from './policy-errors';
 import { upgradeErrorWithPreflight } from './policy-preflight';
 import { attachErrorHighlight } from './policy-error-highlight';
 import { analyzeSpendingPaths } from './path-analyzer';
+import { replaceManyIdentifierTokens } from '@/lib/utils/policy-identifiers';
 
 const { Output } = DescriptorsFactory(ecc);
 
@@ -24,18 +25,19 @@ const NETWORK_MAP: Record<Network, bitcoin.Network> = {
   signet: bitcoin.networks.testnet,
 };
 
-function replaceKeyNames(
+/**
+ * Replace each `policyName` placeholder with its public key. Word-boundary
+ * matching keeps prefix collisions (`A` vs `Alice`, `Key1` vs `Key10`) and
+ * reserved miniscript fragments (`or_b`, `and_v`) intact (P1-03).
+ */
+export function replaceKeyNames(
   expression: string,
   keyVariables: KeyVariable[],
 ): string {
-  let result = expression;
-  const sorted = [...keyVariables].sort(
-    (a, b) => b.policyName.length - a.policyName.length,
+  return replaceManyIdentifierTokens(
+    expression,
+    keyVariables.map((kv) => ({ from: kv.policyName, to: kv.publicKey })),
   );
-  for (const kv of sorted) {
-    result = result.replaceAll(kv.policyName, kv.publicKey);
-  }
-  return result;
 }
 
 export interface CompileOutput {
