@@ -11,6 +11,7 @@ import type { KeyVariable } from '@/lib/engine/types';
 import { isValidPolicyIdentifier } from '@/lib/utils/policy-identifiers';
 
 function KeyRow({ kv, onRemove }: { kv: KeyVariable; onRemove: () => void }) {
+  const { t } = useI18n();
   const updateKeyVariable = usePlaygroundStore((s) => s.updateKeyVariable);
   const renameKeyVariable = usePlaygroundStore((s) => s.renameKeyVariable);
   const [editing, setEditing] = useState(false);
@@ -75,12 +76,22 @@ function KeyRow({ kv, onRemove }: { kv: KeyVariable; onRemove: () => void }) {
         <p className="text-[12px] font-medium text-text-primary">{kv.name}</p>
         <p className="truncate font-mono text-[10px] text-text-muted">{kv.publicKey}</p>
       </div>
-      <div className="flex flex-shrink-0 gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-        <button onClick={() => setEditing(true)} className="flex h-5 w-5 items-center justify-center rounded text-text-muted hover:bg-surface-overlay hover:text-text-secondary">
-          <Pencil className="h-2.5 w-2.5" />
+      <div className="flex flex-shrink-0 gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          aria-label={t('playground.keys.aria.edit', { name: kv.name })}
+          className="flex h-5 w-5 items-center justify-center rounded text-text-muted outline-none transition-colors hover:bg-surface-overlay hover:text-text-secondary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-btc-500 focus-visible:ring-offset-1 focus-visible:ring-offset-surface-base"
+        >
+          <Pencil className="h-2.5 w-2.5" aria-hidden="true" />
         </button>
-        <button onClick={onRemove} className="flex h-5 w-5 items-center justify-center rounded text-text-muted hover:bg-semantic-warning/10 hover:text-semantic-warning">
-          <Trash2 className="h-2.5 w-2.5" />
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={t('playground.keys.aria.delete', { name: kv.name })}
+          className="flex h-5 w-5 items-center justify-center rounded text-text-muted outline-none transition-colors hover:bg-semantic-warning/10 hover:text-semantic-warning focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-semantic-warning focus-visible:ring-offset-1 focus-visible:ring-offset-surface-base"
+        >
+          <Trash2 className="h-2.5 w-2.5" aria-hidden="true" />
         </button>
       </div>
     </div>

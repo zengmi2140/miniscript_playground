@@ -320,6 +320,12 @@ export const en = {
       delete: 'Delete',
       wrap: 'Wrap as',
       undefinedRole: 'Undefined role',
+      aria: {
+        edit: 'Edit node {label}',
+        addRoot: 'Add root node',
+        addChild: 'Add child condition to {label}',
+        switchOperator: 'Switch operator for {label}',
+      },
     },
     op: {
       switch: { title: 'Switch Operator' },
@@ -395,6 +401,10 @@ export const en = {
       restore: 'Restore Defaults',
       empty: 'No key variables',
       hint: 'MVP uses compressed public keys (66 hex chars, for P2WSH)',
+      aria: {
+        edit: 'Edit {name}',
+        delete: 'Delete {name}',
+      },
     },
     context: {
       title: 'Address Type',
@@ -454,6 +464,7 @@ export const en = {
     right: {
       waiting: 'Waiting for compilation...',
       tabPlaceholder: 'Compilation results will appear here',
+      divider: 'Resize spending paths and results panels',
     },
     paths: {
       empty: 'No spending paths available. All paths are unsatisfiable under current conditions.',
@@ -509,6 +520,12 @@ export const en = {
 
   glossary: {
     tooltip: { label: 'What is this' },
+  },
+
+  common: {
+    aria: {
+      copy: 'Copy code',
+    },
   },
 
   resources: {
