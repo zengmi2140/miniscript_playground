@@ -50,3 +50,70 @@ export function isAfterSatisfied(
   const elapsedSeconds = currentBlocks * 600;
   return (referenceTime + elapsedSeconds) >= afterValue;
 }
+
+/**
+ * Block count remaining until an absolute `after()` becomes satisfiable, given
+ * the current simulated elapsed blocks and the chain tip height.
+ * Returns 0 when already satisfied or when the chain tip is unknown for
+ * block-height locks (caller decides how to render).
+ */
+export function getAfterRemainingBlocks(
+  afterValue: number,
+  currentBlocks: number,
+  referenceBlockHeight: number,
+): number {
+  if (afterValue < 500000000) {
+    return Math.max(0, afterValue - referenceBlockHeight - currentBlocks);
+  }
+  const referenceTime = Math.floor(Date.now() / 1000);
+  const elapsedSeconds = currentBlocks * 600;
+  const remainingSeconds = afterValue - referenceTime - elapsedSeconds;
+  if (remainingSeconds <= 0) return 0;
+  return Math.ceil(remainingSeconds / 600);
+}
+
+/**
+ * Shared predicate used by tree-to-flow / path-analyzer / StatusBanner.
+ * `referenceBlockHeight` is required for absolute `after(<height>)`; pass
+ * undefined to keep the previous "tip not ready" behavior (block-height
+ * locks are treated as not satisfiable).
+ */
+export function isPathTimelockSatisfied(
+  cond:
+    | { type: 'timelock_relative'; blocks: number }
+    | { type: 'timelock_absolute'; value: number },
+  currentBlocks: number,
+  referenceBlockHeight: number | undefined,
+): boolean {
+  if (cond.type === 'timelock_relative') {
+    return isOlderSatisfied(cond.blocks, currentBlocks);
+  }
+  // timelock_absolute
+  if (cond.value < 500000000) {
+    if (referenceBlockHeight === undefined) return false;
+    return isAfterSatisfied(cond.value, currentBlocks, referenceBlockHeight);
+  }
+  // Unix timestamp form: chain tip not required.
+  return isAfterSatisfied(cond.value, currentBlocks, 0);
+}
+
+/**
+ * Remaining blocks until a path timelock condition becomes satisfiable.
+ * Pairs with `isPathTimelockSatisfied`. Returns 0 when already satisfied.
+ */
+export function getPathTimelockRemainingBlocks(
+  cond:
+    | { type: 'timelock_relative'; blocks: number }
+    | { type: 'timelock_absolute'; value: number },
+  currentBlocks: number,
+  referenceBlockHeight: number | undefined,
+): number {
+  if (cond.type === 'timelock_relative') {
+    return Math.max(0, cond.blocks - currentBlocks);
+  }
+  if (cond.value < 500000000) {
+    if (referenceBlockHeight === undefined) return Math.max(0, cond.value);
+    return getAfterRemainingBlocks(cond.value, currentBlocks, referenceBlockHeight);
+  }
+  return getAfterRemainingBlocks(cond.value, currentBlocks, 0);
+}

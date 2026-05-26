@@ -1,10 +1,17 @@
 import type { SpendingPath, PathCondition, KeyVariable, PathLabelVariant } from './types';
-import { blocksToHuman, afterToHuman, isOlderSatisfied } from './time-utils';
+import { blocksToHuman, afterToHuman, isPathTimelockSatisfied } from './time-utils';
 
 interface Satisfaction {
   asm: string;
   nSequence?: number;
   nLockTime?: number;
+}
+
+interface PubkeyInfo {
+  /** Stable identifier (matches the policy text). Path-analyzer uses this as `keyName`. */
+  policyName: string;
+  /** Display label used by UI. Falls back to `policyName` when not provided. */
+  displayName: string;
 }
 
 export function analyzeSpendingPaths(
@@ -14,11 +21,12 @@ export function analyzeSpendingPaths(
   availableKeys: Set<string>,
   availableHashes: Set<string>,
   currentTimeBlocks: number,
+  blockTipHeight?: number,
 ): SpendingPath[] {
-  const pubkeyToName: Record<string, string> = {};
+  const pubkeyToInfo: Record<string, PubkeyInfo> = {};
   for (const kv of keyVariables) {
-    if (pubkeyToName[kv.publicKey] === undefined) {
-      pubkeyToName[kv.publicKey] = kv.name;
+    if (pubkeyToInfo[kv.publicKey] === undefined) {
+      pubkeyToInfo[kv.publicKey] = { policyName: kv.policyName, displayName: kv.name };
     }
   }
 
@@ -28,14 +36,14 @@ export function analyzeSpendingPaths(
   for (const sat of nonMalleableSats) {
     index++;
     paths.push(
-      buildPath(sat, index, false, pubkeyToName, availableKeys, availableHashes, currentTimeBlocks),
+      buildPath(sat, index, false, pubkeyToInfo, availableKeys, availableHashes, currentTimeBlocks, blockTipHeight),
     );
   }
 
   for (const sat of malleableSats) {
     index++;
     paths.push(
-      buildPath(sat, index, true, pubkeyToName, availableKeys, availableHashes, currentTimeBlocks),
+      buildPath(sat, index, true, pubkeyToInfo, availableKeys, availableHashes, currentTimeBlocks, blockTipHeight),
     );
   }
 
@@ -48,12 +56,13 @@ function buildPath(
   sat: Satisfaction,
   index: number,
   isMalleable: boolean,
-  pubkeyToName: Record<string, string>,
+  pubkeyToInfo: Record<string, PubkeyInfo>,
   availableKeys: Set<string>,
   availableHashes: Set<string>,
   currentTimeBlocks: number,
+  blockTipHeight: number | undefined,
 ): SpendingPath {
-  const conditions = extractConditions(sat, pubkeyToName);
+  const conditions = extractConditions(sat, pubkeyToInfo);
 
   const timelockConditions = extractTimelockFromSequence(sat.nSequence);
   if (timelockConditions) {
@@ -78,14 +87,11 @@ function buildPath(
         satisfiable = false;
         missingConditions.push(cond);
       }
-    } else if (cond.type === 'timelock_relative') {
-      if (!isOlderSatisfied(cond.blocks, currentTimeBlocks)) {
+    } else if (cond.type === 'timelock_relative' || cond.type === 'timelock_absolute') {
+      if (!isPathTimelockSatisfied(cond, currentTimeBlocks, blockTipHeight)) {
         satisfiable = false;
         missingConditions.push(cond);
       }
-    } else if (cond.type === 'timelock_absolute') {
-      satisfiable = false;
-      missingConditions.push(cond);
     }
   }
 
@@ -108,7 +114,7 @@ function buildPath(
 
 function extractConditions(
   sat: Satisfaction,
-  pubkeyToName: Record<string, string>,
+  pubkeyToInfo: Record<string, PubkeyInfo>,
 ): PathCondition[] {
   const conditions: PathCondition[] = [];
   const asm = sat.asm;
@@ -117,9 +123,11 @@ function extractConditions(
   let match: RegExpExecArray | null;
   while ((match = sigRegex.exec(asm)) !== null) {
     const pubkey = match[1];
-    const keyName = pubkeyToName[pubkey] || pubkey;
+    const info = pubkeyToInfo[pubkey];
+    const keyName = info ? info.policyName : pubkey;
+    const displayName = info ? info.displayName : pubkey;
     if (!conditions.some(c => c.type === 'signature' && c.keyName === keyName)) {
-      conditions.push({ type: 'signature', keyName });
+      conditions.push({ type: 'signature', keyName, displayName });
     }
   }
 
@@ -199,7 +207,7 @@ function computeLabelVariant(conditions: PathCondition[]): PathLabelVariant {
   if (sigCount > 0 && !hasTimelock && !hasHash) {
     const names = conditions
       .filter((c): c is PathCondition & { type: 'signature' } => c.type === 'signature')
-      .map(c => c.keyName);
+      .map(c => c.displayName ?? c.keyName);
     return { kind: 'signatures', names };
   }
   if (hasTimelock && sigCount > 0) {

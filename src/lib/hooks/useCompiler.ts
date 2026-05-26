@@ -15,6 +15,8 @@ export function useCompiler() {
   const availableKeys = usePlaygroundStore((s) => s.availableKeys);
   const availableHashes = usePlaygroundStore((s) => s.availableHashes);
   const currentTimeBlocks = usePlaygroundStore((s) => s.currentTimeBlocks);
+  const blockTipHeight = usePlaygroundStore((s) => s.blockTipHeight);
+  const blockTipHeightReady = usePlaygroundStore((s) => s.blockTipHeightReady);
 
   const setCompilationResult = usePlaygroundStore((s) => s.setCompilationResult);
   const setCompilationError = usePlaygroundStore((s) => s.setCompilationError);
@@ -49,6 +51,7 @@ export function useCompiler() {
           availableKeys,
           availableHashes,
           currentTimeBlocks,
+          blockTipHeightReady ? blockTipHeight : undefined,
         );
 
         if (abortRef.current !== generation) return;
@@ -96,6 +99,8 @@ export function useCompiler() {
     availableKeys,
     availableHashes,
     currentTimeBlocks,
+    blockTipHeight,
+    blockTipHeightReady,
     setCompilationResult,
     setCompilationError,
     setSemanticTree,

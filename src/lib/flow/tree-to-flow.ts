@@ -1,7 +1,11 @@
 import dagre from 'dagre';
 import type { Node, Edge } from '@xyflow/react';
 import type { MiniscriptNode } from '@/lib/engine/types';
-import { blocksToHumanLocale, afterToHumanLocale } from '@/lib/engine/time-utils';
+import {
+  blocksToHumanLocale,
+  afterToHumanLocale,
+  isPathTimelockSatisfied,
+} from '@/lib/engine/time-utils';
 import { HTLC_TEACHING_HASH160_DIGEST } from '@/lib/playground/htlc-display-mask';
 
 export type FlowNodeType = 'root' | 'operator' | 'condition';
@@ -48,12 +52,26 @@ function getConditionStatus(
     case 'key':
       return availableKeys.has(node.name) ? 'satisfied' : 'missing';
     case 'older':
-      return currentTimeBlocks >= node.blocks ? 'satisfied' : 'pending';
+      return isPathTimelockSatisfied(
+        { type: 'timelock_relative', blocks: node.blocks },
+        currentTimeBlocks,
+        blockTipHeight,
+      )
+        ? 'satisfied'
+        : 'pending';
     case 'after':
-      if (blockTipHeight !== undefined && node.value < 500000000) {
-        return blockTipHeight >= node.value ? 'satisfied' : 'pending';
+      // Block-height after() needs a real chain tip; without it stay 'pending'
+      // so the user does not see a satisfied state based on a stale default.
+      if (node.value < 500000000 && blockTipHeight === undefined) {
+        return 'pending';
       }
-      return 'pending';
+      return isPathTimelockSatisfied(
+        { type: 'timelock_absolute', value: node.value },
+        currentTimeBlocks,
+        blockTipHeight,
+      )
+        ? 'satisfied'
+        : 'pending';
     case 'hash':
       return availableHashes.has(node.hash) ? 'satisfied' : 'missing';
     case 'multi':

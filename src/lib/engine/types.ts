@@ -51,7 +51,13 @@ export interface SpendingPath {
 }
 
 export type PathCondition =
-  | { type: 'signature'; keyName: string }
+  | {
+      type: 'signature';
+      /** Stable identifier matching the policy text (== `KeyVariable.policyName`). */
+      keyName: string;
+      /** Optional display label (== `KeyVariable.name`); falls back to `keyName` in UI. */
+      displayName?: string;
+    }
   | { type: 'timelock_relative'; blocks: number; humanReadable: string }
   | { type: 'timelock_absolute'; value: number; humanReadable: string }
   | { type: 'hashlock'; hashType: 'sha256' | 'hash256' | 'ripemd160' | 'hash160'; hash: string };

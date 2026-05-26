@@ -46,7 +46,7 @@ export function ConditionChip({ condition, className }: ConditionChipProps) {
   let label: string;
   switch (condition.type) {
     case 'signature':
-      label = condition.keyName;
+      label = condition.displayName ?? condition.keyName;
       break;
     case 'timelock_relative':
       label = blocksToHumanLocale(condition.blocks, locale);
