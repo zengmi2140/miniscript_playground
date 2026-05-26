@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback, useRef } from 'react';
 import { CheckCircle2, Clock, XCircle, AlertTriangle } from 'lucide-react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
 import { useI18n } from '@/lib/i18n/context';
@@ -22,16 +23,38 @@ function PathStatusIcon({ path }: { path: SpendingPath }) {
   return <XCircle className="h-4 w-4 text-semantic-locked" />;
 }
 
-function PathCard({ path }: { path: SpendingPath }) {
+function PathCard({
+  path,
+  isSelected,
+  tabIndex,
+  onSelect,
+  onKeyDown,
+  optionRef,
+}: {
+  path: SpendingPath;
+  isSelected: boolean;
+  tabIndex: number;
+  onSelect: () => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
+  optionRef?: (el: HTMLButtonElement | null) => void;
+}) {
   const { t } = useI18n();
 
   return (
-    <div
+    <button
+      type="button"
+      role="option"
+      aria-selected={isSelected}
+      tabIndex={tabIndex}
+      onClick={onSelect}
+      onKeyDown={onKeyDown}
+      ref={optionRef}
       className={cn(
-        'rounded-card border-l-[3px] border border-border-subtle bg-surface-base p-3 transition-all',
+        'w-full rounded-card border border-l-[3px] border-border-subtle bg-surface-base p-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-btc-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base',
         path.satisfiable
           ? 'border-l-semantic-satisfied'
           : 'border-l-semantic-locked opacity-60',
+        isSelected && 'border-border-active ring-1 ring-border-active',
       )}
     >
       <div className="mb-2 flex items-center justify-between">
@@ -58,13 +81,53 @@ function PathCard({ path }: { path: SpendingPath }) {
           </span>
         )}
       </div>
-    </div>
+    </button>
   );
 }
 
 export function PathsTab() {
   const spendingPaths = usePlaygroundStore((s) => s.spendingPaths);
+  const selectedPathIndex = usePlaygroundStore((s) => s.selectedPathIndex);
+  const setSelectedPathIndex = usePlaygroundStore((s) => s.setSelectedPathIndex);
   const { t } = useI18n();
+  const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  const focusableIndex =
+    selectedPathIndex !== null && selectedPathIndex < spendingPaths.length
+      ? selectedPathIndex
+      : 0;
+
+  const handleOptionKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+      if (spendingPaths.length === 0) return;
+
+      let nextIndex: number | null = null;
+      switch (event.key) {
+        case 'ArrowDown':
+        case 'ArrowRight':
+          nextIndex = (index + 1) % spendingPaths.length;
+          break;
+        case 'ArrowUp':
+        case 'ArrowLeft':
+          nextIndex = (index - 1 + spendingPaths.length) % spendingPaths.length;
+          break;
+        case 'Home':
+          nextIndex = 0;
+          break;
+        case 'End':
+          nextIndex = spendingPaths.length - 1;
+          break;
+        default:
+          break;
+      }
+
+      if (nextIndex === null) return;
+      event.preventDefault();
+      setSelectedPathIndex(nextIndex);
+      optionRefs.current[nextIndex]?.focus();
+    },
+    [spendingPaths, setSelectedPathIndex],
+  );
 
   if (spendingPaths.length === 0) {
     return (
@@ -77,9 +140,19 @@ export function PathsTab() {
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      {spendingPaths.map((path) => (
-        <PathCard key={path.index} path={path} />
+    <div className="flex flex-col gap-2" role="listbox" aria-label={t('playground.results.paths')}>
+      {spendingPaths.map((path, index) => (
+        <PathCard
+          key={path.index}
+          path={path}
+          isSelected={selectedPathIndex === index}
+          tabIndex={focusableIndex === index ? 0 : -1}
+          onSelect={() => setSelectedPathIndex(index)}
+          onKeyDown={(e) => handleOptionKeyDown(e, index)}
+          optionRef={(el) => {
+            optionRefs.current[index] = el;
+          }}
+        />
       ))}
     </div>
   );
