@@ -43,6 +43,13 @@ export function useBuilderSync() {
     // tree is an empty and/or group — serializeStrategyTree returns ''). Must run before the empty
     // policy reset below, otherwise we'd clobber the tree back to the root placeholder.
     if (policy === lastBuilderPolicySnapshot) {
+      // P1-04: if the user typed garbage (compile-error / text-led) and
+      // edited the policy back to the last snapshot, recover to 'synced'
+      // so the canvas becomes editable again. Skip when there's a real
+      // compilation error — that case is reconciled below.
+      if (!compilationError && builderSyncState !== 'synced') {
+        setBuilderSyncState('synced');
+      }
       return;
     }
 
