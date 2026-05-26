@@ -106,7 +106,7 @@ npm run test:coverage
 
 - **`/`** — `src/app/page.tsx`。顺序：`HomepageHero`（双主角结构：Miniscript 技术定位 + ScriptWise 站点身份；右侧代码卡片含 Policy → Bitcoin Script 编译动画，桌面端首次进入视口自动播放，移动端直接展示终态；两条花费路径） → `HookSection`（"为什么这件事和你有关"三个场景问句） → `TransitionSection`（地址背后的脚本 + 单签 vs 多签 + 过渡句） → `ScriptComplexitySection`（四个限制 PainCard + outro） → `MeetMiniscriptSection`（两段式：`DefinitionBlock` ①Miniscript 是什么，含 Policy → Miniscript → Bitcoin Script 三层横向流水线（每张卡片含定位说明 + 代码示例 + 注释）→ `FeaturesBlock` ②可读性 / 可组合性 / 可迁移性 三张卡，其中可迁移性卡片包含 Descriptor 概念说明）→ `IntroApplicationsSection`（标题走 i18n；「上手一试」强化为半实心橙色按钮 + ArrowRight；编译演示切换场景带 fadeSlideIn 微交互） → `HistorySection`（Miniscript 简史：3 个时间线里程碑 + 3 位设计者卡片） → `HomepageWallets` → `FAQSection`（6 条可折叠问答） → 双路径 CTA（`home.cta.primary` + `home.cta.secondary`） + footer。所有 section 通过 `ScrollReveal` 包裹实现滚动淡入动效（`IntersectionObserver`，尊重 `prefers-reduced-motion`）。**所有首页文案均通过 `t()` 读取 i18n**，`home.*` 命名空间下提供完整中英文（`zh.ts` / `en.ts`）。Applications **7** 条卡片与 `playgroundScenarioId` 见 `src/components/intro/data.ts`（含 **「穿越牛熊」** `holder-timelock`）；其余未列入 Applications 的预设由 `sortScenariosForPlayground()` 排在末尾（见 `src/lib/scenarios/data.ts`）。`requestIdleCallback` 可预热 Playground。  
 - **`/intro`** — `src/app/intro/page.tsx`：`redirect('/')`。  
-- **`/playground`** — `src/app/playground/page.tsx` → `PlaygroundClient.tsx`：处理 `?s=`、`?scenario=`、`?mode=build`；`clearSession()`；挂载时 `fetchBlockTipHeight`；`useCompiler` + `useBuilderSync`；渐进式加载（`dynamic` 画布、`prefetch` 等）。  
+- **`/playground`** — `src/app/playground/page.tsx` → `PlaygroundClient.tsx`：处理 `?s=`、`?scenario=`、`?mode=build`；`useViewportMode` 先走 `loading` 轻量 skeleton，再根据视口进入 `mobile`（`MobileFallback`）或 `desktop`（三栏）。仅 `desktop` 确认后通过 `useDesktopBootstrap` 执行 `clearSession()` + `fetchBlockTipHeight`，并启用 `useCompiler` + `useBuilderSync`。`?s=` 解码失败会显示一次性提示横幅。渐进式加载（`dynamic` 画布、`prefetch` 等）。  
 - **`/resources`** — `src/app/resources/page.tsx`：外链网格 +「推荐阅读」（数据：`src/lib/resources/recommended-reading.ts`）。  
 - **`/compare`** — `src/app/compare/page.tsx`：Coming Soon。
 
@@ -146,7 +146,7 @@ npm run test:coverage
 | 目录 | 内容 |
 |------|------|
 | `layout/` | `Header` 等全站布局 |
-| `providers.tsx` | `ThemeProvider`、`I18nProvider` |
+| `providers.tsx` | `ThemeProvider`、`I18nProvider`（接收 server 传入的 `initialLocale` / `initialTheme`） |
 | `playground/` | 三栏、`LeftPanel`、`CenterPanel`、`RightPanel`、`PolicyEditor`、条件/时间/状态 |
 | `builder/` | build 画布、`BuilderCanvas`、`BuilderPopover`、`OperatorSwitchPopover`、`BuilderNodes` 等 |
 | `flow/` | scenario 路径图：`PathMap`、`FlowNodes`、`PathEdge` |
@@ -162,7 +162,7 @@ npm run test:coverage
 | 目录 | 内容 |
 |------|------|
 | `stores/` | `playground-store.ts` — Playground 唯一状态源 |
-| `hooks/` | `useCompiler.ts`、`useBuilderSync.ts` |
+| `hooks/` | `useCompiler.ts`、`useBuilderSync.ts`、`useDesktopBootstrap.ts` |
 | `engine/` | `compiler.ts`、`miniscript-parser.ts`、`path-analyzer.ts`、`block-height.ts`（链尖缓存与 `fetchBlockTipHeight`）、`block-height-fallback.generated.ts`（**构建生成**，勿手改）、policy 错误与预检、`*__tests__/` |
 | `builder/` | 策略树模型、`serialize`、`node-ops`、`from-semantic-tree`、`status`、`tree-to-flow`、`__tests__/` |
 | `flow/` | scenario：`tree-to-flow.ts`（Dagre） |
@@ -173,6 +173,7 @@ npm run test:coverage
 | `glossary/` | 术语数据 |
 | `resources/` | `recommended-reading.ts` |
 | `theme/` | 主题 Context |
+| `preferences.ts` | locale/theme cookie key、解析与 `localeToHtmlLang` helper |
 | `utils/` | `share.ts`、`storage.ts`、`cn.ts` 等 |
 | `shims/` | `ledger-bitcoin-stub.js` |
 
@@ -181,7 +182,7 @@ npm run test:coverage
 ```text
 用户编辑 Policy / 操作画布
     → playground-store（Zustand）
-    → Playground 挂载：fetchBlockTipHeight → blockTipHeight / blockTipHeightReady
+    → Playground（desktop 确认后）useDesktopBootstrap：clearSession + fetchBlockTipHeight → blockTipHeight / blockTipHeightReady
     → useCompiler（debounce）→ compiler → miniscript、descriptor、地址、spendingPaths
     → scenario：miniscript-parser → tree-to-flow → PathMap（链尖就绪后传入 blockTipHeight 用于区块高度型 after）
     → build：strategyTree ↔ useBuilderSync ↔ Policy 文本
@@ -200,7 +201,7 @@ npm run test:coverage
 
 ### 应用装配
 
-- `layout.tsx`、`providers.tsx`、`Header.tsx`（首页 / Playground / Resources）。
+- `layout.tsx` 在 server 读取 `scriptwise-locale` / `scriptwise-theme` cookie，输出 `<html lang>` 与主题 class/`color-scheme`，并注入 no-flash theme script；`providers.tsx` 将同一初值传给 `I18nProvider` / `ThemeProvider` 以避免 hydration mismatch；`Header.tsx` 承载首页 / Playground / Resources 导航。
 
 ### Playground 状态
 
@@ -236,7 +237,7 @@ npm run test:coverage
 ### 分享与会话
 
 - 不自动持久化 Playground；`share.ts` 将状态编码为 `?s=`（Base64 JSON），并对 `network` / `context` / `keyVariables` 形状做校验；`storage.ts` 的 legacy `loadSession` 使用相同规则。  
-- `PlaygroundClient`：`searchParams` **每次变化**（含客户端路由）时按 **`applyPlaygroundSearchParams`** 应用：**`s` 解码成功** → `restoreSession`；**否则** 若有 `scenario` → `loadScenario`；**否则** 若 `mode=build` → `enterBuildMode`。无上述参数时不 `reset()`，避免误清编辑中状态。挂载时仍 `clearSession()` 并拉取链尖。  
+- `PlaygroundClient`：`searchParams` **每次变化**（含客户端路由）时按 **`applyPlaygroundSearchParams`** 应用：**`s` 解码成功** → `restoreSession`；**否则** 若有 `scenario` → `loadScenario`；**否则** 若 `mode=build` → `enterBuildMode`。无上述参数时不 `reset()`，避免误清编辑中状态。`s` 解码失败会触发一次性 `invalidPayload` 提示。桌面初始化（`clearSession` + 拉链尖）由 `useDesktopBootstrap` 在 `mode === 'desktop'` 时触发。  
 - 分享链接过长时 `PolicyEditor` 会提示（阈值见 `share.ts`）；超大策略不宜仅依赖 URL 分享。
 
 ---
@@ -249,8 +250,8 @@ npm run test:coverage
 
 ## 8. i18n、主题、样式
 
-- i18n：`zh.ts` / `en.ts`，`t()` dot-path。  
-- 主题：`ThemeProvider`。  
+- i18n：`zh.ts` / `en.ts`，`t()` dot-path；`I18nProvider` 首值来自 server cookie，切换语言会同步 cookie / localStorage 与 `document.documentElement.lang`。  
+- 主题：`ThemeProvider` 首值来自 server cookie；`layout.tsx` 注入 no-flash script 保证首帧主题一致，客户端切换同步 cookie / localStorage 与 `color-scheme`。  
 - Token：[DESIGN.md](DESIGN.md)；`globals.css`、`tailwind.config.js`。
 
 ---
@@ -261,8 +262,8 @@ npm run test:coverage
 2. **时间模拟**：`older()` 与区块高度型 **`after()`** 可与链尖结合，在时间轴上混合排序；**Unix 时间戳型 `after()`** 等路径仍可能简化或未完全模拟（以代码为准）。从「编译 → 路径分析 → 路径图 → 状态横幅 → build 模式节点状态」**共用** `time-utils.ts` 的 `isPathTimelockSatisfied` / `getPathTimelockRemainingBlocks`，区块高度型 `after()` 在链尖未就绪时一律视为 pending 而非 satisfied。  
 3. **signet** 地址派生可能复用 testnet 网络对象（教学折中）。  
 4. **/compare** 未实现；导航指向 **Resources**。  
-5. 多数页面为 **'use client'**。  
-6. **移动端**无完整 Playground（桌面优先）。  
+5. 多数业务页面仍为 **'use client'**；但根 `layout.tsx` 已在服务端按 cookie 输出 `<html lang>` 与主题 class（含 no-flash 主题脚本）。  
+6. **移动端**无完整 Playground（桌面优先）；`useViewportMode === 'loading'` 先渲染 skeleton，未确认 desktop 前不会触发 `clearSession` / `fetchBlockTipHeight`。  
 7. 无 **regtest**。  
 8. 路径图**根节点**即顶层逻辑（都需要 / **二选一** / k-of-n），单叶子可无根节点。  
 9. **build** 为 MVP：受约束树 + 同步；非任意拖线。  
@@ -284,6 +285,8 @@ npm run test:coverage
 | build 画布 | `src/lib/builder/*`（含 `threshold.ts` 的 `effectiveThresholdK` / `clampStoredThresholdK` 共享 clamp）、`BuilderCanvas`、`useBuilderSync.ts`、`playground-store.ts` |
 | Policy 编辑器 | `PolicyEditor.tsx`、`htlc-display-mask.ts`、`policy-errors` 等 |
 | 右栏结果 | `RightPanel.tsx`、`components/results/*` |
+| SSR 语言/主题首帧一致性 | `src/lib/preferences.ts`、`src/app/layout.tsx`、`src/components/providers.tsx`、`src/lib/i18n/context.tsx`、`src/lib/theme/context.tsx` |
+| Playground 首屏模式与桌面 bootstrap | `src/app/playground/PlaygroundClient.tsx`、`src/lib/hooks/useDesktopBootstrap.ts`、`src/lib/playground/apply-playground-search-params.ts` |
 | 资源页 | `src/app/resources/page.tsx`、`recommended-reading.ts`、`resources.*` |
 | 首页 / Intro | `src/app/page.tsx`、`src/components/home/*`（Hero / Hook / Transition / ScriptComplexity / MeetMiniscript / History / Wallets / FAQ / ScrollReveal 等）、`src/components/intro/*` |
 | 动效兜底 | `globals.css` 中的 `@media (prefers-reduced-motion: reduce)` 全局兜底；`HomepageWallets` 钱包 marquee 仅首份副本可聚焦，其余 3 份 `aria-hidden`，并提供显式暂停/恢复按钮（`home.wallets.pause` / `resume`）；动画 keyframes 集中在 `globals.css`（不再用组件内 inline `<style>`） |
