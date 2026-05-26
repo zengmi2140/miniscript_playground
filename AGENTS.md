@@ -52,6 +52,7 @@ npm install
 npm run dev
 npm run build          # 会先运行 prebuild：生成 block-height-fallback.generated.ts
 npm run lint
+npm run typecheck
 npm run test
 ```
 
@@ -278,7 +279,7 @@ npm run test
 | 路径判定 / 模拟 | `path-analyzer.ts`、`time-utils.ts`（`isPathTimelockSatisfied` / `getPathTimelockRemainingBlocks` 共享 helper）、`block-height.ts`、`block-height-fallback.generated.ts`（`prebuild`）、`StatusBanner`、`ConditionToggles`、`TimeSlider`、`PathsTab` |
 | Key 名替换 / 重命名 | `src/lib/utils/policy-identifiers.ts`（token-aware `\b<name>\b`）、`compiler.ts`（`replaceKeyNames`）、`playground-store.ts`（`renameKeyVariable`）、`KeyVariableManager.tsx`、`share.ts` |
 | scenario 路径图 | `tree-to-flow.ts`、`PathMap`（传入 `blockTipHeight`）、`FlowNodes`、`PathEdge` |
-| build 画布 | `src/lib/builder/*`、`BuilderCanvas`、`useBuilderSync.ts`、`playground-store.ts` |
+| build 画布 | `src/lib/builder/*`（含 `threshold.ts` 提供的 `effectiveThresholdK`）、`BuilderCanvas`、`useBuilderSync.ts`、`playground-store.ts` |
 | Policy 编辑器 | `PolicyEditor.tsx`、`htlc-display-mask.ts`、`policy-errors` 等 |
 | 右栏结果 | `RightPanel.tsx`、`components/results/*` |
 | 资源页 | `src/app/resources/page.tsx`、`recommended-reading.ts`、`resources.*` |

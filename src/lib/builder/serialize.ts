@@ -5,6 +5,7 @@
  */
 
 import type { StrategyNode } from './types';
+import { effectiveThresholdK } from './threshold';
 
 /**
  * Policy `and` / `or` are binary only. Fold N sub-policies into right-nested form:
@@ -77,11 +78,8 @@ export function serializeStrategyTree(node: StrategyNode): string {
           return foldBinaryOr(childPolicies);
 
         case 'threshold': {
-          // Defensive: tree state should keep k <= n; clamp so we never emit invalid thresh(k,...) when k > arity.
-          const n = childPolicies.length;
-          if (n === 0) return '';
-          const kRaw = node.threshold ?? 1;
-          const k = Math.min(Math.max(1, kRaw), n);
+          if (childPolicies.length === 0) return '';
+          const k = effectiveThresholdK(node);
           return `thresh(${k},${childPolicies.join(',')})`;
         }
 

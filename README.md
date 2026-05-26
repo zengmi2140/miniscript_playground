@@ -58,7 +58,7 @@ npm install
 npm run dev
 ```
 
-测试：`npm run test`（Vitest）。代码检查：`npm run lint`。
+代码检查：`npm run lint`。类型检查：`npm run typecheck`。测试：`npm run test`（Vitest）。
 
 启动后访问终端输出的地址（通常是 http://localhost:3000）。
 

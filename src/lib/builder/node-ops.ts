@@ -6,6 +6,7 @@
  */
 
 import type { StrategyNode, StrategyGroupNode } from './types';
+import { effectiveThresholdK } from './threshold';
 
 let nodeIdCounter = 1000;
 
@@ -139,10 +140,16 @@ export function removeNode(tree: StrategyNode, nodeId: string): StrategyNode | n
       })
       .filter((child): child is StrategyNode => child !== null);
 
-    return {
+    const next: StrategyGroupNode = {
       ...tree,
       children: newChildren,
     };
+
+    if (next.op === 'threshold') {
+      next.threshold = effectiveThresholdK(next);
+    }
+
+    return next;
   }
 
   return tree;
@@ -272,7 +279,8 @@ export function updateThreshold(
 ): StrategyNode {
   return updateNode(tree, nodeId, (node) => {
     if (node.kind !== 'group' || node.op !== 'threshold') return node;
-    return { ...node, threshold: newK };
+    const candidate: StrategyGroupNode = { ...node, threshold: newK };
+    return { ...candidate, threshold: effectiveThresholdK(candidate) };
   });
 }
 
