@@ -94,7 +94,7 @@ export function BuilderPopover() {
         // Create default key variables
         const defaultKeys = createDefaultKeyVariables(1);
         setKeyVariables(defaultKeys);
-        const newTree = convertRootPlaceholder(strategyTree, 'signature', { roleId: defaultKeys[0].name });
+        const newTree = convertRootPlaceholder(strategyTree, 'signature', { roleId: defaultKeys[0].policyName });
         updateStrategyTree(newTree);
       } else {
         // Group type
@@ -115,7 +115,7 @@ export function BuilderPopover() {
             children: defaultKeys.map((kv, i) => ({
               id: `sig_${i}`,
               kind: 'signature' as const,
-              roleId: kv.name,
+              roleId: kv.policyName,
             })),
           };
           updateStrategyTree(newTree);
@@ -145,14 +145,14 @@ export function BuilderPopover() {
         let newTree: StrategyNode;
         if (type === 'signature') {
           const usedRoles = collectRoleIds(strategyTree);
-          const unusedKv = keyVariables.find(kv => !usedRoles.has(kv.name));
+          const unusedKv = keyVariables.find(kv => !usedRoles.has(kv.policyName));
           let roleId: string;
           if (unusedKv) {
-            roleId = unusedKv.name;
+            roleId = unusedKv.policyName;
           } else {
             const newKey = createNextKeyVariable(keyVariables);
             addKeyVariable(newKey);
-            roleId = newKey.name;
+            roleId = newKey.policyName;
           }
           newTree = convertChildPlaceholder(strategyTree, targetNodeId, 'signature', { roleId });
         } else if (type === 'timelock') {
@@ -181,14 +181,14 @@ export function BuilderPopover() {
       let newTree: StrategyNode;
       if (type === 'signature') {
         const usedRoles = collectRoleIds(strategyTree);
-        const unusedKv = keyVariables.find(kv => !usedRoles.has(kv.name));
+        const unusedKv = keyVariables.find(kv => !usedRoles.has(kv.policyName));
         let roleId: string;
         if (unusedKv) {
-          roleId = unusedKv.name;
+          roleId = unusedKv.policyName;
         } else {
           const newKey = createNextKeyVariable(keyVariables);
           addKeyVariable(newKey);
-          roleId = newKey.name;
+          roleId = newKey.policyName;
         }
         newTree = addSignatureChild(strategyTree, parentIdForAdd, roleId);
       } else if (type === 'timelock') {
@@ -234,7 +234,7 @@ export function BuilderPopover() {
     const kv = createNextKeyVariable(keyVariables);
     addKeyVariable(kv);
     if (selectedNode?.kind === 'signature' && strategyTree && targetNodeId) {
-      const newTree = updateSignatureRole(strategyTree, targetNodeId, kv.name);
+      const newTree = updateSignatureRole(strategyTree, targetNodeId, kv.policyName);
       updateStrategyTree(newTree);
     }
   }, [
@@ -446,11 +446,11 @@ export function BuilderPopover() {
             <div className="flex flex-wrap gap-1.5">
               {keyVariables.map((kv) => (
                 <button
-                  key={kv.name}
-                  onClick={() => handleRoleSelect(kv.name)}
+                  key={kv.policyName}
+                  onClick={() => handleRoleSelect(kv.policyName)}
                   className={cn(
                     'rounded-full px-3 py-1 text-xs font-medium transition-colors',
-                    selectedNode.roleId === kv.name
+                    selectedNode.roleId === kv.policyName
                       ? 'bg-btc-500 text-white'
                       : 'bg-surface-elevated text-text-secondary hover:bg-surface-elevated/80'
                   )}

@@ -48,7 +48,7 @@ function BuilderCanvasInner() {
 
   const isReadOnly = builderSyncState !== 'synced';
   const definedRoles = useMemo(
-    () => new Set(keyVariables.map((kv) => kv.name)),
+    () => new Set(keyVariables.map((kv) => kv.policyName)),
     [keyVariables]
   );
 
