@@ -38,10 +38,19 @@ export function ConditionToggles() {
       <div className="flex flex-wrap gap-1.5">
         {keyNames.map((name) => {
           const isOn = availableKeys.has(name);
+          const stateText = isOn
+            ? t('playground.conditions.toggleAria.stateOn')
+            : t('playground.conditions.toggleAria.stateOff');
           return (
             <button
+              type="button"
               key={`key-${name}`}
               onClick={() => toggleKey(name)}
+              aria-pressed={isOn}
+              aria-label={t('playground.conditions.toggleAria.key', {
+                name,
+                state: stateText,
+              })}
               className={cn(
                 'flex h-7 items-center gap-1.5 rounded-chip border pl-1 pr-2.5 text-chip transition-all',
                 isOn
@@ -53,23 +62,32 @@ export function ConditionToggles() {
                 'flex h-4 w-4 items-center justify-center rounded-sm',
                 isOn ? 'bg-semantic-key/20' : 'bg-surface-overlay',
               )}>
-                {isOn ? <Check className="h-2.5 w-2.5" /> : <X className="h-2.5 w-2.5" />}
+                {isOn ? <Check className="h-2.5 w-2.5" aria-hidden="true" /> : <X className="h-2.5 w-2.5" aria-hidden="true" />}
               </div>
-              <Key className="h-3 w-3" />
+              <Key className="h-3 w-3" aria-hidden="true" />
               {name}
             </button>
           );
         })}
         {hashes.map((hash) => {
           const isOn = availableHashes.has(hash);
+          const stateText = isOn
+            ? t('playground.conditions.toggleAria.stateOn')
+            : t('playground.conditions.toggleAria.stateOff');
           const shortHash =
             maskHtlcHash && hash === HTLC_TEACHING_HASH160_DIGEST
               ? 'HEX'
               : hash.slice(0, 8) + '...';
           return (
             <button
+              type="button"
               key={`hash-${hash}`}
               onClick={() => toggleHash(hash)}
+              aria-pressed={isOn}
+              aria-label={t('playground.conditions.toggleAria.hash', {
+                name: shortHash,
+                state: stateText,
+              })}
               className={cn(
                 'flex h-7 items-center gap-1.5 rounded-chip border pl-1 pr-2.5 text-chip transition-all',
                 isOn
@@ -81,9 +99,9 @@ export function ConditionToggles() {
                 'flex h-4 w-4 items-center justify-center rounded-sm',
                 isOn ? 'bg-semantic-hashlock/20' : 'bg-surface-overlay',
               )}>
-                {isOn ? <Check className="h-2.5 w-2.5" /> : <X className="h-2.5 w-2.5" />}
+                {isOn ? <Check className="h-2.5 w-2.5" aria-hidden="true" /> : <X className="h-2.5 w-2.5" aria-hidden="true" />}
               </div>
-              <Hash className="h-3 w-3" />
+              <Hash className="h-3 w-3" aria-hidden="true" />
               {shortHash}
             </button>
           );
