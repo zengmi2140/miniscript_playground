@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { PathsTab } from '../PathsTab';
 import { I18nProvider } from '@/lib/i18n/context';
 import type { SpendingPath } from '@/lib/engine/types';
@@ -31,9 +31,17 @@ const mockPaths: SpendingPath[] = [
 ];
 
 const mockUsePlaygroundStore = vi.hoisted(() => vi.fn());
+const mockSetSelectedPathIndex = vi.hoisted(() => vi.fn());
+let mockSelectedPathIndex: number | null = null;
 
 vi.mock('@/lib/stores/playground-store', () => ({
-  usePlaygroundStore: (selector: (state: { spendingPaths: SpendingPath[] }) => unknown) =>
+  usePlaygroundStore: (
+    selector: (state: {
+      spendingPaths: SpendingPath[];
+      selectedPathIndex: number | null;
+      setSelectedPathIndex: (index: number | null) => void;
+    }) => unknown
+  ) =>
     mockUsePlaygroundStore(selector),
 }));
 
@@ -46,10 +54,17 @@ function TestWrapper({ children }: { children: React.ReactNode }) {
 }
 
 describe('PathsTab', () => {
+  afterEach(() => cleanup());
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSelectedPathIndex = null;
     mockUsePlaygroundStore.mockImplementation((selector) =>
-      selector({ spendingPaths: mockPaths }),
+      selector({
+        spendingPaths: mockPaths,
+        selectedPathIndex: mockSelectedPathIndex,
+        setSelectedPathIndex: mockSetSelectedPathIndex,
+      }),
     );
   });
 
@@ -62,11 +77,44 @@ describe('PathsTab', () => {
 
     expect(screen.getByText('Path 1: Alice signatures')).toBeInTheDocument();
     expect(screen.getByText('Path 2: Alice + Bob signatures')).toBeInTheDocument();
+    expect(screen.getByRole('listbox', { name: 'Spending Paths' })).toBeInTheDocument();
+    expect(screen.getAllByRole('option')).toHaveLength(2);
+  });
+
+  it('selects a path on click', () => {
+    render(
+      <TestWrapper>
+        <PathsTab />
+      </TestWrapper>,
+    );
+
+    const secondPath = screen.getByRole('option', { name: /Path 2: Alice \+ Bob signatures/i });
+    fireEvent.click(secondPath);
+
+    expect(mockSetSelectedPathIndex).toHaveBeenCalledWith(1);
+  });
+
+  it('supports keyboard selection with arrow keys', () => {
+    render(
+      <TestWrapper>
+        <PathsTab />
+      </TestWrapper>,
+    );
+
+    const [firstPath] = screen.getAllByRole('option');
+    firstPath.focus();
+    fireEvent.keyDown(firstPath, { key: 'ArrowDown' });
+
+    expect(mockSetSelectedPathIndex).toHaveBeenCalledWith(1);
   });
 
   it('renders empty state when there are no paths', () => {
     mockUsePlaygroundStore.mockImplementation((selector) =>
-      selector({ spendingPaths: [] }),
+      selector({
+        spendingPaths: [],
+        selectedPathIndex: null,
+        setSelectedPathIndex: mockSetSelectedPathIndex,
+      }),
     );
 
     render(
