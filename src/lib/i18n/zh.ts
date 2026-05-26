@@ -313,6 +313,12 @@ export const zh = {
       delete: '删除',
       wrap: '包装为',
       undefinedRole: '未定义的角色',
+      aria: {
+        edit: '编辑节点 {label}',
+        addRoot: '添加根节点',
+        addChild: '为 {label} 添加子条件',
+        switchOperator: '切换操作符 {label}',
+      },
     },
     op: {
       switch: { title: '切换操作符' },
@@ -388,6 +394,10 @@ export const zh = {
       restore: '恢复默认',
       empty: '暂无角色变量',
       hint: 'MVP 使用压缩公钥（66 字符 hex，用于 P2WSH）',
+      aria: {
+        edit: '编辑 {name}',
+        delete: '删除 {name}',
+      },
     },
     context: {
       title: '地址类型',
@@ -447,6 +457,7 @@ export const zh = {
     right: {
       waiting: '等待编译结果...',
       tabPlaceholder: '编译结果将在此显示',
+      divider: '调整路径列表与结果面板的高度',
     },
     paths: {
       empty: '此 Policy 无可用花费路径。所有路径当前条件下不可满足。',
@@ -502,6 +513,12 @@ export const zh = {
 
   glossary: {
     tooltip: { label: '是什么' },
+  },
+
+  common: {
+    aria: {
+      copy: '复制代码',
+    },
   },
 
   resources: {
