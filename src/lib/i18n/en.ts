@@ -414,7 +414,15 @@ export const en = {
       network: 'Network',
     },
     pathmap: { title: 'Spending Path Map' },
-    conditions: { title: 'Condition Simulator' },
+    conditions: {
+      title: 'Condition Simulator',
+      toggleAria: {
+        key: 'Toggle signature condition {name}, currently {state}',
+        hash: 'Toggle hash condition {name}, currently {state}',
+        stateOn: 'satisfied',
+        stateOff: 'not satisfied',
+      },
+    },
     timeslider: {
       label: 'Time Elapsed',
       sliderAriaLabel: 'Simulated elapsed time in blocks',
