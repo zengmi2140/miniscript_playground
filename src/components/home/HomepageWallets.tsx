@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Pause, Play } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
 
@@ -46,12 +47,12 @@ function WalletPill({
     <>
       <span className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full">
         {!logoFailed ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={wallet.logoUrl}
             alt={isInteractive ? wallet.name : ''}
             width={20}
             height={20}
+            sizes="20px"
             className="h-5 w-5 object-contain opacity-60 transition-opacity duration-200 group-hover:opacity-100"
             onError={() => setLogoFailed(true)}
           />
