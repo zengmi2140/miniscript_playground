@@ -6,6 +6,7 @@
  */
 
 import type { StrategyNode } from './types';
+import { effectiveThresholdK } from './threshold';
 
 export type BuilderNodeStatus = 'satisfied' | 'pending' | 'missing';
 
@@ -106,7 +107,7 @@ export function computeBuilderStatus(
 
           case 'threshold': {
             // THRESHOLD: satisfied if at least k children are satisfied
-            const k = node.threshold ?? 1;
+            const k = effectiveThresholdK(node);
             const satisfiedCount = childStatuses.filter(s => s === 'satisfied').length;
             const pendingCount = childStatuses.filter(s => s === 'pending').length;
             

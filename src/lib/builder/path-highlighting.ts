@@ -7,6 +7,7 @@
 
 import type { StrategyNode } from './types';
 import type { SpendingPath } from '@/lib/engine/types';
+import { effectiveThresholdK } from './threshold';
 
 /**
  * Collect all node IDs that should be highlighted for a given spending path.
@@ -104,8 +105,8 @@ export function collectHighlightedNodeIds(
             const matchedCount = realChildren.filter(child => 
               findMatchingNodes(child)
             ).length;
-            
-            if (matchedCount >= (node.threshold ?? 1)) {
+
+            if (matchedCount >= effectiveThresholdK(node)) {
               highlightedIds.add(node.id);
               return true;
             }
