@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Monitor, ArrowLeft } from 'lucide-react';
+import { Monitor, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { ThreeColumnLayout } from '@/components/playground/ThreeColumnLayout';
 import { LeftPanel } from '@/components/playground/LeftPanel';
 import { CenterPanel } from '@/components/playground/CenterPanel';
@@ -73,27 +73,53 @@ function MobileFallback() {
 }
 
 function DesktopPlayground() {
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   const loadScenario = usePlaygroundStore((s) => s.loadScenario);
   const restoreSession = usePlaygroundStore((s) => s.restoreSession);
   const enterBuildMode = usePlaygroundStore((s) => s.enterBuildMode);
+  const [showInvalidShareNotice, setShowInvalidShareNotice] = useState(false);
+  const lastInvalidShareParamRef = useRef<string | null>(null);
   useCompiler();
   useBuilderSync();
 
   useEffect(() => {
+    const shareParam = searchParams.get('s');
     applyPlaygroundSearchParams(searchParams, {
       restoreSession,
       loadScenario,
       enterBuildMode,
+      notifyInvalidSharePayload: () => {
+        if (!shareParam) return;
+        if (lastInvalidShareParamRef.current === shareParam) return;
+        lastInvalidShareParamRef.current = shareParam;
+        setShowInvalidShareNotice(true);
+      },
     });
   }, [searchParams, restoreSession, loadScenario, enterBuildMode]);
 
+  useEffect(() => {
+    if (!showInvalidShareNotice) return;
+    const timer = window.setTimeout(() => setShowInvalidShareNotice(false), 5000);
+    return () => window.clearTimeout(timer);
+  }, [showInvalidShareNotice]);
+
   return (
-    <ThreeColumnLayout
-      left={<LeftPanel />}
-      center={<CenterPanel />}
-      right={<RightPanel />}
-    />
+    <div className="relative h-full">
+      {showInvalidShareNotice && (
+        <div className="pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2" role="status" aria-live="polite">
+          <div className="flex items-center gap-2 rounded-lg border border-semantic-warning/30 bg-semantic-warning/10 px-4 py-2 text-[13px] font-medium text-semantic-warning shadow-lg">
+            <AlertTriangle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+            <span>{t('playground.share.invalidPayload')}</span>
+          </div>
+        </div>
+      )}
+      <ThreeColumnLayout
+        left={<LeftPanel />}
+        center={<CenterPanel />}
+        right={<RightPanel />}
+      />
+    </div>
   );
 }
 
