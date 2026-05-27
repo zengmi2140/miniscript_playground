@@ -81,7 +81,7 @@ export function I18nProvider({
         key;
       if (params) {
         Object.entries(params).forEach(([k, v]) => {
-          text = text.replace(`{${k}}`, String(v));
+          text = text.split(`{${k}}`).join(String(v));
         });
       }
       return text;
