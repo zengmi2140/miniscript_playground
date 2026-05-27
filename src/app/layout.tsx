@@ -84,12 +84,12 @@ function buildNoFlashThemeScript(initialTheme: ThemePreference) {
   `;
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const initialLocale = resolveLocalePreference(cookieStore.get(SCRIPTWISE_LOCALE_COOKIE)?.value);
   const initialTheme = resolveThemePreference(cookieStore.get(SCRIPTWISE_THEME_COOKIE)?.value);
 
