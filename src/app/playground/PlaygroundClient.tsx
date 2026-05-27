@@ -1,30 +1,33 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState, Suspense } from 'react';
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { Monitor, ArrowLeft, AlertTriangle } from 'lucide-react';
-import { ThreeColumnLayout } from '@/components/playground/ThreeColumnLayout';
-import { LeftPanel } from '@/components/playground/LeftPanel';
-import { CenterPanel } from '@/components/playground/CenterPanel';
-import { RightPanel } from '@/components/playground/RightPanel';
-import { usePlaygroundStore } from '@/lib/stores/playground-store';
-import { useCompiler } from '@/lib/hooks/useCompiler';
-import { useBuilderSync } from '@/lib/hooks/useBuilderSync';
-import { useDesktopBootstrap, type ViewportMode } from '@/lib/hooks/useDesktopBootstrap';
-import { applyPlaygroundSearchParams } from '@/lib/playground/apply-playground-search-params';
-import { useI18n } from '@/lib/i18n/context';
+import { useEffect, useRef, useState, Suspense } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Monitor, ArrowLeft, AlertTriangle } from "lucide-react";
+import { ThreeColumnLayout } from "@/components/playground/ThreeColumnLayout";
+import { LeftPanel } from "@/components/playground/LeftPanel";
+import { CenterPanel } from "@/components/playground/CenterPanel";
+import { RightPanel } from "@/components/playground/RightPanel";
+import { usePlaygroundStore } from "@/lib/stores/playground-store";
+import { useCompiler } from "@/lib/hooks/useCompiler";
+import { useBuilderSync } from "@/lib/hooks/useBuilderSync";
+import {
+  useDesktopBootstrap,
+  type ViewportMode,
+} from "@/lib/hooks/useDesktopBootstrap";
+import { applyPlaygroundSearchParams } from "@/lib/playground/apply-playground-search-params";
+import { useI18n } from "@/lib/i18n/context";
 
 function useViewportMode() {
-  const [mode, setMode] = useState<ViewportMode>('loading');
+  const [mode, setMode] = useState<ViewportMode>("loading");
 
   useEffect(() => {
-    const mq = window.matchMedia('(min-width: 768px)');
-    setMode(mq.matches ? 'desktop' : 'mobile');
+    const mq = window.matchMedia("(min-width: 768px)");
+    setMode(mq.matches ? "desktop" : "mobile");
     const handler = (e: MediaQueryListEvent) =>
-      setMode(e.matches ? 'desktop' : 'mobile');
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
+      setMode(e.matches ? "desktop" : "mobile");
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
   }, []);
 
   return mode;
@@ -55,17 +58,17 @@ function MobileFallback() {
           <Monitor className="h-8 w-8 text-text-muted" />
         </div>
         <h2 className="mb-3 text-[20px] font-semibold text-text-primary">
-          {t('playground.mobile.title')}
+          {t("playground.mobile.title")}
         </h2>
         <p className="mb-8 text-body text-text-secondary">
-          {t('playground.mobile.description')}
+          {t("playground.mobile.description")}
         </p>
         <Link
           href="/"
           className="inline-flex items-center gap-2 rounded-button border border-border-default bg-surface-elevated px-5 py-2.5 text-body font-medium text-text-primary transition-all hover:border-border-hover"
         >
           <ArrowLeft className="h-4 w-4" />
-          {t('playground.mobile.goScenarios')}
+          {t("playground.mobile.goScenarios")}
         </Link>
       </div>
     </div>
@@ -84,7 +87,7 @@ function DesktopPlayground() {
   useBuilderSync();
 
   useEffect(() => {
-    const shareParam = searchParams.get('s');
+    const shareParam = searchParams.get("s");
     applyPlaygroundSearchParams(searchParams, {
       restoreSession,
       loadScenario,
@@ -100,17 +103,27 @@ function DesktopPlayground() {
 
   useEffect(() => {
     if (!showInvalidShareNotice) return;
-    const timer = window.setTimeout(() => setShowInvalidShareNotice(false), 5000);
+    const timer = window.setTimeout(
+      () => setShowInvalidShareNotice(false),
+      5000,
+    );
     return () => window.clearTimeout(timer);
   }, [showInvalidShareNotice]);
 
   return (
-    <div className="relative h-full">
+    <div className="relative flex flex-1 flex-col min-h-0">
       {showInvalidShareNotice && (
-        <div className="pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2" role="status" aria-live="polite">
+        <div
+          className="pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2"
+          role="status"
+          aria-live="polite"
+        >
           <div className="flex items-center gap-2 rounded-lg border border-semantic-warning/30 bg-semantic-warning/10 px-4 py-2 text-[13px] font-medium text-semantic-warning shadow-lg">
-            <AlertTriangle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-            <span>{t('playground.share.invalidPayload')}</span>
+            <AlertTriangle
+              className="h-4 w-4 flex-shrink-0"
+              aria-hidden="true"
+            />
+            <span>{t("playground.share.invalidPayload")}</span>
           </div>
         </div>
       )}
@@ -127,8 +140,8 @@ function PlaygroundContent() {
   const mode = useViewportMode();
   useDesktopBootstrap(mode);
 
-  if (mode === 'loading') return <PlaygroundLoadingPlaceholder />;
-  if (mode === 'mobile') return <MobileFallback />;
+  if (mode === "loading") return <PlaygroundLoadingPlaceholder />;
+  if (mode === "mobile") return <MobileFallback />;
   return <DesktopPlayground />;
 }
 
