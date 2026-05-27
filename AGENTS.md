@@ -39,7 +39,7 @@
 
 ## 2. 技术栈
 
-- 框架：Next.js 14 App Router + React 18；TypeScript strict；Zustand。  
+- 框架：Next.js 15 App Router + React 19；TypeScript strict；Zustand。  
 - 可视化：React Flow（`@xyflow/react`）；**scenario** 路径图 Dagre TB（`src/lib/flow/tree-to-flow.ts`）；**build** 策略树自实现递归 TB（`src/lib/builder/tree-to-flow.ts`）。  
 - 其余依赖：见 `package.json`。
 
