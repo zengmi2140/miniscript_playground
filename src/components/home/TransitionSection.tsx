@@ -7,6 +7,7 @@ const MULTISIG_ADDRESS = 'bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf
 
 export function TransitionSection() {
   const { t } = useI18n();
+  const footer = t('home.transition.footer');
 
   return (
     <section className="border-t border-border-subtle bg-surface-card py-16 md:py-24">
@@ -58,9 +59,9 @@ export function TransitionSection() {
           </div>
         </div>
 
-        <p className="mt-10 text-center text-sm text-text-secondary">
-          {t('home.transition.footer')}
-        </p>
+        {footer ? (
+          <p className="mt-10 text-center text-sm text-text-secondary">{footer}</p>
+        ) : null}
       </div>
     </section>
   );

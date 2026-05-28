@@ -104,7 +104,7 @@ npm run test:coverage
 
 ### 各路由实现要点
 
-- **`/`** — `src/app/page.tsx`。顺序：`HomepageHero`（双主角结构：Miniscript 技术定位 + ScriptWise 站点身份；右侧代码卡片含 Policy → Bitcoin Script 编译动画，桌面端首次进入视口自动播放，移动端直接展示终态；两条花费路径） → `HookSection`（"为什么这件事和你有关"三个场景问句） → `TransitionSection`（地址背后的脚本 + 单签 vs 多签 + 过渡句） → `ScriptComplexitySection`（四个限制 PainCard + outro） → `MeetMiniscriptSection`（两段式：`DefinitionBlock` ①Miniscript 是什么，含 Policy → Miniscript → Bitcoin Script 三层横向流水线（每张卡片含定位说明 + 代码示例 + 注释）→ `FeaturesBlock` ②可读性 / 可组合性 / 可迁移性 三张卡，其中可迁移性卡片包含 Descriptor 概念说明）→ `IntroApplicationsSection`（标题走 i18n；「上手一试」强化为半实心橙色按钮 + ArrowRight；编译演示切换场景带 fadeSlideIn 微交互） → `HistorySection`（Miniscript 简史：3 个时间线里程碑 + 3 位设计者卡片） → `HomepageWallets` → `FAQSection`（6 条可折叠问答） → 双路径 CTA（`home.cta.primary` + `home.cta.secondary`） + footer。所有 section 通过 `ScrollReveal` 包裹实现滚动淡入动效（`IntersectionObserver`，尊重 `prefers-reduced-motion`）。**所有首页文案均通过 `t()` 读取 i18n**，`home.*` 命名空间下提供完整中英文（`zh.ts` / `en.ts`）。Applications **7** 条卡片与 `playgroundScenarioId` 见 `src/components/intro/data.ts`（含 **「穿越牛熊」** `holder-timelock`）；其余未列入 Applications 的预设由 `sortScenariosForPlayground()` 排在末尾（见 `src/lib/scenarios/data.ts`）。`requestIdleCallback` 可预热 Playground。  
+- **`/`** — `src/app/page.tsx`。顺序：`HomepageHero`（双主角结构：Miniscript 技术定位 + ScriptWise 站点身份；右侧代码卡片含 Policy → Bitcoin Script 编译动画，桌面端首次进入视口自动播放，移动端直接展示终态；两条花费路径） → `HookSection`（"为什么这件事和你有关"三个场景问句） → `TransitionSection`（地址背后的脚本 + 单签 vs 多签） → `ScriptComplexitySection`（四个限制 PainCard） → `MeetMiniscriptSection`（两段式：`DefinitionBlock` ①Miniscript 是什么，含 Policy → Miniscript → Bitcoin Script 三层横向流水线（每张卡片含定位说明 + 代码示例 + 注释）→ `FeaturesBlock` ②可读性 / 可组合性 / 可迁移性 三张卡，其中可迁移性卡片包含 Descriptor 概念说明）→ `IntroApplicationsSection`（标题走 i18n；「上手一试」强化为半实心橙色按钮 + ArrowRight；编译演示切换场景带 fadeSlideIn 微交互） → `HomepageWallets` → `FAQSection`（6 条可折叠问答） → 双路径 CTA（`home.cta.primary` + `home.cta.secondary`） + footer。所有 section 通过 `ScrollReveal` 包裹实现滚动淡入动效（`IntersectionObserver`，尊重 `prefers-reduced-motion`）。**所有首页文案均通过 `t()` 读取 i18n**，`home.*` 命名空间下提供完整中英文（`zh.ts` / `en.ts`）。Applications **7** 条卡片与 `playgroundScenarioId` 见 `src/components/intro/data.ts`（含 **「穿越牛熊」** `holder-timelock`）；其余未列入 Applications 的预设由 `sortScenariosForPlayground()` 排在末尾（见 `src/lib/scenarios/data.ts`）。`requestIdleCallback` 可预热 Playground。  
 - **`/intro`** — `src/app/intro/page.tsx`：`redirect('/')`。  
 - **`/playground`** — `src/app/playground/page.tsx` → `PlaygroundClient.tsx`：处理 `?s=`、`?scenario=`、`?mode=build`；`useViewportMode` 先走 `loading` 轻量 skeleton，再根据视口进入 `mobile`（`MobileFallback`）或 `desktop`（三栏）。仅 `desktop` 确认后通过 `useDesktopBootstrap` 执行 `clearSession()` + `fetchBlockTipHeight`，并启用 `useCompiler` + `useBuilderSync`。`?s=` 解码失败会显示一次性提示横幅。渐进式加载（`dynamic` 画布、`prefetch` 等）。  
 - **`/resources`** — `src/app/resources/page.tsx`：外链网格 +「推荐阅读」（数据：`src/lib/resources/recommended-reading.ts`）。  
@@ -152,7 +152,7 @@ npm run test:coverage
 | `flow/` | scenario 路径图：`PathMap`、`FlowNodes`、`PathEdge` |
 | `results/` | 右栏各 Tab（Policy / Miniscript / Script / Descriptor / Address / Paths） |
 | `intro/` | 首页通识区块与 `data.ts`（Applications） |
-| `home/` | `HomepageHero`、`HookSection`、`TransitionSection`、`ScriptComplexitySection`、`MeetMiniscriptSection`、`HistorySection`、`HomepageWallets`、`FAQSection`、`ScrollReveal` 等 |
+| `home/` | `HomepageHero`、`HookSection`、`TransitionSection`、`ScriptComplexitySection`、`MeetMiniscriptSection`、`HomepageWallets`、`FAQSection`、`ScrollReveal` 等 |
 | `scenarios/` | `ScenarioCard`、`ScenarioGallery`（未挂载路由时可仍存在） |
 | `shared/` | `ExplainPopover`、`GlossaryTooltip`、`CodeBlock` 等 |
 | `ui/` | shadcn 基础组件（`button` 等） |
@@ -269,7 +269,7 @@ npm run test:coverage
 9. **build** 为 MVP：受约束树 + 同步；非任意拖线。  
 10. **渐进式加载**、首页 **双路径 CTA**（「去做：打开 Playground」+「去读：浏览学习资源」）。  
 11. **htlc-atomic**：`HEX` 展示 vs 右栏真实 hex；见 §7 与 `htlc-display-mask.ts`。  
-12. 旧版首页区块（`HomepageFeatures` / `HomepageHowItWorks` / `HomepageMission` / `HomepageMiniscriptExplainer` / `IntroChallengeSection` / `IntroCoreConceptsSection` / `IntroWhyMattersSection`）已随本次 i18n 清理一并删除；对应的 `home.explainer.* / home.how.* / home.features.* / home.challenge.* / home.concepts.* / home.why.* / home.scenarios.*` 旧 key 亦从 `zh.ts` / `en.ts` 移除。当前 `home.*` 命名空间只保留新首页实际使用的 key：`hero / hook / transition / scriptComplexity / meetMiniscript / history / wallets / faq / cta / footer`。
+12. 旧版首页区块（`HomepageFeatures` / `HomepageHowItWorks` / `HomepageMission` / `HomepageMiniscriptExplainer` / `IntroChallengeSection` / `IntroCoreConceptsSection` / `IntroWhyMattersSection` / `HistorySection`）已随首页精简与 i18n 清理一并删除；对应的 `home.explainer.* / home.how.* / home.features.* / home.challenge.* / home.concepts.* / home.why.* / home.scenarios.* / home.history.*` 旧 key 亦从 `zh.ts` / `en.ts` 移除。当前 `home.*` 命名空间只保留新首页实际使用的 key：`hero / hook / transition / scriptComplexity / meetMiniscript / wallets / faq / cta / footer`。
 
 ---
 
