@@ -11,7 +11,6 @@ export const zh = {
       ctaSecondary: '打开 Playground',
       desktopHint: 'Playground 建议在桌面端打开以获得完整体验。',
       card: {
-        filename: 'policy.miniscript',
         tag: 'P2WSH',
         compilesTo: '↓ compiles to',
         statusNote: '示例：编译过程示意',
@@ -28,7 +27,7 @@ export const zh = {
       q1: '你想给家人留一笔比特币，万一你不在了他们能拿到吗？',
       q2: '你想做 2-of-3 多签，但其中一把钥匙丢了怎么办？',
       q3: '你想让一个第三方托管你的资产，但保留紧急回收权？',
-      outro: '这些都是"花费条件"问题。Bitcoin 原生支持，但写起来——你会想要 Miniscript。',
+      outro: '每一种场景，背后都对应着一类花费条件',
     },
 
     transition: {
@@ -44,7 +43,7 @@ export const zh = {
         desc: '三把钥匙中，任意两把即可花费。',
         code: 'OP_2\n  <PubKey1>\n  <PubKey2>\n  <PubKey3>\nOP_3 OP_CHECKMULTISIG',
       },
-      footer: '不止于多签——时间锁、哈希锁、门限组合……都能写进花费条件。但真要直接动手写，就会撞到另一层问题。',
+      footer: '',
     },
 
     scriptComplexity: {
@@ -69,7 +68,7 @@ export const zh = {
           desc: '脚本大小、见证开销、花费路径……都得手工推导，没有标准工具能自动回答"这段脚本到底表达了什么"。',
         },
       },
-      outro: '这些问题并非无解——Miniscript 正是为此而生。',
+      outro: '',
     },
 
     meetMiniscript: {
@@ -159,43 +158,6 @@ export const zh = {
           walletB: '钱包 B',
           walletBDesc: '完整还原策略',
           takeaway: '你的花费规则属于你自己，不再被单一钱包软件绑定。',
-        },
-      },
-    },
-
-    history: {
-      title: 'Miniscript 从哪里来',
-      subtitle:
-        'Miniscript 不是一个全新的发明，而是一群 Bitcoin 协议研究者在 2019 年起持续打磨的产物。它从一篇论文，逐步走入主流钱包和 Bitcoin Core。',
-      milestones: {
-        m1: {
-          year: '2019',
-          title: '初次公开提出',
-          desc: "Pieter Wuille 在 SBC'19 会议上首次系统性地介绍 Miniscript 的设计与编译器。",
-        },
-        m2: {
-          year: '2020–2022',
-          title: '参考实现成熟',
-          desc: 'C++ 与 Rust 两套参考实现陆续完成，Miniscript 进入多家钱包的实验性支持。',
-        },
-        m3: {
-          year: '2023+',
-          title: '主流钱包采纳',
-          desc: 'Bitcoin Core 24.0 起内置 Miniscript Descriptor 支持；Liana、Nunchuk、Bitcoin Keeper 等钱包将其作为产品特性。',
-        },
-      },
-      designers: {
-        d1: {
-          name: 'Pieter Wuille',
-          desc: 'Bitcoin Core 长期维护者，Segwit、Taproot 等关键提案的核心设计者。Miniscript 主要作者。',
-        },
-        d2: {
-          name: 'Andrew Poelstra',
-          desc: 'Blockstream 研究主管，Bitcoin 密码学与 Miniscript 类型系统的核心贡献者。',
-        },
-        d3: {
-          name: 'Sanket Kanjalkar',
-          desc: 'Miniscript 形式化与编译器实现的主要工作者，rust-miniscript 维护者之一。',
         },
       },
     },
