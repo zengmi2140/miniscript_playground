@@ -243,7 +243,6 @@ export function HomepageHero() {
                 <div className="h-3 w-3 rounded-full bg-red-500/60" />
                 <div className="h-3 w-3 rounded-full bg-yellow-500/60" />
                 <div className="h-3 w-3 rounded-full bg-green-500/60" />
-                <span className="ml-3 font-mono text-xs text-text-muted">{t('home.hero.card.filename')}</span>
                 <span className="ml-auto rounded border border-btc-500/30 px-1.5 py-0.5 text-[10px] font-medium text-btc-500">
                   {t('home.hero.card.tag')}
                 </span>

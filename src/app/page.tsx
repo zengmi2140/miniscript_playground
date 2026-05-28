@@ -10,7 +10,6 @@ import { TransitionSection } from '@/components/home/TransitionSection';
 import { ScriptComplexitySection } from '@/components/home/ScriptComplexitySection';
 import { MeetMiniscriptSection } from '@/components/home/MeetMiniscriptSection';
 import { IntroApplicationsSection } from '@/components/intro/IntroApplicationsSection';
-import { HistorySection } from '@/components/home/HistorySection';
 import { HomepageWallets } from '@/components/home/HomepageWallets';
 import { FAQSection } from '@/components/home/FAQSection';
 import { ScrollReveal } from '@/components/home/ScrollReveal';
@@ -66,10 +65,6 @@ export default function HomePage() {
 
       <ScrollReveal>
         <IntroApplicationsSection />
-      </ScrollReveal>
-
-      <ScrollReveal>
-        <HistorySection />
       </ScrollReveal>
 
       <ScrollReveal>

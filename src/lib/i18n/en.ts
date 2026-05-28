@@ -11,7 +11,6 @@ export const en = {
       ctaSecondary: 'Open Playground',
       desktopHint: 'For the full experience, open the Playground on a desktop or larger screen.',
       card: {
-        filename: 'policy.miniscript',
         tag: 'P2WSH',
         compilesTo: '↓ compiles to',
         statusNote: 'Example: compilation walkthrough',
@@ -28,8 +27,7 @@ export const en = {
       q1: 'You want to leave some Bitcoin for your family — will they be able to claim it if you are gone?',
       q2: 'You want a 2-of-3 multisig — what happens if one of the keys is lost?',
       q3: 'You want a third party to custody your assets while you keep an emergency recovery path?',
-      outro:
-        'These are all "spending condition" problems. Bitcoin natively supports them — but writing them is where you will want Miniscript.',
+      outro: 'Every scenario maps to a kind of spending condition.',
     },
 
     transition: {
@@ -46,8 +44,7 @@ export const en = {
         desc: 'Any two of three keys can spend.',
         code: 'OP_2\n  <PubKey1>\n  <PubKey2>\n  <PubKey3>\nOP_3 OP_CHECKMULTISIG',
       },
-      footer:
-        'Beyond multisig — timelocks, hashlocks, threshold combinations… can all be written into spending conditions. But actually writing them runs into a whole other problem.',
+      footer: '',
     },
 
     scriptComplexity: {
@@ -72,7 +69,7 @@ export const en = {
           desc: 'Script size, witness cost, spending paths — all derived by hand. No standard tool can answer "what does this script actually express?"',
         },
       },
-      outro: 'None of these are unsolvable — Miniscript is designed exactly for this.',
+      outro: '',
     },
 
     meetMiniscript: {
@@ -163,43 +160,6 @@ export const en = {
           walletB: 'Wallet B',
           walletBDesc: 'Fully restored policy',
           takeaway: 'Your spending rules belong to you — no vendor lock-in.',
-        },
-      },
-    },
-
-    history: {
-      title: 'Where Miniscript Comes From',
-      subtitle:
-        'Miniscript is not a brand-new invention — it is the product of Bitcoin protocol researchers iterating since 2019. It went from a paper to mainstream wallets and Bitcoin Core itself.',
-      milestones: {
-        m1: {
-          year: '2019',
-          title: 'First public proposal',
-          desc: "Pieter Wuille presents the design and compiler of Miniscript for the first time at SBC'19.",
-        },
-        m2: {
-          year: '2020–2022',
-          title: 'Reference implementations mature',
-          desc: 'Reference implementations in C++ and Rust land, and Miniscript gets experimental support in several wallets.',
-        },
-        m3: {
-          year: '2023+',
-          title: 'Adopted by mainstream wallets',
-          desc: 'Bitcoin Core 24.0 ships native Miniscript Descriptor support; Liana, Nunchuk, Bitcoin Keeper and others make it a product feature.',
-        },
-      },
-      designers: {
-        d1: {
-          name: 'Pieter Wuille',
-          desc: 'Long-time Bitcoin Core maintainer and one of the principal designers behind SegWit and Taproot. Primary author of Miniscript.',
-        },
-        d2: {
-          name: 'Andrew Poelstra',
-          desc: "Blockstream's Director of Research and a core contributor to Bitcoin cryptography and Miniscript's type system.",
-        },
-        d3: {
-          name: 'Sanket Kanjalkar',
-          desc: 'A key contributor to the formalization and compiler implementation of Miniscript, and one of the maintainers of rust-miniscript.',
         },
       },
     },

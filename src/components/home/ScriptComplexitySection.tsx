@@ -29,6 +29,7 @@ function PainCard({
 
 export function ScriptComplexitySection() {
   const { t } = useI18n();
+  const outro = t('home.scriptComplexity.outro');
 
   return (
     <section className="border-t border-border-subtle bg-surface-card py-16 md:py-24">
@@ -63,9 +64,11 @@ export function ScriptComplexitySection() {
           />
         </div>
 
-        <p className="mx-auto mt-12 max-w-2xl text-center text-sm text-text-secondary">
-          {t('home.scriptComplexity.outro')}
-        </p>
+        {outro ? (
+          <p className="mx-auto mt-12 max-w-2xl text-center text-sm text-text-secondary">
+            {outro}
+          </p>
+        ) : null}
       </div>
     </section>
   );
