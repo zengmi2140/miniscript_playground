@@ -225,7 +225,7 @@ export const en = {
     footer: {
       description:
         "ScriptWise — a scenario-first, spending-path-centered Bitcoin Miniscript educational playground.",
-      rights: "© 2024 ScriptWise. All rights reserved.",
+      rights: "© 2026 ScriptWise. All rights reserved.",
     },
   },
 
@@ -589,10 +589,10 @@ export const en = {
         title: "Minsc",
         desc: "A Miniscript-Policy-based scripting language with variables, functions, and infix syntax; live WASM compiler outputs Policy, Miniscript, script, and addresses (testnet).",
       },
-      bdkPlayground: {
-        badge: "Online tool",
-        title: "BDK Playground",
-        desc: "In-browser Policy compiler and descriptor wallet playground: map policy aliases to keys, pick P2SH/P2WSH-style contexts, and edit spending conditions in the visual or policy text field.",
+      miniscriptBip: {
+        badge: "BIP Standard",
+        title: "Bitcoin Miniscript BIP",
+        desc: "The official Bitcoin Improvement Proposal (BIP) specifying the Miniscript language, detailing its syntax, semantics, type system, and compiler requirements.",
       },
       miniscriptBuilder: {
         badge: "Online tool",

@@ -1,51 +1,51 @@
-'use client';
+"use client";
 
-import { BookOpen, ExternalLink } from 'lucide-react';
-import { useI18n } from '@/lib/i18n/context';
-import { RECOMMENDED_READING_ARTICLES } from '@/lib/resources/recommended-reading';
+import { BookOpen, ExternalLink } from "lucide-react";
+import { useI18n } from "@/lib/i18n/context";
+import { RECOMMENDED_READING_ARTICLES } from "@/lib/resources/recommended-reading";
 
 const RESOURCE_LINKS = [
   {
-    href: 'https://bitcoin.sipa.be/miniscript/',
-    badgeKey: 'resources.links.official.badge',
-    titleKey: 'resources.links.official.title',
-    descKey: 'resources.links.official.desc',
+    href: "https://bitcoin.sipa.be/miniscript/",
+    badgeKey: "resources.links.official.badge",
+    titleKey: "resources.links.official.title",
+    descKey: "resources.links.official.desc",
   },
   {
-    href: 'https://github.com/rust-bitcoin/rust-miniscript',
-    badgeKey: 'resources.links.rust.badge',
-    titleKey: 'resources.links.rust.title',
-    descKey: 'resources.links.rust.desc',
+    href: "https://github.com/rust-bitcoin/rust-miniscript",
+    badgeKey: "resources.links.rust.badge",
+    titleKey: "resources.links.rust.title",
+    descKey: "resources.links.rust.desc",
   },
   {
-    href: 'https://adys.dev/miniscript',
-    badgeKey: 'resources.links.studio.badge',
-    titleKey: 'resources.links.studio.title',
-    descKey: 'resources.links.studio.desc',
+    href: "https://adys.dev/miniscript",
+    badgeKey: "resources.links.studio.badge",
+    titleKey: "resources.links.studio.title",
+    descKey: "resources.links.studio.desc",
   },
   {
-    href: 'https://min.sc/',
-    badgeKey: 'resources.links.minsc.badge',
-    titleKey: 'resources.links.minsc.title',
-    descKey: 'resources.links.minsc.desc',
+    href: "https://min.sc/",
+    badgeKey: "resources.links.minsc.badge",
+    titleKey: "resources.links.minsc.title",
+    descKey: "resources.links.minsc.desc",
   },
   {
-    href: 'https://bitcoindevkit.org/bdk-cli/playground/playground.html',
-    badgeKey: 'resources.links.bdkPlayground.badge',
-    titleKey: 'resources.links.bdkPlayground.title',
-    descKey: 'resources.links.bdkPlayground.desc',
+    href: "https://github.com/bitcoin/bips/blob/master/bip-0379.md",
+    badgeKey: "resources.links.miniscriptBip.badge",
+    titleKey: "resources.links.miniscriptBip.title",
+    descKey: "resources.links.miniscriptBip.desc",
   },
   {
-    href: 'https://miniscript.fun/',
-    badgeKey: 'resources.links.miniscriptBuilder.badge',
-    titleKey: 'resources.links.miniscriptBuilder.title',
-    descKey: 'resources.links.miniscriptBuilder.desc',
+    href: "https://miniscript.fun/",
+    badgeKey: "resources.links.miniscriptBuilder.badge",
+    titleKey: "resources.links.miniscriptBuilder.title",
+    descKey: "resources.links.miniscriptBuilder.desc",
   },
   {
-    href: 'https://bitcoindevkit.org/',
-    badgeKey: 'resources.links.bdk.badge',
-    titleKey: 'resources.links.bdk.title',
-    descKey: 'resources.links.bdk.desc',
+    href: "https://bitcoindevkit.org/",
+    badgeKey: "resources.links.bdk.badge",
+    titleKey: "resources.links.bdk.title",
+    descKey: "resources.links.bdk.desc",
     highlight: true as const,
   },
 ] as const;
@@ -58,15 +58,19 @@ export default function ResourcesPage() {
       {/* 工具与文档 */}
       <section className="mb-14">
         <div className="mb-6 text-center">
-          <h2 className="mb-2 text-xl font-semibold text-text-primary">{t('resources.toolsDoc.title')}</h2>
+          <h2 className="mb-2 text-xl font-semibold text-text-primary">
+            {t("resources.toolsDoc.title")}
+          </h2>
           <p className="mx-auto max-w-xl text-sm leading-relaxed text-text-secondary">
-            {t('resources.toolsDoc.subtitle')}
+            {t("resources.toolsDoc.subtitle")}
           </p>
         </div>
 
         <div className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            {RESOURCE_LINKS.filter((item) => !('highlight' in item && item.highlight)).map((item) => (
+            {RESOURCE_LINKS.filter(
+              (item) => !("highlight" in item && item.highlight),
+            ).map((item) => (
               <a
                 key={item.href}
                 href={item.href}
@@ -81,12 +85,16 @@ export default function ResourcesPage() {
                   {t(item.titleKey)}
                   <ExternalLink className="mt-0.5 h-4 w-4 flex-shrink-0 text-text-muted opacity-70 transition-opacity group-hover:opacity-100" />
                 </span>
-                <p className="text-sm leading-relaxed text-text-secondary">{t(item.descKey)}</p>
+                <p className="text-sm leading-relaxed text-text-secondary">
+                  {t(item.descKey)}
+                </p>
               </a>
             ))}
           </div>
 
-          {RESOURCE_LINKS.filter((item) => 'highlight' in item && item.highlight).map((item) => (
+          {RESOURCE_LINKS.filter(
+            (item) => "highlight" in item && item.highlight,
+          ).map((item) => (
             <a
               key={item.href}
               href={item.href}
@@ -101,7 +109,9 @@ export default function ResourcesPage() {
                 {t(item.titleKey)}
                 <ExternalLink className="mt-0.5 h-4 w-4 flex-shrink-0 text-btc-500/80 transition-opacity group-hover:opacity-100" />
               </span>
-              <p className="text-sm leading-relaxed text-text-secondary">{t(item.descKey)}</p>
+              <p className="text-sm leading-relaxed text-text-secondary">
+                {t(item.descKey)}
+              </p>
             </a>
           ))}
         </div>
@@ -110,9 +120,11 @@ export default function ResourcesPage() {
       {/* 推荐阅读 */}
       <section>
         <div className="mb-6 text-center">
-          <h2 className="mb-2 text-xl font-semibold text-text-primary">{t('resources.reading.title')}</h2>
+          <h2 className="mb-2 text-xl font-semibold text-text-primary">
+            {t("resources.reading.title")}
+          </h2>
           <p className="mx-auto max-w-xl text-sm leading-relaxed text-text-secondary">
-            {t('resources.reading.subtitle')}
+            {t("resources.reading.subtitle")}
           </p>
         </div>
 
@@ -122,7 +134,9 @@ export default function ResourcesPage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-elevated">
                 <BookOpen className="h-6 w-6 text-text-muted" />
               </div>
-              <p className="max-w-sm text-sm text-text-muted">{t('resources.reading.placeholder')}</p>
+              <p className="max-w-sm text-sm text-text-muted">
+                {t("resources.reading.placeholder")}
+              </p>
             </div>
           </div>
         ) : (
@@ -130,7 +144,7 @@ export default function ResourcesPage() {
             {RECOMMENDED_READING_ARTICLES.map((article, index) => (
               <li key={article.titleKey}>
                 <a
-                  href={locale === 'zh' ? article.hrefZh : article.hrefEn}
+                  href={locale === "zh" ? article.hrefZh : article.hrefEn}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex gap-3 rounded-xl border border-border-subtle bg-surface-base p-4 transition-all hover:border-btc-500/30 hover:bg-surface-elevated hover:shadow-sm md:gap-4 md:p-5"
@@ -139,7 +153,7 @@ export default function ResourcesPage() {
                     className="hidden w-7 shrink-0 pt-0.5 text-right font-mono text-[11px] text-text-muted/70 sm:block"
                     aria-hidden
                   >
-                    {String(index + 1).padStart(2, '0')}
+                    {String(index + 1).padStart(2, "0")}
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
@@ -148,7 +162,9 @@ export default function ResourcesPage() {
                       </h3>
                       <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-text-muted opacity-50 transition-opacity group-hover:text-btc-500 group-hover:opacity-100" />
                     </div>
-                    <p className="mt-2 text-xs text-text-muted">{t(article.sourceKey)}</p>
+                    <p className="mt-2 text-xs text-text-muted">
+                      {t(article.sourceKey)}
+                    </p>
                   </div>
                 </a>
               </li>
@@ -158,8 +174,8 @@ export default function ResourcesPage() {
       </section>
 
       <footer className="mt-16 border-t border-border-subtle pt-8 text-center">
-        <p className="text-xs text-text-muted">{t('footer.description')}</p>
-        <p className="mt-1 text-xs text-text-muted">{t('footer.rights')}</p>
+        <p className="text-xs text-text-muted">{t("footer.description")}</p>
+        <p className="mt-1 text-xs text-text-muted">{t("footer.rights")}</p>
       </footer>
     </div>
   );
