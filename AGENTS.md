@@ -233,6 +233,12 @@ npm run test:coverage
 
 - `path-analyzer.ts` → `Paths`、`StatusBanner`。同一 **公钥** 在 `keyVariables` 中重复出现时，路径标签取 **首次出现** 的变量名。路径卡片标题由 `path-analyzer` 产出 `labelVariant`，UI 经 `path-label.ts` 的 `formatSpendingPathLabel` 按当前语言拼接（不再在引擎内写死中文串）。  
 - **Key 身份**：`KeyVariable.policyName` 是稳定 ID，贯穿 semantic tree、`availableKeys`、`PathCondition.keyName` 与 builder `roleId`；`name` 仅作为 UI 显示标签（`PathCondition.signature` 携带可选 `displayName`，UI 优先使用，否则回退到 `keyName`）。重命名走 `playground-store` 的 `renameKeyVariable`：原子地改 `name`/`policyName` 并 token-aware 重写 `policy` 文本。`share.ts` / 旧 session 解码额外校验 `policyName` 为合法 identifier 且唯一。
+- **状态横幅 `StatusBanner`**：分三档 `canSpend` / `waiting` / `cannotSpend`。  
+  - `canSpend`：任一路径满足。  
+  - `waiting`：某条路径的全部 **签名** 都已就绪，仅缺时间锁（`timelock_relative` / `timelock_absolute`）→ 显示「还需等待 X」。  
+  - `cannotSpend`：上述都不成立时进入 `formatClosestMissing(spendingPaths, currentTimeBlocks, blockTipHeight, locale, t)`：在所有非满足路径中，按 `missingConditions.length` 取 **最少缺失条件** 的若干条作为 *等价备选*；同一路径内的多个缺失条件以 **AND** 连接（`Intl.ListFormat conjunction`，i18n 文案见下），多条等价路径以 **OR** 并列（全为原子条件时用 `Intl.ListFormat disjunction`，否则用 `(A 和 B) 或 C` 加括号）。  
+    - 单个条件描述统一走 `describeCondition`：签名 → 角色名（`displayName ?? keyName`），哈希锁 → `playground.status.missingHashlock`，时间锁 → `playground.status.missingWaitBlocks`（剩余区块经 `getPathTimelockRemainingBlocks` + `blocksToHumanLocale` 渲染）。  
+    - **这是为了修掉旧聚合行为**：旧实现把所有非满足路径的缺失签名做并集，在 k-of-n 多签（如 `thresh(2,pk(A),pk(B),pk(C))`）下，已点亮的那个 key 会被"挤出"显示集合，例如点亮 Bob 时显示「还缺 Alice, Charlie」，与"再选一个就行"的实际语义相反。新逻辑会显示「还缺 Alice 或 Charlie」（任选其一即可），并在 `or(and(A,B), and(C,older(...)))` 这类混合策略里同时呈现「(A 和 B) 或 (C 和 N 块的等待)」。详见 [`StatusBanner.tsx`](src/components/playground/StatusBanner.tsx) 内的 `formatClosestMissing` / `describeCondition` 注释。
 
 ### 分享与会话
 
