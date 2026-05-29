@@ -1,10 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
-import { INTRO_APPLICATION_EXAMPLES, type IntroApplicationExample } from '@/components/intro/data';
-import { useI18n } from '@/lib/i18n/context';
-import { ArrowRight } from 'lucide-react';
+import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
+import {
+  INTRO_APPLICATION_EXAMPLES,
+  type IntroApplicationExample,
+} from "@/components/intro/data";
+import { useI18n } from "@/lib/i18n/context";
+import { ArrowRight } from "lucide-react";
 
 export function IntroApplicationsSection() {
   const { t, locale } = useI18n();
@@ -13,10 +16,10 @@ export function IntroApplicationsSection() {
   const playgroundHref =
     ex.playgroundScenarioId != null
       ? `/playground?scenario=${encodeURIComponent(ex.playgroundScenarioId)}`
-      : '/playground';
+      : "/playground";
 
   const getDisplay = (example: IntroApplicationExample) =>
-    locale === 'en' && example.en ? { ...example, ...example.en } : example;
+    locale === "en" && example.en ? { ...example, ...example.en } : example;
 
   const display = getDisplay(ex);
 
@@ -35,16 +38,13 @@ export function IntroApplicationsSection() {
   }, [activeExample]);
 
   return (
-    <section
-      id="applications"
-      className="bg-surface-base py-16 md:py-24"
-    >
+    <section id="applications" className="bg-surface-base py-16 md:py-24">
       <div className="mx-auto max-w-6xl px-4">
         <h2 className="mb-4 text-center text-3xl font-bold tracking-tight text-text-primary md:text-4xl">
-          {t('intro.applications.title')}
+          {t("intro.applications.title")}
         </h2>
         <p className="mx-auto mb-12 max-w-2xl text-center text-text-secondary">
-          {t('intro.applications.subtitle')}
+          {t("intro.applications.subtitle")}
         </p>
 
         <div className="mb-12 flex flex-wrap items-center justify-center gap-3">
@@ -57,8 +57,8 @@ export function IntroApplicationsSection() {
                 onClick={() => setActiveExample(idx)}
                 className={`whitespace-nowrap rounded-lg border px-4 py-2 text-sm transition-colors ${
                   activeExample === idx
-                    ? 'border-btc-500 bg-btc-500/15 text-btc-500'
-                    : 'border-border-default text-text-secondary hover:border-border-hover hover:text-text-primary'
+                    ? "border-btc-500 bg-btc-500/15 text-btc-500"
+                    : "border-border-default text-text-secondary hover:border-border-hover hover:text-text-primary"
                 }`}
               >
                 {displayEx.title}
@@ -78,34 +78,38 @@ export function IntroApplicationsSection() {
                   href={playgroundHref}
                   className="inline-flex shrink-0 items-center gap-1.5 rounded-button border border-btc-500/40 bg-btc-500/15 px-4 py-2 text-sm font-semibold text-btc-500 transition-colors hover:border-btc-500/60 hover:bg-btc-500/25"
                 >
-                  {t('intro.applications.tryIt')}
+                  {t("intro.applications.tryIt")}
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
 
               <div className="mb-6">
                 <p className="mb-2 text-xs font-medium uppercase tracking-widest text-text-muted">
-                  {t('intro.applications.scenarioLabel')}
+                  {t("intro.applications.scenarioLabel")}
                 </p>
-                <p className="leading-relaxed text-text-secondary">{display.description}</p>
+                <p className="leading-relaxed text-text-secondary">
+                  {display.description}
+                </p>
               </div>
 
               <div className="space-y-4">
                 <div>
                   <p className="mb-2 text-xs font-medium uppercase tracking-widest text-btc-500">
-                    {t('intro.applications.typeLabel')}
+                    {t("intro.applications.typeLabel")}
                   </p>
-                  <p className="text-sm text-text-muted">{display.applicationType}</p>
+                  <p className="text-sm text-text-muted">
+                    {display.applicationType}
+                  </p>
                 </div>
                 <div>
                   <p className="mb-2 text-xs font-medium uppercase tracking-widest text-btc-500">
-                    {t('intro.applications.caseLabel')}
+                    {t("intro.applications.caseLabel")}
                   </p>
                   <p className="text-sm text-text-muted">{display.realCase}</p>
                 </div>
                 <div>
                   <p className="mb-2 text-xs font-medium uppercase tracking-widest text-btc-500">
-                    {t('intro.applications.advantageLabel')}
+                    {t("intro.applications.advantageLabel")}
                   </p>
                   <p className="text-sm text-text-muted">{display.advantage}</p>
                 </div>
@@ -113,10 +117,7 @@ export function IntroApplicationsSection() {
             </div>
           </div>
 
-          <div
-            key={activeExample}
-            className="animate-fade-slide-in space-y-4"
-          >
+          <div key={activeExample} className="animate-fade-slide-in space-y-4">
             <div className="overflow-hidden rounded-xl border border-border-default bg-surface-card">
               <div className="bg-surface-elevated px-6 py-3">
                 <p className="text-sm font-medium uppercase tracking-widest text-text-muted">
@@ -131,7 +132,9 @@ export function IntroApplicationsSection() {
             </div>
 
             <div className="flex justify-center py-2">
-              <span className="text-sm text-text-muted">{t('intro.applications.compileArrow')}</span>
+              <span className="text-sm text-text-muted">
+                {t("intro.applications.compileArrow")}
+              </span>
             </div>
 
             <div className="overflow-hidden rounded-xl border border-border-default bg-surface-card">
@@ -148,7 +151,9 @@ export function IntroApplicationsSection() {
             </div>
 
             <div className="flex justify-center py-2">
-              <span className="text-sm text-text-muted">{t('intro.applications.compileArrow')}</span>
+              <span className="text-sm text-text-muted">
+                {t("intro.applications.compileArrow")}
+              </span>
             </div>
 
             <div className="overflow-hidden rounded-xl border border-border-default bg-surface-card">
@@ -162,13 +167,6 @@ export function IntroApplicationsSection() {
                   {ex.bitcoinScript}
                 </code>
               </div>
-            </div>
-
-            <div className="rounded-xl border border-btc-500/20 bg-btc-500/5 p-4">
-              <p className="mb-2 text-xs font-medium uppercase tracking-widest text-text-muted">
-                {t('intro.applications.scriptSizeLabel')}
-              </p>
-              <p className="font-mono text-sm text-text-secondary">{display.scriptSize}</p>
             </div>
           </div>
         </div>
