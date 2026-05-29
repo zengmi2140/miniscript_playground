@@ -219,7 +219,7 @@ export const zh = {
     footer: {
       description:
         "ScriptWise — 场景优先、以花费路径为中心的 Bitcoin Miniscript 教学实验室。",
-      rights: "© 2024 ScriptWise. All rights reserved.",
+      rights: "© 2026 ScriptWise. All rights reserved.",
     },
   },
 
@@ -558,10 +558,10 @@ export const zh = {
         title: "Minsc",
         desc: "基于 Miniscript Policy 的合约脚本语言，提供变量、函数与中缀运算符等语法糖；在线 WASM 编译器可生成 Policy、Miniscript、脚本与地址（测试网）。",
       },
-      bdkPlayground: {
-        badge: "在线工具",
-        title: "BDK Playground",
-        desc: "浏览器内的 Policy 编译与描述符钱包实验台：可将策略中的别名映射到公钥、选择 P2SH / P2WSH 等脚本上下文，并用可视化或 Policy 文本编辑花费条件。",
+      miniscriptBip: {
+        badge: "BIP 规范",
+        title: "Bitcoin Miniscript BIP",
+        desc: "官方比特币改进提案（BIP 379），详细规定了 Miniscript 语言的语法、语义、类型系统以及编译器要求。",
       },
       miniscriptBuilder: {
         badge: "在线工具",
