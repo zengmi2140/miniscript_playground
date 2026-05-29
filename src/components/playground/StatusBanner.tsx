@@ -7,6 +7,7 @@ import { useI18n } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils/cn';
 import { blocksToHumanLocale, getPathTimelockRemainingBlocks } from '@/lib/engine/time-utils';
 import { formatSpendingPathLabel } from '@/lib/engine/path-label';
+import type { PathCondition, SpendingPath } from '@/lib/engine/types';
 
 type BannerStatus = 'canSpend' | 'waiting' | 'cannotSpend';
 
@@ -72,14 +73,14 @@ export function StatusBanner() {
       }
     }
 
-    const allMissing = new Set<string>();
-    for (const p of spendingPaths) {
-      for (const mc of p.missingConditions) {
-        if (mc.type === 'signature') allMissing.add(mc.displayName ?? mc.keyName);
-      }
-    }
-
-    const missingList = Array.from(allMissing).join(', ');
+    const tipForCalc = blockTipHeightReady ? blockTipHeight : undefined;
+    const missingList = formatClosestMissing(
+      spendingPaths,
+      currentTimeBlocks,
+      tipForCalc,
+      locale,
+      t,
+    );
     return {
       status: 'cannotSpend',
       message: t('playground.status.cannotSpend', {
@@ -124,4 +125,112 @@ export function StatusBanner() {
       <p className={cn('text-[13px] font-medium', text)}>{banner.message}</p>
     </div>
   );
+}
+
+/**
+ * Among non-satisfiable paths, find the "closest" ones — those with the
+ * smallest number of unmet conditions — and present each as one actionable
+ * alternative. A path's unmet conditions (signatures, hashlock, or timelock)
+ * are joined with AND; multiple equally-close paths are joined with OR.
+ *
+ * Examples:
+ *   - 2-of-3 multisig with Charlie on → "Alice or Bob"
+ *     (instead of misleading union "Alice, Bob")
+ *   - `or(and(A,B), and(C,older(1000)))` with nothing toggled →
+ *     "(Alice and Bob) or (Charlie and 1000 more wait)"
+ *   - HTLC with hash known but no key → "Alice"
+ */
+function formatClosestMissing(
+  spendingPaths: SpendingPath[],
+  currentTimeBlocks: number,
+  blockTipHeight: number | undefined,
+  locale: 'zh' | 'en',
+  t: ReturnType<typeof useI18n>['t'],
+): string {
+  const candidates = spendingPaths.filter(
+    (p) => !p.satisfiable && p.missingConditions.length > 0,
+  );
+  if (candidates.length === 0) return '';
+
+  const minSize = Math.min(...candidates.map((p) => p.missingConditions.length));
+
+  const seen = new Set<string>();
+  const alternatives: { count: number; desc: string }[] = [];
+  for (const p of candidates) {
+    if (p.missingConditions.length !== minSize) continue;
+    const parts = p.missingConditions
+      .map((c) => describeCondition(c, currentTimeBlocks, blockTipHeight, locale, t))
+      .filter((s): s is string => Boolean(s))
+      .sort();
+    if (parts.length === 0) continue;
+    const desc = formatAndList(parts, locale);
+    if (seen.has(desc)) continue;
+    seen.add(desc);
+    alternatives.push({ count: parts.length, desc });
+  }
+
+  if (alternatives.length === 0) return '';
+  if (alternatives.length === 1) return alternatives[0].desc;
+
+  // All alternatives are atomic (single condition) → use Intl disjunction
+  // for nicer prose: "Alice, Bob, or Charlie" / "Alice 或 Bob 或 Charlie".
+  if (alternatives.every((a) => a.count === 1)) {
+    return formatOrList(alternatives.map((a) => a.desc), locale);
+  }
+  // Mixed lengths → wrap multi-part groups in parens for clarity.
+  return alternatives
+    .map((a) => (a.count > 1 ? `(${a.desc})` : a.desc))
+    .join(locale === 'zh' ? ' 或 ' : ' or ');
+}
+
+function describeCondition(
+  cond: PathCondition,
+  currentTimeBlocks: number,
+  blockTipHeight: number | undefined,
+  locale: 'zh' | 'en',
+  t: ReturnType<typeof useI18n>['t'],
+): string | null {
+  if (cond.type === 'signature') {
+    return cond.displayName ?? cond.keyName;
+  }
+  if (cond.type === 'hashlock') {
+    return t('playground.status.missingHashlock');
+  }
+  if (cond.type === 'timelock_relative' || cond.type === 'timelock_absolute') {
+    const remaining = getPathTimelockRemainingBlocks(
+      cond,
+      currentTimeBlocks,
+      blockTipHeight,
+    );
+    return t('playground.status.missingWaitBlocks', {
+      time: blocksToHumanLocale(remaining, locale),
+    });
+  }
+  return null;
+}
+
+function formatAndList(items: string[], locale: 'zh' | 'en'): string {
+  if (items.length === 0) return '';
+  if (items.length === 1) return items[0];
+  try {
+    return new Intl.ListFormat(locale === 'zh' ? 'zh-CN' : 'en', {
+      style: 'long',
+      type: 'conjunction',
+    }).format(items);
+  } catch {
+    return items.join(locale === 'zh' ? '、' : ', ');
+  }
+}
+
+function formatOrList(items: string[], locale: 'zh' | 'en'): string {
+  if (items.length === 0) return '';
+  if (items.length === 1) return items[0];
+  try {
+    return new Intl.ListFormat(locale === 'zh' ? 'zh-CN' : 'en', {
+      style: 'long',
+      type: 'disjunction',
+    }).format(items);
+  } catch {
+    return items.join(locale === 'zh' ? ' 或 ' : ' or ');
+  }
 }
