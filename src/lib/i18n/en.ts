@@ -418,6 +418,8 @@ export const en = {
       waiting: "Wait {time} more, then {path} becomes available",
       cannotSpend: "Cannot spend under current conditions, missing {missing}",
       someConditions: "some conditions",
+      missingHashlock: "the hash preimage",
+      missingWaitBlocks: "{time} more wait",
     },
     results: {
       policy: "Policy",

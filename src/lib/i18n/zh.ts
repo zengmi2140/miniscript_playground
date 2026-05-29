@@ -402,6 +402,8 @@ export const zh = {
       waiting: "还需等待 {time}，{path}才可用",
       cannotSpend: "当前条件下无法花费，还缺 {missing}",
       someConditions: "部分条件",
+      missingHashlock: "哈希前像",
+      missingWaitBlocks: "{time}的等待",
     },
     results: {
       policy: "Policy",
