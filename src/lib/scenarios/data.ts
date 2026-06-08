@@ -40,7 +40,7 @@ export const SCENARIOS: Scenario[] = [
     },
     explanation: {
       zh: "经典的多签方案。三个参与者各持一把私钥，任意两人合作即可花费资金。常用于公司金库、家庭共管账户等场景。即使丢了一把钥匙，另外两把仍然可以恢复资金。",
-      en: "Classic multisig. Three participants each hold a private key, any two can cooperate to spend. Even if one key is lost, the other two can still recover funds.",
+      en: "Classic multisig. Three participants each hold a private key, and any two can cooperate to spend. Commonly used for company treasuries or shared family accounts. Even if one key is lost, the other two can still recover the funds.",
     },
     policy: "thresh(2,pk(Alice),pk(Bob),pk(Charlie))",
     keyVariables: [kv("Alice"), kv("Bob"), kv("Charlie")],
@@ -91,7 +91,7 @@ export const SCENARIOS: Scenario[] = [
     },
     explanation: {
       zh: '这是一个巧妙的策略：正常情况下需要三个管理员全部签名（最安全）。但如果其中一人失联超过 90 天（约 12,960 个区块），剩余两人即可花费。thresh(3,...) 配合 older() 实现了"时间锁当作第四把钥匙"的效果。',
-      en: "Clever strategy: normally all three admins must sign (safest). If one is unavailable for 90 days (~12,960 blocks), the remaining two can spend.",
+      en: 'A clever strategy: normally all three admins must sign (the safest setup). But if one becomes unavailable for over 90 days (~12,960 blocks), the remaining two can spend. Putting `older()` inside `thresh(3,...)` effectively treats the timelock as a fourth "key".',
     },
     policy: "thresh(3,pk(Alice),pk(Bob),pk(Charlie),older(12960))",
     keyVariables: [kv("Alice"), kv("Bob"), kv("Charlie")],
@@ -107,7 +107,7 @@ export const SCENARIOS: Scenario[] = [
     },
     explanation: {
       zh: "双层安全设计：日常使用需要热钱包和冷钱包同时签名。如果冷钱包丢失或损坏，恢复密钥在 120 天（约 17,280 个区块）后可以独立花费。99@ 表示正常双签路径更常用。",
-      en: "Dual-layer security: daily use requires both hot and cold wallet signatures. If the cold wallet is lost, the recovery key can spend independently after 120 days (~17,280 blocks).",
+      en: "Dual-layer security: daily spending requires both the hot and cold wallets to sign. If the cold wallet is lost or damaged, the recovery key can spend on its own after 120 days (~17,280 blocks). The `99@` weight hints that the normal dual-sign path is the common case.",
     },
     policy: "or(99@and(pk(Hot),pk(Cold)),and(pk(Recovery),older(17280)))",
     keyVariables: [kv("Hot"), kv("Cold"), kv("Recovery")],
