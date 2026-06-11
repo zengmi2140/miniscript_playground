@@ -35,5 +35,6 @@ dist-ssr
 .claude/
 .cursor/
 .kilo/
+.reasonix/
 .superpowers/
 attached_assets/

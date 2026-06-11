@@ -1,299 +1,49 @@
-# ScriptWise — 开发指南（AGENTS.md）
+# AGENTS.md
 
-## 文档维护（本仓库硬约束）
+## 你的角色
 
-每次**已落地**的代码改动（新功能、行为调整、路由/目录/状态机变更、对用户可见流程、测试布局、已知限制等），若会影响「协作者如何理解或修改本项目」，**应在同一批改动中同步更新本文**（以及 [`DESIGN.md`](DESIGN.md)，若涉及视觉或设计 token），使文档与当前实现**一致**。
+你是 ScriptWise（Miniscript Lab）的开发 Agent。
 
-- **有值得写进文档的差异就写**；若改动与文档已有描述完全无关，**不必**为改而改。  
-- **最低标准**：合并后的 `AGENTS.md` 不得与本次改动在事实层面矛盾（例如改了路由却未更新 §4、改了目录却未更新 §5）。  
+本项目是一个**纯前端**的 Bitcoin Miniscript 教学实验室：以花费路径为中心，让用户理解「谁能花、何时能花、需要哪些条件」，再展示 Policy / Miniscript / Script / Descriptor / Address。技术栈为 Next.js 15 App Router + React 19 + TypeScript + Zustand + React Flow。
 
-是否由工具「自动先读」本文件取决于 Cursor 规则、`CLAUDE.md` 等配置；**在本仓库协作时**，将上述约定视为与代码同等重要的交付项。
+## 开始前必须阅读
 
----
+每次开始修改代码前，必须先阅读：
 
-本文档是仓库内**唯一**的开发说明：合并了产品意图与实现地图。**运行时行为以代码为准**；若本文与代码不一致，以代码为准并应修正本文。**视觉与设计 token** 见 [`DESIGN.md`](DESIGN.md)。**依赖版本**以 `package.json` / `package-lock.json` 为准。
+1. [docs/PRODUCT.md](docs/PRODUCT.md) — 产品意图、范围、路由、边界、限制
+2. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — 技术栈、目录、核心链路、改动入口
+3. [session-handoff.md](session-handoff.md) — 当前任务进度与下一步
+4. 改样式时另读 [docs/DESIGN.md](docs/DESIGN.md) — 色板、字体、节点尺寸等 token
 
----
+**运行时行为以代码为准**；若文档与代码冲突，以代码为准并修正文档。若用户最新需求与文档冲突，以用户明确表达的需求为准，但你必须同步更新相关文档。
 
-## Document Priority
+## 工作原则
 
-1. **代码** — 最高优先级。
-2. **本文（AGENTS.md）** — 产品与边界、路由、目录、链路、限制、改动入口。
-3. **[DESIGN.md](DESIGN.md)** — 色板、字体、Scenario 节点尺寸等。
+- 一次只处理一个明确目标；需求不明确先向用户提问。
+- 不擅自增加产品范围之外的功能（见 PRODUCT.md「暂不支持」）。
+- 改动落地后，在同一批改动中同步更新受影响的文档：
+  - 产品意图 / 范围 / 路由变更 → [docs/PRODUCT.md](docs/PRODUCT.md)
+  - 架构 / 目录 / 链路 / 改动入口变更 → [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+  - 视觉 / 设计 token 变更 → [docs/DESIGN.md](docs/DESIGN.md)
+  - 每轮开发结束后，更新 [session-handoff.md](session-handoff.md)
+- 文档「最低标准」：合并后的文档不得与本次改动在事实层面矛盾；改动与文档已有描述完全无关时不必为改而改。
+- 面向用户的界面文案优先走 i18n（`zh.ts` / `en.ts`），不在引擎或组件里写死中文串。
 
-**给 AI / 贡献者**：改功能时至少对照 §4（路由）、§5（目录）、§6（链路）、§9（限制）、§10（文件入口）；改样式时对照 DESIGN + `globals.css`；提交前在本地跑 `npm run lint` 与 `npm run test`。**合并前**按上文「文档维护」检查是否需更新本文 / `DESIGN.md`。
+## 不允许做的事（硬边界）
 
----
+- 不引入后端 / 数据库 / 登录 / 云同步；保持纯前端。
+- 不连接钱包、不查询 UTXO、不构造或广播交易、不处理私钥 / 助记词 / 真实签名。
+- 不上传用户策略；唯一允许的网络请求是**只读**拉取主网链尖高度。
+- 不把主网地址作为默认；地址仅用于 testnet / signet 教学展示。
+- 不手改 `src/lib/engine/block-height-fallback.generated.ts`（构建产物）；不把 `v0/` 当主应用源码。
+- 仅使用 npm（锁文件 `package-lock.json`）；勿提交 pnpm / yarn 锁。
 
-## 1. 产品与边界
+## 完成标准
 
-**定位**：场景优先、以花费路径为中心的 Bitcoin **Miniscript 教学**实验室——先让用户理解「谁能花、何时能花、需哪些条件」，再展示 Policy、Miniscript、Script、Descriptor 与 Address。
+只有满足以下条件，才能说明任务完成：
 
-**不是**：钱包、链上工具、IDE 替代品；不连接区块链；不构造或广播交易；不处理私钥 / 助记词 / 真实签名；**不上传**用户策略到服务器。
-
-**技术边界**：纯前端；无后端 API / 数据库；所有计算在浏览器本地完成，**不依赖 LLM 或外部服务**。地址仅用于 **testnet / signet** 教学展示，**不得**将主网地址作为默认或隐式行为。**MVP** 实际编译与地址以 **P2WSH** 为主；**P2TR** 可为占位，UI 中通常禁用（以代码为准）。
-
-**与「不连接区块链」的区分**：应用**不会**作为钱包去查询 UTXO、广播交易或同步链状态。唯一例外是 Playground 为教学展示 **after(区块高度)** 与混合时间轴，**只读**请求公共 API 获取**当前主网链尖高度**（实现上为多个端点顺序回退；短 TTL 内存缓存；全部失败时使用 [`block-height-fallback.generated.ts`](src/lib/engine/block-height-fallback.generated.ts) 中**构建时写入**的回退高度，由 `npm run build` 的 `prebuild` 抓取主网链尖并生成该文件；抓取失败时**优先保留**该文件中已有的高度，避免回退到更旧的值；若文件不存在或解析失败，CI 环境（`process.env.CI` truthy）下以非零退出码失败、本地环境写入脚本内的固定桩值以免阻塞构建）。这不改变「不上传策略、不托管密钥」的边界。
-
----
-
-## 2. 技术栈
-
-- 框架：Next.js 15 App Router + React 19；TypeScript strict；Zustand。  
-- 可视化：React Flow（`@xyflow/react`）；**scenario** 路径图 Dagre TB（`src/lib/flow/tree-to-flow.ts`）；**build** 策略树自实现递归 TB（`src/lib/builder/tree-to-flow.ts`）。  
-- 其余依赖：见 `package.json`。
-
----
-
-## 3. 运行与验证
-
-```bash
-npm install
-npm run dev
-npm run build          # 会先运行 prebuild：生成 block-height-fallback.generated.ts
-npm run lint
-npm run typecheck
-npm run test
-npm run test:coverage
-```
-
-- **`generate:block-height-fallback`**：单独抓取主网链尖并写入 `block-height-fallback.generated.ts`（与 `prebuild` 相同逻辑；可在不跑完整 `next build` 时刷新仓库内该文件）。  
-- **仅使用 npm**；锁文件为 `package-lock.json`（勿提交 pnpm/yarn 锁）。  
-- `npm run test` 即 `vitest run`（配置：`vitest.config.ts`；全局 setup：`src/test/setup.ts`）。  
-- `npm run test:coverage` 运行 Vitest 覆盖率报告（`vitest run --coverage`）。  
-- dev server 默认 `http://localhost:3000`（端口占用时以终端为准）。
-
-### 测试代码布局
-
-- 引擎 / 工具：`src/lib/engine/__tests__/`、`src/lib/builder/__tests__/`、`src/lib/hooks/__tests__/`、`src/lib/utils/__tests__/`、`src/lib/playground/__tests__/`、`src/lib/scenarios/__tests__/`、`src/lib/stores/__tests__/`
-- 组件：`components/**/__tests__/`（如 `BuilderPopover`、`LeftPanel`）
-- 新增逻辑应优先在对应目录旁补测试；`compiler`、`node-ops`、`useBuilderSync` 等已有覆盖可参考。
-
----
-
-## 4. 路由与信息架构
-
-### 路由速查
-
-| 路由 | 用途 |
-|------|------|
-| `/` | 首页：`HomepageHero` → `TransitionSection` → `ScriptComplexitySection` → `MeetMiniscriptSection` → Applications 等 → `HomepageWallets` → 页尾 CTA → 画布 |
-| `/intro` | **重定向到** `/` |
-| `/playground` | 三栏；默认 **scenario** |
-| `/playground?mode=build` | **build**（自己动手） |
-| `/playground?scenario=<id>` | 加载预设 `id` |
-| `/playground?s=<payload>` | 分享链接恢复（见 §6「分享与会话」） |
-| `/resources` | 外部工具链接 + 推荐阅读区（`resources.*` i18n） |
-| `/compare` | V2 占位 |
-| `/opengraph-image` | 动态 OG |
-
-顶栏：**首页**、**Playground**、**Resource 资源**（文案以 i18n 为准）。
-
-### Playground 意图（三栏）
-
-- **左栏**：预设（含「自己动手」→ build）、Key 变量、Context / Network。预设顺序与首页 Applications 对齐：`APPLICATION_PLAYGROUND_SCENARIO_IDS` + `sortScenariosForPlayground()`（见 §10「预设场景」）。  
-- **中栏**：Policy 编辑器；**scenario** → 花费路径图，**build** → 受约束策略树画布；状态横幅；条件开关与时间滑块。  
-- **右栏**：花费路径列表；技术 Tab（policy / miniscript / script / descriptor / address）— **可复制真实公钥等**；中栏/路径图可用角色名。  
-- **桌面优先**：窄视口 `MobileFallback`（`PlaygroundClient`）。  
-- **会话**：不自动持久化整段 Playground 状态；分享用 `?s=`。
-
-### 双模式
-
-- **scenario**：Policy（预设或自写）→ 编译 → 路径图与满足态。  
-- **build**：受限策略树 ↔ Policy 双向同步；**非**自由拖线流程图；结构不兼容时进入 `text-led` / `compile-error` 等（`useBuilderSync.ts`）。
-
-### 各路由实现要点
-
-- **`/`** — `src/app/page.tsx`。顺序：`HomepageHero`（双主角结构：Miniscript 技术定位 + ScriptWise 站点身份；右侧代码卡片含 Policy → Bitcoin Script 编译动画，桌面端首次进入视口自动播放，移动端直接展示终态；两条花费路径） → `HookSection`（"为什么这件事和你有关"三个场景问句） → `TransitionSection`（地址背后的脚本 + 单签 vs 多签） → `ScriptComplexitySection`（四个限制 PainCard） → `MeetMiniscriptSection`（两段式：`DefinitionBlock` ①Miniscript 是什么，含 Policy → Miniscript → Bitcoin Script 三层横向流水线（每张卡片含定位说明 + 代码示例 + 注释）→ `FeaturesBlock` ②可读性 / 可组合性 / 可迁移性 三张卡，其中可迁移性卡片包含 Descriptor 概念说明）→ `IntroApplicationsSection`（标题走 i18n；「上手一试」强化为半实心橙色按钮 + ArrowRight；编译演示切换场景带 fadeSlideIn 微交互） → `HomepageWallets` → `FAQSection`（6 条可折叠问答） → 双路径 CTA（`home.cta.primary` + `home.cta.secondary`） + footer。所有 section 通过 `ScrollReveal` 包裹实现滚动淡入动效（`IntersectionObserver`，尊重 `prefers-reduced-motion`）。**所有首页文案均通过 `t()` 读取 i18n**，`home.*` 命名空间下提供完整中英文（`zh.ts` / `en.ts`）。Applications **6** 条卡片与 `playgroundScenarioId` 见 `src/components/intro/data.ts`（含 **「穿越牛熊」** `holder-timelock`）；其余未列入 Applications 的预设由 `sortScenariosForPlayground()` 排在末尾（见 `src/lib/scenarios/data.ts`）。`requestIdleCallback` 可预热 Playground。
-- **`/intro`** — `src/app/intro/page.tsx`：`redirect('/')`。  
-- **`/playground`** — `src/app/playground/page.tsx` → `PlaygroundClient.tsx`：处理 `?s=`、`?scenario=`、`?mode=build`；`useViewportMode` 先走 `loading` 轻量 skeleton，再根据视口进入 `mobile`（`MobileFallback`）或 `desktop`（三栏）。仅 `desktop` 确认后通过 `useDesktopBootstrap` 执行 `clearSession()` + `fetchBlockTipHeight`，并启用 `useCompiler` + `useBuilderSync`。`?s=` 解码失败会显示一次性提示横幅。渐进式加载（`dynamic` 画布、`prefetch` 等）。  
-- **`/resources`** — `src/app/resources/page.tsx`：外链网格 +「推荐阅读」（数据：`src/lib/resources/recommended-reading.ts`）。  
-- **`/compare`** — `src/app/compare/page.tsx`：Coming Soon。
-
----
-
-## 5. 仓库结构、目录与架构概览
-
-### 根目录（工程配置）
-
-| 文件 / 目录 | 作用 |
-|-------------|------|
-| `package.json` / `package-lock.json` | 依赖与脚本（含 `prebuild` → 链尖回退生成） |
-| `scripts/generate-block-height-fallback.mjs` | 构建前抓取主网高度 → `block-height-fallback.generated.ts` |
-| `next.config.mjs` | Next 配置；Ledger 等别名 |
-| `tailwind.config.js` / `postcss.config.js` | Tailwind / PostCSS |
-| `tsconfig.json` | TypeScript；`exclude` 含 **`v0/`**（历史快照不参与主应用类型检查） |
-| `vitest.config.ts` | 单元测试 |
-| `components.json` | shadcn/ui 组件配置 |
-| `v0/` | 旧页面快照；**勿**当主应用源码 |
-
-### `src/app/`（App Router）
-
-| 路径 | 说明 |
-|------|------|
-| `layout.tsx` | 根布局、字体、metadata |
-| `globals.css` | 全局样式 |
-| `page.tsx` | 首页 |
-| `intro/page.tsx` | 重定向 `/` |
-| `playground/page.tsx` | Playground 页壳 |
-| `playground/PlaygroundClient.tsx` | Playground 客户端逻辑（URL、三栏、编译与 build 同步） |
-| `resources/page.tsx` | 资源页 |
-| `compare/page.tsx` | 对比占位 |
-| `opengraph-image.tsx` | OG 图 |
-
-### `src/components/`（按域划分）
-
-| 目录 | 内容 |
-|------|------|
-| `layout/` | `Header` 等全站布局 |
-| `providers.tsx` | `ThemeProvider`、`I18nProvider`（接收 server 传入的 `initialLocale` / `initialTheme`） |
-| `playground/` | 三栏、`LeftPanel`、`CenterPanel`、`RightPanel`、`PolicyEditor`、条件/时间/状态 |
-| `builder/` | build 画布、`BuilderCanvas`、`BuilderPopover`、`OperatorSwitchPopover`、`BuilderNodes` 等 |
-| `flow/` | scenario 路径图：`PathMap`、`FlowNodes`、`PathEdge` |
-| `results/` | 右栏各 Tab（Policy / Miniscript / Script / Descriptor / Address / Paths） |
-| `intro/` | 首页通识区块与 `data.ts`（Applications） |
-| `home/` | `HomepageHero`、`HookSection`、`TransitionSection`、`ScriptComplexitySection`、`MeetMiniscriptSection`、`HomepageWallets`、`FAQSection`、`ScrollReveal` 等 |
-| `scenarios/` | `ScenarioCard`、`ScenarioGallery`（未挂载路由时可仍存在） |
-| `shared/` | `ExplainPopover`、`GlossaryTooltip`、`CodeBlock` 等 |
-| `ui/` | shadcn 基础组件（`button` 等） |
-
-### `src/lib/`（业务与基础设施）
-
-| 目录 | 内容 |
-|------|------|
-| `stores/` | `playground-store.ts` — Playground 唯一状态源 |
-| `hooks/` | `useCompiler.ts`、`useBuilderSync.ts`、`useDesktopBootstrap.ts` |
-| `engine/` | `compiler.ts`、`miniscript-parser.ts`、`path-analyzer.ts`、`block-height.ts`（链尖缓存与 `fetchBlockTipHeight`）、`block-height-fallback.generated.ts`（**构建生成**，勿手改）、policy 错误与预检、`*__tests__/` |
-| `builder/` | 策略树模型、`serialize`、`node-ops`、`from-semantic-tree`、`status`、`tree-to-flow`、`__tests__/` |
-| `flow/` | scenario：`tree-to-flow.ts`（Dagre） |
-| `editor/` | `policy-language.ts`（CodeMirror 高亮等） |
-| `i18n/` | `context.tsx`、`zh.ts`、`en.ts` |
-| `scenarios/` | 预设数据、`playground-order.ts`、`tags.ts` |
-| `playground/` | `htlc-display-mask.ts`、`add-next-key-variable.ts`、`apply-playground-search-params.ts`（`?s=` / `scenario` / `mode` 与 store 同步） |
-| `glossary/` | 术语数据 |
-| `resources/` | `recommended-reading.ts` |
-| `theme/` | 主题 Context |
-| `preferences.ts` | locale/theme cookie key、解析与 `localeToHtmlLang` helper |
-| `utils/` | `share.ts`、`storage.ts`、`cn.ts` 等 |
-| `shims/` | `ledger-bitcoin-stub.js` |
-
-### 数据流（概念）
-
-```text
-用户编辑 Policy / 操作画布
-    → playground-store（Zustand）
-    → Playground（desktop 确认后）useDesktopBootstrap：clearSession + fetchBlockTipHeight → blockTipHeight / blockTipHeightReady
-    → useCompiler（debounce）→ compiler → miniscript、descriptor、地址、spendingPaths
-    → scenario：miniscript-parser → tree-to-flow → PathMap（链尖就绪后传入 blockTipHeight 用于区块高度型 after）
-    → build：strategyTree ↔ useBuilderSync ↔ Policy 文本
-    → 右栏 Tabs / StatusBanner / ConditionToggles / TimeSlider
-```
-
-### 与外部库的分界
-
-- Miniscript / Policy：`@bitcoinerlab/miniscript-policies`、`@bitcoinerlab/miniscript`  
-- Descriptor：`@bitcoinerlab/descriptors/dist/descriptors`（细入口，避免拉 Ledger）  
-- 比特币工具：`bitcoinjs-lib` 等（见 `package.json`）
-
----
-
-## 6. 核心运行链路
-
-### 应用装配
-
-- `layout.tsx` 在 server 读取 `scriptwise-locale` / `scriptwise-theme` cookie，输出 `<html lang>` 与主题 class/`color-scheme`，并注入 no-flash theme script；`providers.tsx` 将同一初值传给 `I18nProvider` / `ThemeProvider` 以避免 hydration mismatch；`Header.tsx` 承载首页 / Playground / Resources 导航。
-
-### Playground 状态
-
-- 单一事实源：`src/lib/stores/playground-store.ts`（`playgroundMode`、`policy`、`strategyTree`、`builderSyncState`、编译结果、模拟条件、`blockTipHeight` / `blockTipHeightReady`、UI 等）。
-
-### 自动编译
-
-- `useCompiler.ts`：500ms debounce；Policy 空或编译失败时清空派生结果。
-
-### 编译管线
-
-- `compiler.ts`：`compilePolicy` → 替换 key → `compileMiniscript` → `wsh(...)` descriptor → 地址 / scriptPubKey → `satisfier` → `analyzeSpendingPaths`。若 **`context === 'tr'`**，在编译 Policy 之前即返回 **`limit` 类友好错误**（不产出地址），与左栏 P2TR 占位一致，避免误以为已生成 Taproot 输出。  
-- 错误链：`policy-errors` → `policy-preflight` → `policy-error-highlight`（编辑器标红区间）。  
-- **Descriptor**：从 `@bitcoinerlab/descriptors/dist/descriptors` 导入；`@ledgerhq/ledger-bitcoin` → `ledger-bitcoin-stub`（`next.config` / `vitest.config`）。  
-- **Key 名替换**：`replaceKeyNames` 通过共享 helper `src/lib/utils/policy-identifiers.ts` 做 **token-aware** 替换（`\b<name>\b`）。这保证 `pk(A)` 与 `pk(Alice)` / `Key1` 与 `Key10` 不会互相吞噬，也不会把名为 `or` 的 key 与 `or_b` / `or_i` 混淆（同一 helper 也用于 `renameKeyVariable` 原子重命名）。  
-- **链尖与 `after(<height>)`**：`compile()` 接受可选 `blockTipHeight`；`useCompiler` 在 `blockTipHeightReady` 之前传 `undefined`。`path-analyzer`、scenario `tree-to-flow`、`StatusBanner` **以及 build 模式的** `builder/status.ts`（经 `BuilderCanvas` → `builderTreeToFlow` 注入 `blockTipHeight`）共用 `time-utils.ts` 的 `isPathTimelockSatisfied` / `getPathTimelockRemainingBlocks`，确保 `after(<height>)` 与 `older()` 在「编译 → 路径分析 → 路径图 → 状态横幅 → build 节点状态」全链路使用同一语义（`blockTipHeight + currentTimeBlocks ≥ afterValue`）。
-
-### 语义树与路径图（scenario）
-
-- `miniscript-parser.ts` → `tree-to-flow.ts`（Dagre）；`multi(k,…)` 在图上展开为 k-of-n 与各 key 叶子：**嵌套** multi 为 operator 框 + 父→k-of-n 合成边；**根级** multi 为 **单层** root 型 k-of-n 框直连各 key（避免多余顶层节点）。共源多边叠画时边带 `zIndex`，使已满足边在上层，减轻灰线盖住绿线（`PathEdge`）。  
-- **区块高度型 `after()`**：条件满足态依赖当前链尖（`blockTipHeight`）；在链尖首次拉取完成前不向 `tree-to-flow` 传入高度，避免占位高度误判。  
-- 组件：`PathMap`、`FlowNodes`、`PathEdge` 等。
-
-### 可视化构建（build）
-
-核心模块：`src/lib/builder/`（`types`、`serialize`、`node-ops`、`from-semantic-tree`、`status.ts`、`tree-to-flow.ts`、`threshold.ts`）、`src/components/builder/*`、`useBuilderSync.ts`。要点：二元 `all`/`any`、门限通过 `threshold.ts` 的 `effectiveThresholdK`（读取层）/ `clampStoredThresholdK`（写入层）共享同一份 clamp 逻辑、虚拟「+」与子占位、`OperatorSwitchPopover` / `BuilderPopover`、包裹进组、深度 ≤5 提示。细节以源码为准。
-
-### 花费路径
-
-- `path-analyzer.ts` → `Paths`、`StatusBanner`。同一 **公钥** 在 `keyVariables` 中重复出现时，路径标签取 **首次出现** 的变量名。路径卡片标题由 `path-analyzer` 产出 `labelVariant`，UI 经 `path-label.ts` 的 `formatSpendingPathLabel` 按当前语言拼接（不再在引擎内写死中文串）。  
-- **Key 身份**：`KeyVariable.policyName` 是稳定 ID，贯穿 semantic tree、`availableKeys`、`PathCondition.keyName` 与 builder `roleId`；`name` 仅作为 UI 显示标签（`PathCondition.signature` 携带可选 `displayName`，UI 优先使用，否则回退到 `keyName`）。重命名走 `playground-store` 的 `renameKeyVariable`：原子地改 `name`/`policyName` 并 token-aware 重写 `policy` 文本。`share.ts` / 旧 session 解码额外校验 `policyName` 为合法 identifier 且唯一。
-- **状态横幅 `StatusBanner`**：分三档 `canSpend` / `waiting` / `cannotSpend`。  
-  - `canSpend`：任一路径满足。  
-  - `waiting`：某条路径的全部 **签名** 都已就绪，仅缺时间锁（`timelock_relative` / `timelock_absolute`）→ 显示「还需等待 X」。  
-  - `cannotSpend`：上述都不成立时进入 `formatClosestMissing(spendingPaths, currentTimeBlocks, blockTipHeight, locale, t)`：在所有非满足路径中，按 `missingConditions.length` 取 **最少缺失条件** 的若干条作为 *等价备选*；同一路径内的多个缺失条件以 **AND** 连接（`Intl.ListFormat conjunction`，i18n 文案见下），多条等价路径以 **OR** 并列（全为原子条件时用 `Intl.ListFormat disjunction`，否则用 `(A 和 B) 或 C` 加括号）。  
-    - 单个条件描述统一走 `describeCondition`：签名 → 角色名（`displayName ?? keyName`），哈希锁 → `playground.status.missingHashlock`，时间锁 → `playground.status.missingWaitBlocks`（剩余区块经 `getPathTimelockRemainingBlocks` + `blocksToHumanLocale` 渲染）。  
-    - **这是为了修掉旧聚合行为**：旧实现把所有非满足路径的缺失签名做并集，在 k-of-n 多签（如 `thresh(2,pk(A),pk(B),pk(C))`）下，已点亮的那个 key 会被"挤出"显示集合，例如点亮 Bob 时显示「还缺 Alice, Charlie」，与"再选一个就行"的实际语义相反。新逻辑会显示「还缺 Alice 或 Charlie」（任选其一即可），并在 `or(and(A,B), and(C,older(...)))` 这类混合策略里同时呈现「(A 和 B) 或 (C 和 N 块的等待)」。详见 [`StatusBanner.tsx`](src/components/playground/StatusBanner.tsx) 内的 `formatClosestMissing` / `describeCondition` 注释。
-
-### 分享与会话
-
-- 不自动持久化 Playground；`share.ts` 将状态编码为 `?s=`（Base64 JSON），并对 `network` / `context` / `keyVariables` 形状做校验；`storage.ts` 的 legacy `loadSession` 使用相同规则。  
-- `PlaygroundClient`：`searchParams` **每次变化**（含客户端路由）时按 **`applyPlaygroundSearchParams`** 应用：**`s` 解码成功** → `restoreSession`；**否则** 若有 `scenario` → `loadScenario`；**否则** 若 `mode=build` → `enterBuildMode`。无上述参数时不 `reset()`，避免误清编辑中状态。`s` 解码失败会触发一次性 `invalidPayload` 提示。桌面初始化（`clearSession` + 拉链尖）由 `useDesktopBootstrap` 在 `mode === 'desktop'` 时触发。  
-- 分享链接过长时 `PolicyEditor` 会提示（阈值见 `share.ts`）；超大策略不宜仅依赖 URL 分享。
-
----
-
-## 7. 关键 UI 结构
-
-左栏 `LeftPanel`（240px）、中栏 `CenterPanel`、右栏 `RightPanel`（320px）。`PolicyEditor`（含 `htlc-atomic` 的 `hash160(HEX)` 展示与 `onDocChangeRef`、分享链接过长提示）、`ConditionToggles`、`TimeSlider`（顶行仅展示主网链尖高度；分段线性锚点；`older()` 与区块高度型 `after()` 统一为相对区块语义后混排；模拟流逝在滑块上方单行显示，水平位置随拇指并限制在轨道内避免裁切）、`StatusBanner`；右栏 Tab 与 `htlc` 真实摘要规则见上文与 `htlc-display-mask.ts`。
-
----
-
-## 8. i18n、主题、样式
-
-- i18n：`zh.ts` / `en.ts`，`t()` dot-path；`I18nProvider` 首值来自 server cookie，切换语言会同步 cookie / localStorage 与 `document.documentElement.lang`。  
-- 主题：`ThemeProvider` 首值来自 server cookie；`layout.tsx` 注入 no-flash script 保证首帧主题一致，客户端切换同步 cookie / localStorage 与 `color-scheme`。  
-- Token：[DESIGN.md](DESIGN.md)；`globals.css`、`tailwind.config.js`。
-
----
-
-## 9. 限制与易误判点
-
-1. 仅 **wsh** 有实际编译产出；左栏 **tr** 为占位（禁用）。若 `context === 'tr'`，编译器返回明确错误（见 §6 编译管线）。  
-2. **时间模拟**：`older()` 与区块高度型 **`after()`** 可与链尖结合，在时间轴上混合排序；**Unix 时间戳型 `after()`** 等路径仍可能简化或未完全模拟（以代码为准）。从「编译 → 路径分析 → 路径图 → 状态横幅 → build 模式节点状态」**共用** `time-utils.ts` 的 `isPathTimelockSatisfied` / `getPathTimelockRemainingBlocks`，区块高度型 `after()` 在链尖未就绪时一律视为 pending 而非 satisfied。  
-3. **signet** 地址派生可能复用 testnet 网络对象（教学折中）。  
-4. **/compare** 未实现；导航指向 **Resources**。  
-5. 多数业务页面仍为 **'use client'**；但根 `layout.tsx` 已在服务端按 cookie 输出 `<html lang>` 与主题 class（含 no-flash 主题脚本）。  
-6. **移动端**无完整 Playground（桌面优先）；`useViewportMode === 'loading'` 先渲染 skeleton，未确认 desktop 前不会触发 `clearSession` / `fetchBlockTipHeight`。  
-7. 无 **regtest**。  
-8. 路径图**根节点**即顶层逻辑（都需要 / **二选一** / k-of-n），单叶子可无根节点。  
-9. **build** 为 MVP：受约束树 + 同步；非任意拖线。  
-10. **渐进式加载**、首页 **双路径 CTA**（「去做：打开 Playground」+「去读：浏览学习资源」）。  
-11. **htlc-atomic**：`HEX` 展示 vs 右栏真实 hex；见 §7 与 `htlc-display-mask.ts`。  
-12. 旧版首页区块（`HomepageFeatures` / `HomepageHowItWorks` / `HomepageMission` / `HomepageMiniscriptExplainer` / `IntroChallengeSection` / `IntroCoreConceptsSection` / `IntroWhyMattersSection` / `HistorySection`）已随首页精简与 i18n 清理一并删除；对应的 `home.explainer.* / home.how.* / home.features.* / home.challenge.* / home.concepts.* / home.why.* / home.scenarios.* / home.history.*` 旧 key 亦从 `zh.ts` / `en.ts` 移除。当前 `home.*` 命名空间只保留新首页实际使用的 key：`hero / hook / transition / scriptComplexity / meetMiniscript / wallets / faq / cta / footer`。
-
----
-
-## 10. 常见改动入口
-
-| 目标 | 入口 |
-|------|------|
-| 预设场景 | `src/lib/scenarios/data.ts`、`playground-order.ts`、`intro/data.ts`、tags / `ScenarioCard` |
-| Policy 语法 / 编译 | `policy-language.ts`、`compiler.ts`、`miniscript-parser.ts`、`glossary/data.ts`、`*__tests__/*` |
-| 路径判定 / 模拟 | `path-analyzer.ts`、`time-utils.ts`（`isPathTimelockSatisfied` / `getPathTimelockRemainingBlocks` 共享 helper）、`block-height.ts`、`block-height-fallback.generated.ts`（`prebuild`）、`StatusBanner`、`ConditionToggles`、`TimeSlider`、`PathsTab` |
-| Key 名替换 / 重命名 | `src/lib/utils/policy-identifiers.ts`（token-aware `\b<name>\b`）、`compiler.ts`（`replaceKeyNames`）、`playground-store.ts`（`renameKeyVariable`）、`KeyVariableManager.tsx`、`share.ts` |
-| scenario 路径图 | `tree-to-flow.ts`、`PathMap`（传入 `blockTipHeight`）、`FlowNodes`、`PathEdge` |
-| build 画布 | `src/lib/builder/*`（含 `threshold.ts` 的 `effectiveThresholdK` / `clampStoredThresholdK` 共享 clamp）、`BuilderCanvas`、`useBuilderSync.ts`、`playground-store.ts` |
-| Policy 编辑器 | `PolicyEditor.tsx`、`htlc-display-mask.ts`、`policy-errors` 等 |
-| 右栏结果 | `RightPanel.tsx`、`components/results/*` |
-| SSR 语言/主题首帧一致性 | `src/lib/preferences.ts`、`src/app/layout.tsx`、`src/components/providers.tsx`、`src/lib/i18n/context.tsx`、`src/lib/theme/context.tsx` |
-| Playground 首屏模式与桌面 bootstrap | `src/app/playground/PlaygroundClient.tsx`、`src/lib/hooks/useDesktopBootstrap.ts`、`src/lib/playground/apply-playground-search-params.ts` |
-| 资源页 | `src/app/resources/page.tsx`、`recommended-reading.ts`、`resources.*` |
-| 首页 / Intro | `src/app/page.tsx`、`src/components/home/*`（Hero / Hook / Transition / ScriptComplexity / MeetMiniscript / History / Wallets / FAQ / ScrollReveal 等）、`src/components/intro/*` |
-| 动效兜底 | `globals.css` 中的 `@media (prefers-reduced-motion: reduce)` 全局兜底；`HomepageWallets` 钱包 marquee 仅首份副本可聚焦，其余 3 份 `aria-hidden`，并提供显式暂停/恢复按钮（`home.wallets.pause` / `resume`）；动画 keyframes 集中在 `globals.css`（不再用组件内 inline `<style>`） |
-| 设计 token | [DESIGN.md](DESIGN.md) |
+- 改动按预期工作，并已实际验证（运行 / 测试 / 查看输出，而非仅推断）。
+- 本地通过 `npm run lint`、`npm run typecheck`、`npm run test`。
+- 新增逻辑在对应 `__tests__/` 旁补了测试（参考既有覆盖）。
+- 受影响的 PRODUCT.md / ARCHITECTURE.md / docs/DESIGN.md 已同步更新。
+- [session-handoff.md](session-handoff.md) 已更新（勾选已完成项，写明已验证 / 未验证与下一步）。

@@ -1,9 +1,9 @@
 # Miniscript Lab — 设计系统
 
 > **本文档是视觉与设计规格的参考来源。**  
-> 色彩、字体、间距、组件与 Scenario 路径图节点尺寸以本文为准；**运行时实现**以 [`src/app/globals.css`](src/app/globals.css) 与 [`tailwind.config.js`](tailwind.config.js) 为准。若文档与代码不一致，以代码为准；改稿时应同步更新本文与样式文件。
+> 色彩、字体、间距、组件与 Scenario 路径图节点尺寸以本文为准；**运行时实现**以 [`src/app/globals.css`](../src/app/globals.css) 与 [`tailwind.config.js`](../tailwind.config.js) 为准。若文档与代码不一致，以代码为准；改稿时应同步更新本文与样式文件。
 
-产品与路由级**意图**见 [`AGENTS.md`](AGENTS.md) §1、§4；具体布局与实现以代码与 [`AGENTS.md`](AGENTS.md) 全文为准。
+产品与路由级**意图**见 [`PRODUCT.md`](PRODUCT.md)；具体布局与实现以代码与 [`ARCHITECTURE.md`](ARCHITECTURE.md) 为准。
 
 ---
 
@@ -179,7 +179,7 @@ hover 态：Primary → `--orange-600`；Secondary → `--bg-overlay`
 
 ## 6. Playground：Scenario 路径图节点尺寸
 
-以下仅针对 **scenario 模式**下 React Flow 花费路径图中的节点外观（宽度、高度、圆角、边框、padding、字号）。节点**语义与交互**（根节点显示「都需要」等）见 [`AGENTS.md`](AGENTS.md) §4、§6、§9。
+以下仅针对 **scenario 模式**下 React Flow 花费路径图中的节点外观（宽度、高度、圆角、边框、padding、字号）。节点**语义与交互**（根节点显示「都需要」等）见 [`ARCHITECTURE.md`](ARCHITECTURE.md)「语义树与路径图」与 [`PRODUCT.md`](PRODUCT.md)「限制与易误判点」。
 
 | 节点类型           | 宽度    | 高度   | 说明                              |
 | -------------- | ----- | ---- | ------------------------------- |
