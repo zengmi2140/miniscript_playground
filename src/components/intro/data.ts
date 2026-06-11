@@ -140,7 +140,7 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
       "OP_IF\n  [Oracle_A] OP_CHECKSIG OP_NOTIF OP_RETURN OP_ENDIF\n  [Alice] OP_CHECKSIG\nOP_ELSE\n  [Oracle_B] OP_CHECKSIG OP_NOTIF OP_RETURN OP_ENDIF\n  [Bob] OP_CHECKSIG\nOP_ENDIF",
     scriptSize:
       "Policy ~110 字节 → Miniscript ~85 字节 → Bitcoin Script 72 字节",
-    applicationType: "离散对数合约（DLC）",
+    applicationType: "金融合约",
     realCase: "比特币期货、去中心化预言机、衍生品",
     advantage: "无需信任的预言机，原生比特币结算",
     playgroundScenarioId: "dlc-simple",
@@ -148,7 +148,7 @@ export const INTRO_APPLICATION_EXAMPLES: IntroApplicationExample[] = [
       title: "DLC Contract",
       description:
         "Oracle-signed discrete log contract: conditional payment based on witness events from the oracle",
-      applicationType: "Discrete Log Contract (DLC)",
+      applicationType: "Financial Contract",
       realCase: "Bitcoin futures, decentralized oracles, derivatives",
       advantage: "Trustless oracle, native Bitcoin settlement",
       scriptSize:
