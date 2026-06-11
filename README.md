@@ -40,7 +40,7 @@
 
 Descriptor 库使用 `@bitcoinerlab/descriptors/dist/descriptors` 入口，并通过构建别名避免打入 Ledger 硬件钱包 SDK；说明见 [`AGENTS.md`](AGENTS.md)「编译管线」中 Descriptor 与构建。
 
-视觉与设计 token（色板、字体、Scenario 路径图节点尺寸等）见 [`DESIGN.md`](DESIGN.md)。
+视觉与设计 token（色板、字体、Scenario 路径图节点尺寸等）见 [`docs/DESIGN.md`](docs/DESIGN.md)。
 
 ## 设计约束
 
