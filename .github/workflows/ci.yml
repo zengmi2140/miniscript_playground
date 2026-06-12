@@ -1,8 +1,8 @@
 name: CI
 
 # 把「完成标准」在 PR / push 上机器化强制执行，给 Agent 自检加兜底。
-# 注意：不跑 `npm run build`，因为其 prebuild 会联网抓取主网链尖高度；
-# 链尖回退文件已提交，lint / typecheck / test 无需该步骤。
+# CI 使用 `build:check` 跳过会联网刷新链尖回退文件的 prebuild；
+# 正式部署仍使用 `npm run build` 获取最新回退高度。
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies
@@ -32,5 +32,8 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Test
-        run: npm run test
+      - name: Test with coverage
+        run: npm run test:coverage
+
+      - name: Production build check
+        run: npm run build:check

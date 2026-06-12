@@ -23,6 +23,7 @@ dist-ssr
 *.sw?
 .env
 .next
+coverage/
 
 
 # TypeScript build info

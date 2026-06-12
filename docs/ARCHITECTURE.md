@@ -21,8 +21,8 @@
 | 目标 | 入口 |
 |------|------|
 | 预设场景 | [RUNBOOKS.md「新增预设场景」](RUNBOOKS.md#新增预设场景)；入口为 `scenarios/data.ts`，首页联动、图标与 tags 按条件修改 |
-| Policy 语法 / 编译 | `policy-language.ts`、`compiler.ts`、`miniscript-parser.ts`、`glossary/data.ts` |
-| 路径判定 / 模拟 | `path-analyzer.ts`、`time-utils.ts`、`block-height.ts`、`block-height-fallback.generated.ts`（prebuild）、`StatusBanner`、`ConditionToggles`、`TimeSlider`、`PathsTab` |
+| Policy 语法 / 编译 | [RUNBOOKS「修改编译或时间锁语义」](RUNBOOKS.md#修改编译或时间锁语义)；`policy-language.ts`、`compiler.ts`、`miniscript-parser.ts`、`glossary/data.ts` |
+| 路径判定 / 模拟 | [RUNBOOKS「修改编译或时间锁语义」](RUNBOOKS.md#修改编译或时间锁语义)；`path-analyzer.ts`、`time-utils.ts`、`block-height.ts`、`StatusBanner`、`TimeSlider` |
 | Key 名替换 / 重命名 | `utils/policy-identifiers.ts`、`compiler.ts`（`replaceKeyNames`）、`playground-store.ts`（`renameKeyVariable`）、`KeyVariableManager.tsx`、`share.ts` |
 | scenario 路径图 | `flow/tree-to-flow.ts`、`PathMap`、`FlowNodes`、`PathEdge` |
 | build 画布 | `lib/builder/*`（含 `threshold.ts`）、`BuilderCanvas`、`useBuilderSync.ts`、`playground-store.ts` |
@@ -30,29 +30,35 @@
 | 右栏结果 | `RightPanel.tsx`、`components/results/*` |
 | SSR 语言 / 主题首帧 | `preferences.ts`、`app/layout.tsx`、`providers.tsx`、`i18n/context.tsx`、`theme/context.tsx` |
 | Playground 首屏与桌面 bootstrap | `PlaygroundClient.tsx`、`useDesktopBootstrap.ts`、`apply-playground-search-params.ts` |
+| 分享 payload / URL 恢复 | [RUNBOOKS「修改分享 Payload」](RUNBOOKS.md#修改分享-payload)；`share.ts`、`storage.ts`、`apply-playground-search-params.ts`、`playground-store.ts` |
+| 路由 / SSR 首帧 | [RUNBOOKS「新增路由或修改 SSR 首帧」](RUNBOOKS.md#新增路由或修改-ssr-首帧)；`app/layout.tsx`、`preferences.ts`、Providers |
 | 资源页 | `resources/page.tsx`、`recommended-reading.ts`、`resources.*` |
 | 首页 | `app/page.tsx`、`components/home/*`、`components/intro/*` |
-| 设计 token | `DESIGN.md`、`globals.css`、`tailwind.config.js` |
+| 设计 token | [RUNBOOKS「新增或修改设计 Token」](RUNBOOKS.md#新增或修改设计-token)；`DESIGN.md`、`globals.css`、`tailwind.config.js` |
 
 ## 项目性质
 
-纯前端、本地优先应用：无后端 API / 数据库，所有计算在浏览器本地完成。唯一网络行为是**只读**拉取主网链尖高度（见下文「链尖高度」），不上传策略、不托管密钥。
+纯前端、本地优先应用：无业务后端 API / 数据库，所有计算在浏览器本地完成。自动网络行为限于**只读**拉取主网链尖高度（见下文「链尖高度」）和加载公共静态展示资源；不上传策略、密钥、会话数据或遥测信息。
 
 ## 运行与验证
 
 ```bash
-npm install
+nvm use                # 读取 .nvmrc，统一使用 Node 22
+npm ci
 npm run dev            # 默认 http://localhost:3000
 npm run build          # 会先运行 prebuild：生成 block-height-fallback.generated.ts
+npm run build:check    # 直接 next build，不刷新或改写链尖回退文件
 npm run lint
 npm run typecheck
 npm run test           # vitest run
-npm run test:coverage
+npm run test:coverage  # 正式测试门禁；engine / builder / playground 各 70%
 npm run generate:block-height-fallback   # 单独刷新链尖回退文件
 ```
 
+- **Node 22 是唯一受支持的开发 / CI 主版本**，以 `.nvmrc` 为单一事实源；`package.json` 的 engines 为 `>=22 <23`。
 - **仅使用 npm**；锁文件为 `package-lock.json`（勿提交 pnpm / yarn 锁）。
 - 测试配置：`vitest.config.ts`；全局 setup：`src/test/setup.ts`。
+- `build` 用于正式构建 / 部署，会先联网刷新链尖回退高度；`build:check` 用于 CI 和代码验收，只验证生产构建，不运行 `prebuild`。
 
 ## 仓库结构
 
@@ -61,6 +67,7 @@ npm run generate:block-height-fallback   # 单独刷新链尖回退文件
 | 文件 / 目录 | 作用 |
 |-------------|------|
 | `package.json` / `package-lock.json` | 依赖与脚本（含 `prebuild` → 链尖回退生成） |
+| `.nvmrc` | Node 22 版本单一事实源；CI、Vercel 与本地 `nvm use` 共用 |
 | `scripts/generate-block-height-fallback.mjs` | 构建前抓取主网高度 → `block-height-fallback.generated.ts` |
 | `next.config.mjs` | Next 配置；Ledger 等别名 |
 | `tailwind.config.js` / `postcss.config.js` | Tailwind / PostCSS |
@@ -74,6 +81,7 @@ npm run generate:block-height-fallback   # 单独刷新链尖回退文件
 | 路径 | 说明 |
 |------|------|
 | `layout.tsx` | 根布局、字体、metadata；server 端按 cookie 输出 `<html lang>` 与主题（no-flash script） |
+| `fonts/` | 自托管的 Plus Jakarta Sans / IBM Plex Mono latin 字体与 SIL OFL 许可证 |
 | `globals.css` | 全局样式与动画 keyframes |
 | `page.tsx` | 首页 |
 | `intro/page.tsx` | `redirect('/')` |
@@ -135,7 +143,7 @@ npm run generate:block-height-fallback   # 单独刷新链尖回退文件
 
 ### 应用装配
 
-`layout.tsx`（server）读取 `scriptwise-locale` / `scriptwise-theme` cookie，输出 `<html lang>` 与主题 class / `color-scheme`，注入 no-flash theme script；`providers.tsx` 把同一初值传给 `I18nProvider` / `ThemeProvider` 避免 hydration mismatch。
+`layout.tsx`（server）通过 `next/font/local` 装配仓库内字体，读取 `scriptwise-locale` / `scriptwise-theme` cookie，输出 `<html lang>` 与主题 class / `color-scheme`，注入 no-flash theme script；`providers.tsx` 把同一初值传给 `I18nProvider` / `ThemeProvider` 避免 hydration mismatch。
 
 ### 自动编译
 
@@ -226,7 +234,7 @@ npm run generate:block-height-fallback   # 单独刷新链尖回退文件
 ### 测试
 
 - **测试文件与源文件同目录旁 `__tests__/`**：不放全局 `test/` 目录。
-- **覆盖率阈值**：`src/lib/engine/**` 和 `src/lib/builder/**` 均为 70% lines/functions（见 `vitest.config.ts`）。
+- **覆盖率阈值**：`src/lib/engine/**`、`src/lib/builder/**` 和 `src/lib/playground/**` 均为 70% lines/functions（见 `vitest.config.ts`）。
 
 ## 重要边界
 

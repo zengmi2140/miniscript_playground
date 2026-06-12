@@ -16,6 +16,7 @@
 - 不理解产品做什么 / 功能范围 → 读 [docs/PRODUCT.md](docs/PRODUCT.md)
 - 不理解技术结构 / 模块划分 → 读 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - 不清楚当前进度 / 待办任务 → 读 [docs/task/TASKS.md](docs/task/TASKS.md)
+- 历史任务归档默认不读；仅在用户明确要求或需要追溯历史决策时读 `docs/task/TASKS-ARCHIVE.md`
 
 ### 阶段 2：执行（确定实现所需的阅读深度）
 
@@ -66,6 +67,7 @@
 
 > 判断原则：如果改动影响了文档中**事实性描述**的准确性，就必须同步更新；仅涉及内部实现细节且未改变对外行为时可跳过。
 - 新增预设场景时，按 [docs/RUNBOOKS.md「新增预设场景」](docs/RUNBOOKS.md#新增预设场景) 执行必改项、条件联动点与验收清单。
+- 修改编译 / 时间锁语义、分享 payload、路由 / SSR 首帧或设计 token 时，分别按 [docs/RUNBOOKS.md](docs/RUNBOOKS.md) 对应章节执行。
 - 文档「最低标准」：合并后的文档不得与本次改动在事实层面矛盾；改动与文档已有描述完全无关时不必为改而改。
 - 面向用户的界面文案优先走 i18n（`zh.ts` / `en.ts`），不在引擎或组件里写死中文串。
 
@@ -75,7 +77,8 @@
 
 - 不引入后端 / 数据库 / 登录 / 云同步；保持纯前端。
 - 不连接钱包、不查询 UTXO、不构造或广播交易、不处理私钥 / 助记词 / 真实签名。
-- 不上传用户策略；唯一允许的网络请求是**只读**拉取主网链尖高度。
+- 不上传用户策略、密钥、会话数据或遥测信息；不新增业务写请求。
+- 允许的自动网络行为仅限**只读**拉取主网链尖高度，以及加载公共静态展示资源（如图片、图标、字体）。
 - 不把主网地址作为默认；地址仅用于 testnet / signet 教学展示。
 - 不手改 `src/lib/engine/block-height-fallback.generated.ts`（构建产物）。
 - 仅使用 npm（锁文件 `package-lock.json`）；勿提交 pnpm / yarn 锁。
@@ -89,11 +92,12 @@
 - 改动按预期工作，并已实际验证（运行 / 测试 / 查看输出，而非仅推断）。
 - `npm run lint` → **0 error**（warning 不阻塞）。
 - `npm run typecheck` → **0 error**。
-- `npm run test` → **全部通过**（无失败用例）。
-- 改动文档时 `npm run doc:health` → **通过**（校验链接路径、锚点、反引号代码文件名引用）。
-- `npm run build` → 成功（可选，视改动范围；涉及编译管线、路由、SSR 时必须验证）。
-- 新增逻辑在对应 `__tests__/` 旁补了测试（参考既有覆盖；引擎与 builder 覆盖率阈值 70%）。
+- `npm run test:coverage` → **全部通过**（无失败用例）；`src/lib/engine/**`、`src/lib/builder/**`、`src/lib/playground/**` 的 lines/functions 均不低于 70%。
+- 改动文档或 Harness 契约时 `npm run doc:health` → **通过**（校验引用、路由、i18n、网络数据外发与配置契约）。
+- `npm run build:check` → 成功（可选，视改动范围；涉及编译管线、路由、SSR 时必须验证），且不得刷新链尖回退文件。
+- 正式构建 / 部署使用 `npm run build`，其 `prebuild` 会先刷新链尖回退文件。
+- 新增逻辑在对应 `__tests__/` 旁补了测试（参考既有覆盖）。
 - 受影响的 PRODUCT.md / ARCHITECTURE.md / docs/DESIGN.md 已同步更新。
 - [docs/task/TASKS.md](docs/task/TASKS.md) 已更新（勾选已完成项，写明已验证 / 未验证与下一步）。
 
-> 上述 `lint / typecheck / test / doc:health` 已由 `.github/workflows/ci.yml` 在 PR / push 上强制执行（不跑 `build`，因其 prebuild 会联网）。
+> 上述 `lint / typecheck / test:coverage / doc:health / build:check` 由 `.github/workflows/ci.yml` 在 PR / push 上强制执行；CI 不运行会联网刷新的正式 `build`。
