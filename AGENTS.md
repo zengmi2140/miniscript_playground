@@ -65,6 +65,7 @@
 | 仅修改组件内部实现、不改变对外接口 | 无需更新文档 |
 
 > 判断原则：如果改动影响了文档中**事实性描述**的准确性，就必须同步更新；仅涉及内部实现细节且未改变对外行为时可跳过。
+- 新增预设场景时，按 [docs/RUNBOOKS.md「新增预设场景」](docs/RUNBOOKS.md#新增预设场景) 执行必改项、条件联动点与验收清单。
 - 文档「最低标准」：合并后的文档不得与本次改动在事实层面矛盾；改动与文档已有描述完全无关时不必为改而改。
 - 面向用户的界面文案优先走 i18n（`zh.ts` / `en.ts`），不在引擎或组件里写死中文串。
 
@@ -89,7 +90,10 @@
 - `npm run lint` → **0 error**（warning 不阻塞）。
 - `npm run typecheck` → **0 error**。
 - `npm run test` → **全部通过**（无失败用例）。
+- 改动文档时 `npm run doc:health` → **通过**（校验链接路径、锚点、反引号代码文件名引用）。
 - `npm run build` → 成功（可选，视改动范围；涉及编译管线、路由、SSR 时必须验证）。
 - 新增逻辑在对应 `__tests__/` 旁补了测试（参考既有覆盖；引擎与 builder 覆盖率阈值 70%）。
 - 受影响的 PRODUCT.md / ARCHITECTURE.md / docs/DESIGN.md 已同步更新。
 - [docs/task/TASKS.md](docs/task/TASKS.md) 已更新（勾选已完成项，写明已验证 / 未验证与下一步）。
+
+> 上述 `lint / typecheck / test / doc:health` 已由 `.github/workflows/ci.yml` 在 PR / push 上强制执行（不跑 `build`，因其 prebuild 会联网）。

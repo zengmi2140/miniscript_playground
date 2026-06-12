@@ -12,7 +12,7 @@
 
 ## 功能特性
 
-- **场景画廊** — 9 个预设场景（另含「自己动手」）：2-of-3 多签、多签 + 时间锁定、恢复密钥（`recoverykey`）、退化多签金库、保险柜、原子交换 HTLC（`htlc-atomic`）、DLC 简化（`dlc-simple`）、批量支付（`batch-payment`）、穿越牛熊（`holder-timelock`）
+- **场景画廊** — 多个预设花费场景（多签 + 时间锁、恢复密钥、退化多签、冷热金库、HTLC 原子交换、DLC 简化、穿越牛熊等），另含「自己动手」build 模式。**完整清单与 id 以 [`src/lib/scenarios/data.ts`](src/lib/scenarios/data.ts) 为准**，产品意图见 [`docs/PRODUCT.md`](docs/PRODUCT.md)「预设场景」
 - **Playground** — 三栏 IDE，实时编译 Policy → Miniscript → Script → Descriptor → Address
 - **编译错误体验** — 中英文摘要、可展开原始错误与复制、分类与建议（hints）；启发式在 Policy 编辑器内标出可能问题区间（非 IDE 级精度）
 - **花费路径地图** — React Flow 可视化，节点颜色实时反映当前条件满足状态（framer-motion 300ms 过渡动画）
@@ -66,35 +66,13 @@ npm run dev
 
 ## 项目结构
 
-完整开发说明见 **[`AGENTS.md`](AGENTS.md)**（产品与实现合并为单一文档）。以下为目录简版：
+开发约定与硬边界见 **[`AGENTS.md`](AGENTS.md)**；完整目录结构与各模块职责以 **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)「仓库结构」为准**。以下仅为顶层概览：
 
 ```
 src/
-├── app/                    # Next.js App Router 页面
-│   ├── page.tsx            # 首页（通识长页）
-│   ├── intro/              # 旧 /intro 路由，重定向至 /
-│   ├── playground/         # Playground 页
-│   ├── resources/          # 外部工具链接 + 推荐阅读
-│   ├── compare/            # 对比页（Coming Soon）
-│   └── opengraph-image.tsx # 动态 OG 图片
-├── components/
-│   ├── flow/               # React Flow 节点与路径图
-│   ├── home/               # 首页各区块（Hero、Wallets 等，介绍页复用部分）
-│   ├── intro/              # 介绍页各区块组件
-│   ├── layout/             # Header
-│   ├── playground/         # 三栏布局与各面板
-│   ├── results/            # 右侧结果标签页
-│   ├── scenarios/          # 场景画廊组件
-│   └── shared/             # 公共组件（GlossaryTooltip 等）
-└── lib/
-    ├── engine/             # 编译引擎（compiler, policy-errors, policy-error-highlight, parser, path-analyzer）
-    ├── flow/               # tree-to-flow 转换
-    ├── glossary/           # Miniscript 术语词典
-    ├── i18n/               # 双语翻译文件
-    ├── playground/         # HTLC 展示遮蔽（htlc-display-mask）、add-next-key-variable 等
-    ├── scenarios/          # 预设场景数据
-    ├── stores/             # Zustand store
-    └── utils/              # 工具函数（share, storage, time）
+├── app/          # Next.js App Router 页面与路由
+├── components/   # 按域划分的 UI（playground / builder / flow / results / home 等）
+└── lib/          # 业务与基础设施（engine / builder / flow / stores / i18n / scenarios 等）
 ```
 
 ## Roadmap
