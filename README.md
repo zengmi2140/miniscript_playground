@@ -1,59 +1,52 @@
 # ScriptWise
 
-把 Bitcoin 的花费条件讲清楚。
+[English](README.md) · [中文](README.zh.md)
 
-一个**场景优先、以花费路径为中心**的 Bitcoin Miniscript 教学实验室。
+ScriptWise is an interactive learning lab that helps you understand under what conditions bitcoin can be spent.
 
----
+Instead of jumping straight into Policy, Miniscript, or Bitcoin Script, ScriptWise starts with three more intuitive questions:
 
-## 核心理念
+- Who can spend?
+- When can it be spent?
+- What conditions must be met?
 
-在展示 Policy / Miniscript / Script 技术细节之前，先让用户看清楚：**谁能花这笔钱，什么时候能花，需要哪些条件**。
+It then connects those spending paths back to Policy, Miniscript, Script, Descriptor, and Address.
 
-## 功能特性
+Try it live: [miniscript.1satpod.org](https://miniscript.1satpod.org/)
 
-- **场景画廊** — 首页展示多重签名、多签 + 时间锁、恢复密钥、HTLC、DLC、穿越牛熊 6 个应用场景，并可进入 Playground 继续探索
-- **Playground** — 三栏 IDE，实时编译 Policy → Miniscript → Script → Descriptor → Address
-- **编译错误体验** — 提供双语摘要、原始错误、问题分类与修改建议，并在编辑器内标出可能的问题区间
-- **花费路径地图** — 用 React Flow 展示可用花费路径及当前条件满足状态
-- **条件模拟** — 勾选已有密钥、已知哈希原像、拖动时间滑块，实时预览哪条路径可用
-- **术语解释** — 悬停节点查看 `pk`、`older`、`after`、`sha256` 等操作符的双语说明
-- **双语支持** — 中文 / English 完整双语，一键切换
-- **分享链接** — 将 Policy、变量和模式编码到 URL，通过链接还原会话
-- **学习首页** — 介绍 Miniscript 的核心概念、应用场景、工具生态与使用边界
-- **导航** — 首页 / Playground / 资源
+## Explore ScriptWise
 
-## 技术栈
+Start with common patterns — multisig, timelocks, recovery keys, hashlocks — and see how each spending path takes shape, and how changing conditions affects the available paths.
 
-| 层 | 技术 |
-|---|---|
-| 框架 | Next.js (App Router) + React |
-| 语言 | TypeScript (strict) |
-| 状态管理 | Zustand |
-| Bitcoin 库 | `@bitcoinerlab/miniscript-policies`, `@bitcoinerlab/miniscript`, `@bitcoinerlab/descriptors` |
-| 可视化 | `@xyflow/react` (React Flow) + `dagre` |
-| 动画 | `framer-motion` |
-| 编辑器 | CodeMirror 6 |
-| 样式 | Tailwind CSS + shadcn/ui |
-| i18n | 自定义轻量 Context（无第三方依赖） |
+Inside the Playground you can also:
 
-> 完整技术栈说明与框架版本号以 [`package.json`](package.json) 为准；架构细节见 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)。
-> Descriptor 库使用 `@bitcoinerlab/descriptors/dist/descriptors` 细入口，并通过构建别名避免打入 Ledger SDK。
-> 视觉与设计 token（色板、字体、节点尺寸等）见 [`docs/DESIGN.md`](docs/DESIGN.md)。
+- Edit and compose spending policies;
+- Trace the full conversion from Policy → Miniscript → Script → Descriptor → testnet addresses;
+- Simulate keys, hash preimages, and time-based conditions;
+- Visualize complex policies through an interactive spending-path graph;
+- Share a reproducible teaching scenario.
 
-## 设计约束
+## Safety & Scope
 
-- **纯前端 / 无业务后端** — 不连接钱包、不查询 UTXO、不广播交易，也不上传策略、密钥、会话或遥测数据；仅只读获取链尖高度并加载公共静态展示资源
-- **无 LLM / AI** — 所有计算完全本地确定性执行
-- **MVP 仅支持 P2WSH (SegWit v0)** — Taproot 为 V2 规划
-- **地址仅生成测试网** — 永不生成主网地址
+ScriptWise is a teaching tool — not a wallet, and not for managing real funds.
 
-> 完整硬边界（不允许做的事）以 [`AGENTS.md`](AGENTS.md)「不允许做的事」为单一事实源；产品边界见 [`docs/PRODUCT.md`](docs/PRODUCT.md)。
+- No wallet connections, no UTXO queries, no transaction construction or broadcast;
+- No private keys, seed phrases, or real signatures;
+- No upload of user policies, keys, or session data;
+- Addresses are shown for testnet / signet demonstration only;
+- All core compilation and analysis runs locally in your browser.
 
-## 本地运行
+For the full list of boundaries, see [AGENTS.md](AGENTS.md).
 
-项目统一使用 **Node 22**（版本入口为 [`.nvmrc`](.nvmrc)）与 npm。依赖安装以仓库根目录的
-[`package-lock.json`](package-lock.json) 为准；不要使用 pnpm / yarn 另生成锁文件，以免与团队安装结果不一致。
+## Tech Stack
+
+ScriptWise is a pure frontend application built with **Next.js App Router + React + TypeScript + Zustand + React Flow**. All computation happens locally in the browser.
+
+For detailed architecture and module layout, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Running Locally
+
+Requires Node 22 and npm:
 
 ```bash
 nvm use
@@ -61,30 +54,29 @@ npm ci
 npm run dev
 ```
 
-代码检查：`npm run lint`。类型检查：`npm run typecheck`。快速测试：`npm run test`；
-正式覆盖率门禁：`npm run test:coverage`。不刷新链尖回退文件的生产构建检查使用
-`npm run build:check`；正式构建使用 `npm run build`。
+Open the local address shown in your terminal — typically [http://localhost:3000](http://localhost:3000).
 
-启动后访问终端输出的地址（通常是 http://localhost:3000）。
+For the full list of npm scripts and verification commands, see [AGENTS.md](AGENTS.md).
 
-## 项目结构
+## Contributing
 
-开发约定与硬边界见 **[`AGENTS.md`](AGENTS.md)**；完整目录结构与各模块职责以 **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)「仓库结构」为准**。以下仅为顶层概览：
+ScriptWise is under active development. Issues, suggestions, and pull requests are welcome.
 
-```
-src/
-├── app/          # Next.js App Router 页面与路由
-├── components/   # 按域划分的 UI（playground / builder / flow / results / home 等）
-└── lib/          # 业务与基础设施（engine / builder / flow / stores / i18n / scenarios 等）
-```
+Before contributing, please read:
 
-## Roadmap
+- [Product scope & roadmap](docs/PRODUCT.md)
+- [Architecture & conventions](docs/ARCHITECTURE.md)
+- [Development boundaries & completion criteria](AGENTS.md)
+- [Current task board](docs/task/TASKS.md)
 
-- [ ] Taproot (P2TR) 支持
-- [ ] 栈机模拟器（逐步执行 Script）
-- [ ] 更多场景模板
-- [ ] 移动端完整体验
+## License
 
----
+[MIT](LICENSE)
 
-> ScriptWise 仅用于教学目的。不产生任何主网地址，不连接钱包或节点执行链上操作。
+## Acknowledgments
+
+ScriptWise builds on the work of many:
+
+- [@bitcoinerlab](https://github.com/bitcoinerlab) for [miniscript-policies](https://github.com/bitcoinerlab/miniscript-policies), [miniscript](https://github.com/bitcoinerlab/miniscript), and [descriptors](https://github.com/bitcoinerlab/descriptors) — the core libraries that power policy compilation and descriptor generation;
+- Pieter Wuille, Andrew Poelstra, and Sanket Kanjalkar for the [Miniscript specification](https://bitcoin.sipa.be/miniscript/);
+- Bitcoin Core developers and the broader Bitcoin open-source community.
