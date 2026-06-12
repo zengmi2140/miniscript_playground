@@ -1,4 +1,4 @@
-# Miniscript Lab — 设计系统
+# ScriptWise — 设计系统
 
 > **本文档是视觉与设计规格的参考来源。**  
 > 色彩、字体、间距、组件与 Scenario 路径图节点尺寸以本文为准；**运行时实现**以 [`src/app/globals.css`](../src/app/globals.css) 与 [`tailwind.config.js`](../tailwind.config.js) 为准。若文档与代码不一致，以代码为准；改稿时应同步更新本文与样式文件。
