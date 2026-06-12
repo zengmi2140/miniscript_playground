@@ -1,4 +1,4 @@
-# Miniscript Lab
+# ScriptWise
 
 把 Bitcoin 的花费条件讲清楚。
 
@@ -21,14 +21,14 @@
 - **双语支持** — 中文 / English 完整双语，一键切换
 - **分享链接** — 将 Policy、变量、模式等编码为 `?s=` 参数，一键复制分享；通过该链接可还原会话
 - **钱包支持** — 首页展示「已支持 Miniscript 的钱包」板块（软件 / 硬件两组）；旧 `/intro` 已重定向至首页
-- **首页** — Miniscript 通识长文（挑战与对比、核心概念与技术栈、应用场景与局限等）；**页尾 CTA** 为双按钮：主按钮 `home.cta.primary` 进入 `/playground`，次按钮 `home.cta.secondary` 进入 `/resources`。Applications 内 **Try it / 上手一试**：有对应预设时跳转 `/playground?scenario=<id>`；`playgroundScenarioId` 为 `null` 时仅进入 `/playground`（详见 `src/components/intro/data.ts`）。「原子交换」卡片三列使用 `HEX` 占位表示 hash160；Playground 中栏与路径图见 [`AGENTS.md`](AGENTS.md) §4、§7、§9
-- **首页导航** — 顶栏：首页 / Playground / Resources（`nav.scenarios` 等 i18n）
+- **首页** — Miniscript 通识长文（挑战与对比、核心概念与技术栈、应用场景与局限等）；**页尾 CTA** 为双按钮：主按钮进入 `/playground`，次按钮进入 `/resources`。Applications 有对应预设时跳转 `/playground?scenario=<id>`（详见 `src/components/intro/data.ts`）
+- **首页导航** — 顶栏：首页 / Playground / Resources（文案以 i18n 为准）
 
 ## 技术栈
 
 | 层 | 技术 |
 |---|---|
-| 框架 | Next.js 14 (App Router) + React 18 |
+| 框架 | Next.js (App Router) + React |
 | 语言 | TypeScript (strict) |
 | 状态管理 | Zustand |
 | Bitcoin 库 | `@bitcoinerlab/miniscript-policies`, `@bitcoinerlab/miniscript`, `@bitcoinerlab/descriptors` |
@@ -38,16 +38,18 @@
 | 样式 | Tailwind CSS + shadcn/ui |
 | i18n | 自定义轻量 Context（无第三方依赖） |
 
-Descriptor 库使用 `@bitcoinerlab/descriptors/dist/descriptors` 入口，并通过构建别名避免打入 Ledger 硬件钱包 SDK；说明见 [`AGENTS.md`](AGENTS.md)「编译管线」中 Descriptor 与构建。
-
-视觉与设计 token（色板、字体、Scenario 路径图节点尺寸等）见 [`docs/DESIGN.md`](docs/DESIGN.md)。
+> 完整技术栈说明与框架版本号以 [`package.json`](package.json) 为准；架构细节见 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)。
+> Descriptor 库使用 `@bitcoinerlab/descriptors/dist/descriptors` 细入口，并通过构建别名避免打入 Ledger SDK。
+> 视觉与设计 token（色板、字体、节点尺寸等）见 [`docs/DESIGN.md`](docs/DESIGN.md)。
 
 ## 设计约束
 
-- **纯前端 / 不连接区块链** — 不连接钱包或节点、不查询 UTXO、不广播交易，也不上传策略到服务器；唯一的只读外部请求是为教学用的 `after(<height>)` 时间轴获取**当前主网链尖高度**（公共端点顺序回退 + 短 TTL 内存缓存；全部失败时使用 `prebuild` 生成的 [`block-height-fallback.generated.ts`](src/lib/engine/block-height-fallback.generated.ts)）
+- **纯前端 / 不连接区块链** — 不连接钱包或节点、不查询 UTXO、不广播交易，也不上传策略到服务器
 - **无 LLM / AI** — 所有计算完全本地确定性执行
 - **MVP 仅支持 P2WSH (SegWit v0)** — Taproot 为 V2 规划
 - **地址仅生成测试网** — 永不生成主网地址
+
+> 完整硬边界（不允许做的事）以 [`AGENTS.md`](AGENTS.md)「不允许做的事」为单一事实源；产品边界见 [`docs/PRODUCT.md`](docs/PRODUCT.md)。
 
 ## 本地运行
 
