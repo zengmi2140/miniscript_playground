@@ -22,6 +22,52 @@
 
 ---
 
+## Token 使用方式
+
+> 本段说明设计 token 在代码中的引用方式，以 `tailwind.config.js` 的 `theme.extend` 为准。
+
+项目采用 **CSS 变量 + Tailwind 映射** 双层架构：
+
+1. **`globals.css`** 定义 CSS 变量（如 `--bg-base`、`--text-primary`），分深色 / 亮色两套。
+2. **`tailwind.config.js`** 的 `theme.extend.colors` 将 CSS 变量映射为 Tailwind 工具类。
+
+### 常用映射关系
+
+| CSS 变量 | Tailwind 类名前缀 | 用法示例 |
+|-----------|------------------|----------|
+| `--bg-base` | `bg-surface-base` | `<div className="bg-surface-base">` |
+| `--bg-surface` | `bg-surface-card` | `<div className="bg-surface-card">` |
+| `--bg-elevated` | `bg-surface-elevated` | `<div className="bg-surface-elevated">` |
+| `--text-primary` | `text-text-primary` | `<span className="text-text-primary">` |
+| `--text-secondary` | `text-text-secondary` | `<span className="text-text-secondary">` |
+| `--border-default` | `border-border-default` | `<div className="border border-border-default">` |
+| （无 CSS var，直接 hex） | `bg-btc-500` / `text-btc-500` | `<button className="bg-btc-500">` |
+| （无 CSS var，直接 hex） | `bg-semantic-key` / `text-semantic-timelock` | `<span className="text-semantic-key">` |
+
+### 规则
+
+- **优先使用 Tailwind 工具类**（如 `bg-surface-base`），不要在 JSX 中写 `bg-[var(--bg-base)]`。
+- **`btc-*` 和 `semantic-*`** 是硬编码 hex，直接以 `bg-btc-500`、`text-semantic-satisfied` 等方式使用。
+- **仅在 `globals.css` 或需要动态计算的场景**中才直接使用 `var(--xxx)`。
+- **字号**通过 Tailwind 自定义 `fontSize` 映射：`text-page-title`、`text-section-title`、`text-body`、`text-small`、`text-code`、`text-status`、`text-chip`。
+- **圆角**：`rounded-card`(12px)、`rounded-button`(8px)、`rounded-chip`(6px)、`rounded-node`(10px)。
+- **间距**：`p-panel-tight`(16px)、`p-panel-loose`(24px)。
+
+### 组件样式示例
+
+```tsx
+// 典型卡片样式
+<div className="bg-surface-card border border-border-default rounded-card p-panel-tight">
+  <h3 className="text-section-title text-text-primary">标题</h3>
+  <p className="text-body text-text-secondary">说明文字</p>
+  <button className="bg-btc-500 hover:bg-btc-600 text-text-inverse rounded-button px-4 py-2">
+    操作
+  </button>
+</div>
+```
+
+---
+
 ## 2. 色彩系统
 
 ### 深色模式（默认）

@@ -5,7 +5,7 @@
 
 ## 技术栈
 
-- 框架：Next.js 15 App Router + React 19；TypeScript strict。
+- 框架：Next.js App Router + React；TypeScript strict。版本号以 `package.json` 为准。
 - 状态：Zustand（`src/lib/stores/playground-store.ts` 为 Playground 唯一事实源）。
 - 可视化：React Flow（`@xyflow/react`）。
   - **scenario** 路径图：Dagre TB 布局（`src/lib/flow/tree-to-flow.ts`）。
@@ -13,6 +13,26 @@
 - 编辑器：CodeMirror（`@codemirror/*`，高亮见 `src/lib/editor/policy-language.ts`）。
 - UI：shadcn/ui（`src/components/ui/*`）+ Tailwind + Radix primitives；动效用 framer-motion。
 - 其余依赖以 `package.json` 为准。
+
+## Quick Reference: 改动入口速查
+
+> 做小改动时可直接查下表定位，无需通读全文。
+
+| 目标 | 入口 |
+|------|------|
+| 预设场景 | `scenarios/data.ts`、`playground-order.ts`、`intro/data.ts`、tags / `ScenarioCard` |
+| Policy 语法 / 编译 | `policy-language.ts`、`compiler.ts`、`miniscript-parser.ts`、`glossary/data.ts` |
+| 路径判定 / 模拟 | `path-analyzer.ts`、`time-utils.ts`、`block-height.ts`、`block-height-fallback.generated.ts`（prebuild）、`StatusBanner`、`ConditionToggles`、`TimeSlider`、`PathsTab` |
+| Key 名替换 / 重命名 | `utils/policy-identifiers.ts`、`compiler.ts`（`replaceKeyNames`）、`playground-store.ts`（`renameKeyVariable`）、`KeyVariableManager.tsx`、`share.ts` |
+| scenario 路径图 | `flow/tree-to-flow.ts`、`PathMap`、`FlowNodes`、`PathEdge` |
+| build 画布 | `lib/builder/*`（含 `threshold.ts`）、`BuilderCanvas`、`useBuilderSync.ts`、`playground-store.ts` |
+| Policy 编辑器 | `PolicyEditor.tsx`、`htlc-display-mask.ts`、`policy-errors` |
+| 右栏结果 | `RightPanel.tsx`、`components/results/*` |
+| SSR 语言 / 主题首帧 | `preferences.ts`、`app/layout.tsx`、`providers.tsx`、`i18n/context.tsx`、`theme/context.tsx` |
+| Playground 首屏与桌面 bootstrap | `PlaygroundClient.tsx`、`useDesktopBootstrap.ts`、`apply-playground-search-params.ts` |
+| 资源页 | `resources/page.tsx`、`recommended-reading.ts`、`resources.*` |
+| 首页 | `app/page.tsx`、`components/home/*`、`components/intro/*` |
+| 设计 token | `DESIGN.md`、`globals.css`、`tailwind.config.js` |
 
 ## 项目性质
 
@@ -182,28 +202,44 @@ npm run generate:block-height-fallback   # 单独刷新链尖回退文件
 - 组件：`src/components/**/__tests__/`。
 - 新增逻辑应优先在对应目录旁补测试；`compiler`、`node-ops`、`useBuilderSync` 等已有覆盖可参考。
 
-## 常见改动入口
+## 编码约定（Conventions）
 
-| 目标 | 入口 |
-|------|------|
-| 预设场景 | `scenarios/data.ts`、`playground-order.ts`、`intro/data.ts`、tags / `ScenarioCard` |
-| Policy 语法 / 编译 | `policy-language.ts`、`compiler.ts`、`miniscript-parser.ts`、`glossary/data.ts` |
-| 路径判定 / 模拟 | `path-analyzer.ts`、`time-utils.ts`、`block-height.ts`、`block-height-fallback.generated.ts`（prebuild）、`StatusBanner`、`ConditionToggles`、`TimeSlider`、`PathsTab` |
-| Key 名替换 / 重命名 | `utils/policy-identifiers.ts`、`compiler.ts`（`replaceKeyNames`）、`playground-store.ts`（`renameKeyVariable`）、`KeyVariableManager.tsx`、`share.ts` |
-| scenario 路径图 | `flow/tree-to-flow.ts`、`PathMap`、`FlowNodes`、`PathEdge` |
-| build 画布 | `lib/builder/*`（含 `threshold.ts`）、`BuilderCanvas`、`useBuilderSync.ts`、`playground-store.ts` |
-| Policy 编辑器 | `PolicyEditor.tsx`、`htlc-display-mask.ts`、`policy-errors` |
-| 右栏结果 | `RightPanel.tsx`、`components/results/*` |
-| SSR 语言 / 主题首帧 | `preferences.ts`、`app/layout.tsx`、`providers.tsx`、`i18n/context.tsx`、`theme/context.tsx` |
-| Playground 首屏与桌面 bootstrap | `PlaygroundClient.tsx`、`useDesktopBootstrap.ts`、`apply-playground-search-params.ts` |
-| 资源页 | `resources/page.tsx`、`recommended-reading.ts`、`resources.*` |
-| 首页 | `app/page.tsx`、`components/home/*`、`components/intro/*` |
-| 设计 token | `DESIGN.md`、`globals.css`、`tailwind.config.js` |
+> 以下约定散落在代码各处，集中记录以避免写出「看起来正确但违反项目规范」的代码。
 
-## 重要边界 / 不允许引入
+### 导入与依赖
 
-- 不引入后端数据库（Prisma / SQLite / PostgreSQL / Supabase / Firebase）、用户登录（NextAuth）、云同步。
-- 不连接钱包、不查询 UTXO、不构造 / 广播交易、不处理私钥。
-- 不上传用户策略；唯一允许的网络请求是只读拉取主网链尖高度。
-- 不把主网地址作为默认；地址仅 testnet / signet 教学展示。
+- **Bitcoin 库导入必须用 dist 子路径**：`@bitcoinerlab/descriptors/dist/descriptors`（避免拉入 Ledger SDK）。「与外部库的分界」已提及入口，此处强调必须走 dist 子路径。
+- **`@ledgerhq/ledger-bitcoin` 已 shim**：`next.config.mjs` 与 `vitest.config.ts` 均将其 alias 到 `src/lib/shims/ledger-bitcoin-stub.js`，勿移除该 alias。
+- **引擎层 (`src/lib/engine/`) 不引用 React**：引擎是纯计算模块，不依赖 React 生命周期。
+
+### 状态与数据流
+
+- **组件不直接读 `playground-store`**：通过 `usePlaygroundStore` selector 获取所需字段，避免整 store 订阅。
+- **Key 身份以 `policyName` 为稳定 ID**：`name` 仅作 UI 显示标签；重命名、分享校验、builder 角色绑定均使用 `policyName`。「花费路径与状态横幅」已描述完整机制。
+- **Key 名替换必须 token-aware**：使用 `src/lib/utils/policy-identifiers.ts` 的 `replaceIdentifierToken`（`\b` 边界匹配），禁止简单 `String.replace`。「编译管线」已描述完整机制。
+
+### i18n 与文案
+
+- **新增 i18n key 必须中英文同时添加**：`zh.ts` 和 `en.ts` 同步，不允许只加一个语言。
+- **面向用户的文案走 i18n**：不在引擎或组件里写死中文/英文字符串；用 `t()` 读取。
+
+### 测试
+
+- **测试文件与源文件同目录旁 `__tests__/`**：不放全局 `test/` 目录。
+- **覆盖率阈值**：`src/lib/engine/**` 和 `src/lib/builder/**` 均为 70% lines/functions（见 `vitest.config.ts`）。
+
+## 重要边界
+
+> 完整的「不允许做的事（硬边界）」以 [`../AGENTS.md`](../AGENTS.md) 为单一事实源。以下仅列出与架构决策直接相关的技术边界：
+
 - `block-height-fallback.generated.ts` 为构建产物，**勿手改**；`v0/` 为历史快照，勿当源码。
+
+## 反模式（不要这样做）
+
+- ❌ 在 `src/lib/engine/` 下 `import React`
+- ❌ 直接 `policy.replace('oldName', 'newName')` 而非 token-aware 替换
+- ❌ 只在 `zh.ts` 加 key 而不同步 `en.ts`
+- ❌ 在组件内硬编码用户可见的文案
+- ❌ 移除 `next.config.mjs` 或 `vitest.config.ts` 中的 Ledger alias
+- ❌ 手改 `block-height-fallback.generated.ts`
+- ❌ 提交 `pnpm-lock.yaml` 或 `yarn.lock`
