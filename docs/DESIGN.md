@@ -150,7 +150,8 @@ font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
 font-family: "IBM Plex Mono", ui-monospace, "Cascadia Code", monospace;
 ```
 
-均通过 `next/font/google` 加载，字体文件自动托管。
+均通过 `next/font/local` 从 `src/app/fonts/` 加载并由应用自托管，生产构建不依赖
+Google Fonts。仓库仅包含当前使用的 latin 字体文件及各自的 SIL Open Font License。
 
 ### 字号层级
 

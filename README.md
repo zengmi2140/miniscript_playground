@@ -44,7 +44,7 @@
 
 ## 设计约束
 
-- **纯前端 / 不连接区块链** — 不连接钱包或节点、不查询 UTXO、不广播交易，也不上传策略到服务器
+- **纯前端 / 无业务后端** — 不连接钱包、不查询 UTXO、不广播交易，也不上传策略、密钥、会话或遥测数据；仅只读获取链尖高度并加载公共静态展示资源
 - **无 LLM / AI** — 所有计算完全本地确定性执行
 - **MVP 仅支持 P2WSH (SegWit v0)** — Taproot 为 V2 规划
 - **地址仅生成测试网** — 永不生成主网地址
@@ -53,14 +53,18 @@
 
 ## 本地运行
 
-依赖安装请使用 **npm**，并以仓库根目录的 [`package-lock.json`](package-lock.json) 为准；不要使用 pnpm / yarn 另生成锁文件，以免与团队安装结果不一致。
+项目统一使用 **Node 22**（版本入口为 [`.nvmrc`](.nvmrc)）与 npm。依赖安装以仓库根目录的
+[`package-lock.json`](package-lock.json) 为准；不要使用 pnpm / yarn 另生成锁文件，以免与团队安装结果不一致。
 
 ```bash
-npm install
+nvm use
+npm ci
 npm run dev
 ```
 
-代码检查：`npm run lint`。类型检查：`npm run typecheck`。测试：`npm run test`（Vitest）。
+代码检查：`npm run lint`。类型检查：`npm run typecheck`。快速测试：`npm run test`；
+正式覆盖率门禁：`npm run test:coverage`。不刷新链尖回退文件的生产构建检查使用
+`npm run build:check`；正式构建使用 `npm run build`。
 
 启动后访问终端输出的地址（通常是 http://localhost:3000）。
 
@@ -85,4 +89,4 @@ src/
 
 ---
 
-> Miniscript Lab 仅用于教学目的。不产生任何主网地址，不连接任何区块链节点。
+> ScriptWise 仅用于教学目的。不产生任何主网地址，不连接钱包或节点执行链上操作。
