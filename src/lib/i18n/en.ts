@@ -232,7 +232,7 @@ export const en = {
   nav: {
     scenarios: "Home",
     playground: "Playground",
-    compare: "Resources",
+    resources: "Resources",
     comingSoon: "Soon",
     toggleMenu: "Toggle menu",
   },
@@ -489,19 +489,6 @@ export const en = {
       description:
         "The full Playground — three-column layout and visual builder — needs a wider viewport. Open it on a desktop, laptop, or a tablet in landscape for the full experience.",
       goScenarios: "Browse Scenarios",
-    },
-  },
-
-  compare: {
-    comingSoon: "Compare Mode Coming Soon",
-    description:
-      "Side-by-side comparison of two Policies' compilation results and spending paths",
-    featureList: { title: "Planned Features" },
-    feature: {
-      "1": "Side-by-side compilation results for two Policies",
-      "2": "Visual diff of spending paths",
-      "3": "Script size and fee comparison",
-      "4": "Export to Markdown / JSON report",
     },
   },
 

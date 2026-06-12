@@ -71,10 +71,9 @@ npm run generate:block-height-fallback   # 单独刷新链尖回退文件
 | `scripts/generate-block-height-fallback.mjs` | 构建前抓取主网高度 → `block-height-fallback.generated.ts` |
 | `next.config.mjs` | Next 配置；Ledger 等别名 |
 | `tailwind.config.js` / `postcss.config.js` | Tailwind / PostCSS |
-| `tsconfig.json` | TypeScript；`exclude` 含 `v0/`（历史快照不参与类型检查） |
+| `tsconfig.json` | TypeScript 配置 |
 | `vitest.config.ts` | 单元测试 |
 | `components.json` | shadcn/ui 组件配置 |
-| `v0/` | 旧页面快照，**勿**当主应用源码 |
 
 ### `src/app/`（App Router）
 
@@ -88,7 +87,6 @@ npm run generate:block-height-fallback   # 单独刷新链尖回退文件
 | `playground/page.tsx` | Playground 页壳 |
 | `playground/PlaygroundClient.tsx` | Playground 客户端逻辑（URL、三栏、编译与 build 同步） |
 | `resources/page.tsx` | 资源页 |
-| `compare/page.tsx` | 对比占位 |
 | `opengraph-image.tsx` | OG 图 |
 
 ### `src/components/`（按域划分）
@@ -240,7 +238,7 @@ npm run generate:block-height-fallback   # 单独刷新链尖回退文件
 
 > 完整的「不允许做的事（硬边界）」以 [`../AGENTS.md`](../AGENTS.md) 为单一事实源。以下仅列出与架构决策直接相关的技术边界：
 
-- `block-height-fallback.generated.ts` 为构建产物，**勿手改**；`v0/` 为历史快照，勿当源码。
+- `block-height-fallback.generated.ts` 为构建产物，**勿手改**。
 
 ## 反模式（不要这样做）
 
