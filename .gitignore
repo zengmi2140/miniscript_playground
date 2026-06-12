@@ -32,9 +32,10 @@ dist-ssr
 /.replit
 
 # IDE / editor / agent local config (not required for build or runtime)
-.claude/
-.cursor/
-.kilo/
-.reasonix/
+/.claude/
+/.cursor/
+/.kilo/
+/.reasonix/
+/.codegraph/
 .superpowers/
 attached_assets/

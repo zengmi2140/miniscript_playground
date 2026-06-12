@@ -10,25 +10,44 @@
 
 暂无待处理任务。
 
-## 最近改动摘要（2025-06 文档工程 P3 收尾）
+## 最近改动摘要（2025-06-12 Harness 工程二次审视 · 收尾）
 
-- 「改进建议.md」从根目录归档至 `docs/CONTENT-ROADMAP.md`，根目录更清爆。
-- 新增 `scripts/check-doc-health.mjs` 文档健康度自检脚本（`npm run doc:health`），检查 Markdown 内部引用的文件路径是否存在。
-- 验证：doc:health 通过 / lint 0 error / typecheck 0 error / test 全部通过。
+- **HARNESS-P2-1**：新增 `docs/RUNBOOKS.md`，将预设场景改动拆分为必改项、条件联动点、测试与人工验收；明确 `playground-order.ts` 和 tags 通常自动派生，避免固化过时的「固定六处」清单。
+- **HARNESS-P3-1**：五类 AI 工具目录统一由根 `.gitignore` 忽略；移除仓库内 `.codegraph/.gitignore`，清理 `.kilo/node_modules` 与 CodeGraph 数据库 / 日志，保留工具设置、依赖清单和会话元数据。
+- **HARNESS-P1-1**：新增 `.github/workflows/ci.yml`，在 PR / push 上强制执行 `doc:health / lint / typecheck / test`（不跑 `build`，因 prebuild 联网）；同步在 AGENTS.md「完成标准」加入 doc:health 与 CI 说明。
+- **HARNESS-P1-2**：README 服从单一事实源——场景列表去掉错误的「9 个」与不存在条目，改委托 `src/lib/scenarios/data.ts` + PRODUCT.md；`src/lib/` 目录树由过时的逐目录列举收敛为顶层概览 + 委托 ARCHITECTURE.md「仓库结构」。
+- **HARNESS-P0-1**：深化 `scripts/check-doc-health.mjs`，在「链接路径存在」之外新增 ①`*.md#anchor` 锚点存在性校验（按 GitHub slug 规则从标题生成）②反引号代码文件名在仓库中存在性校验。负向测试确认三类校验均能正确报错。
+- **HARNESS-P0-2**：修复 TASKS.md 两处悬空引用（`AGENTS.md「Harness 工程标准流程」` 章节不存在）+ §11/§12 锚点漏写 `--已解决`。
+- 验证：doc:health 通过 / lint 0 error / typecheck 0 error / test 314 passed。
+- HARNESS-P0~P3 已全部完成。
 
 ## 已完成
 
 > 以下为已落地并验证的主要工作，按轮次倒序排列。仅保留最近 2–3 轮详细记录，更早的归档到折叠区。
 
+### 2025-06-12 轮次：Harness 工程二次审视 P2 + P3
+
+- [x] **HARNESS-P2-1** 新增预设场景 Runbook，记录真实必改项、条件联动点、测试和人工验收，并从 AGENTS.md / ARCHITECTURE.md / PRODUCT.md 提供入口。
+- [x] **HARNESS-P3-1** 统一 AI 工具目录忽略规则，移除冗余的 `.codegraph/.gitignore`，清理可再生成的 Kilo 依赖与 CodeGraph 数据文件。
+- 验证：`git check-ignore` 确认五类目录均由根 `.gitignore` 覆盖；`.kilo/node_modules` 与 CodeGraph 数据库 / 日志已清理；doc:health / lint 0 / typecheck 0 / test 314 passed 全部通过。
+
+### 2025-06-12 轮次：Harness 工程二次审视 P0 + P1
+
+- [x] **HARNESS-P0-1** 深化 `scripts/check-doc-health.mjs`：新增锚点存在性校验 + 反引号代码文件名存在性校验（原仅校验链接路径）。负向测试确认能正确报错；`npm run doc:health` 通过。
+- [x] **HARNESS-P0-2** 修复 TASKS.md 两处悬空引用（`AGENTS.md「Harness 工程标准流程」` 章节不存在）+ §11/§12 锚点漏写 `--已解决`。
+- [x] **HARNESS-P1-1** 新增 `.github/workflows/ci.yml`，PR / push 强制 `doc:health / lint / typecheck / test`；AGENTS.md「完成标准」补充 doc:health 与 CI 说明。
+- [x] **HARNESS-P1-2** README 场景列表与 `src/lib/` 目录树去重复，委托 `data.ts` / PRODUCT.md / ARCHITECTURE.md，消除「9 个」等事实矛盾。
+- 验证：doc:health / lint 0 / typecheck 0 / test 314 passed 全部通过。
+
 ### 2025-06-12 轮次：文档归档架构重构
 
 - [x] 将任务交接文档从根目录迁移至 `docs/task/TASKS.md`，审计报告重命名为按日期归档（`DOC-AUDIT-2025-06-12.md`），统一存入活跃任务区。
-- [x] 更新 `AGENTS.md`：增加 Harness 工程四步标准流程约定、审计报告命名规范、所有文档路径同步至新位置。
+- [x] 更新 `AGENTS.md`：明确「开始前阅读」（阶段 1 定位 / 阶段 2 执行）与「工作原则」「完成标准」流程、审计报告命名规范、所有文档路径同步至新位置。
 
 ### 2025-06 轮次：文档工程 P3 收尾
 
-- [x] **P3 #11** 根目录「改进建议.md」归档至 `docs/CONTENT-ROADMAP.md` → [详情 §11](DOC-AUDIT-2025-06-12.md#11-改进建议md-放在仓库根目录但不在-docs-下)
-- [x] **P3 #12** 新增 `scripts/check-doc-health.mjs` 文档健康度自检（`npm run doc:health`） → [详情 §12](DOC-AUDIT-2025-06-12.md#12-缺少文档健康度自检机制)
+- [x] **P3 #11** 根目录「改进建议.md」归档至 `docs/CONTENT-ROADMAP.md` → [详情 §11](DOC-AUDIT-2025-06-12.md#11-改进建议md-放在仓库根目录但不在-docs-下--已解决)
+- [x] **P3 #12** 新增 `scripts/check-doc-health.mjs` 文档健康度自检（`npm run doc:health`） → [详情 §12](DOC-AUDIT-2025-06-12.md#12-缺少文档健康度自检机制--已解决)
 
 ### 2025-06 轮次：AGENTS.md 精简
 
@@ -85,6 +104,6 @@
 ## 下一步最佳动作
 
 1. 阅读 [AGENTS.md](../../AGENTS.md) → [docs/PRODUCT.md](../PRODUCT.md) → [docs/ARCHITECTURE.md](../ARCHITECTURE.md) → 本文件。
-2. 等待用户布置新任务；按 AGENTS.md「Harness 工程标准流程」拆解后追加到「未完成 / 待处理」。
+2. 等待用户布置新任务；按 AGENTS.md「开始前阅读」与「工作原则」拆解后追加到「未完成 / 待处理」。
 3. 开发中遵循 AGENTS.md 的工作原则与硬边界；落地后同步相关文档。
 4. 完成后按 AGENTS.md「完成标准」自检：`npm run lint` / `typecheck` / `test` 通过，文档同步，将已完成条目**移动**到「已完成」区。
