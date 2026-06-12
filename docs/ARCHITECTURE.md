@@ -20,7 +20,7 @@
 
 | 目标 | 入口 |
 |------|------|
-| 预设场景 | `scenarios/data.ts`、`playground-order.ts`、`intro/data.ts`、tags / `ScenarioCard` |
+| 预设场景 | [RUNBOOKS.md「新增预设场景」](RUNBOOKS.md#新增预设场景)；入口为 `scenarios/data.ts`，首页联动、图标与 tags 按条件修改 |
 | Policy 语法 / 编译 | `policy-language.ts`、`compiler.ts`、`miniscript-parser.ts`、`glossary/data.ts` |
 | 路径判定 / 模拟 | `path-analyzer.ts`、`time-utils.ts`、`block-height.ts`、`block-height-fallback.generated.ts`（prebuild）、`StatusBanner`、`ConditionToggles`、`TimeSlider`、`PathsTab` |
 | Key 名替换 / 重命名 | `utils/policy-identifiers.ts`、`compiler.ts`（`replaceKeyNames`）、`playground-store.ts`（`renameKeyVariable`）、`KeyVariableManager.tsx`、`share.ts` |
