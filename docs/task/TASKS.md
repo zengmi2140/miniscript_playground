@@ -18,6 +18,14 @@
 
 ## 最近完成
 
+### 2026-06-12：README 与历史引用清理
+
+- [x] **README 精炼**：场景画廊改为首页 6 个应用场景，导航统一为“首页 / Playground / 资源”，删除废弃对比模式 Roadmap，并移除易过时的具体动画时长描述。
+- [x] **对比占位清理**：删除废弃页面及 PRODUCT / ARCHITECTURE / i18n 引用，资源导航改用 `nav.resources`。
+- [x] **历史快照目录清理**：删除 ARCHITECTURE、TypeScript exclude 与文档健康检查中的旧目录约定；保留协议名 `SegWit v0`。
+- 验证结果：`doc:health` / lint / typecheck 通过；coverage 45 files、320 tests 全过。
+- 构建结果：`npm run build:check` 成功，路由清单不再包含废弃对比页，链尖 generated 文件构建前后 SHA-256 一致。
+
 ### 2026-06-12：P2 Harness 加固
 
 - [x] **HARNESS-P2-1 文档事实检查**：`doc:health` 增加 App Router / PRODUCT 路由一致性、zh/en i18n AST 结构、网络数据外发和 Node / CI / coverage / build 配置契约检查。

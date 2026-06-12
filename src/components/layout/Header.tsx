@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils/cn';
 const navItems = [
   { key: 'nav.scenarios', path: '/' },
   { key: 'nav.playground', path: '/playground' },
-  { key: 'nav.compare', path: '/resources' },
+  { key: 'nav.resources', path: '/resources' },
 ] as const;
 
 export function Header() {
