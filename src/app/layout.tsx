@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
-import { Plus_Jakarta_Sans, IBM_Plex_Mono } from 'next/font/google';
+import localFont from 'next/font/local';
 import { Providers } from '@/components/providers';
 import { Header } from '@/components/layout/Header';
 import {
@@ -15,16 +15,27 @@ import { APP_URL } from '@/lib/app-url';
 import './globals.css';
 import '@xyflow/react/dist/style.css';
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+const plusJakartaSans = localFont({
+  src: './fonts/plus-jakarta-sans-latin.woff2',
+  weight: '400 700',
+  style: 'normal',
   variable: '--font-sans',
   display: 'swap',
 });
 
-const ibmPlexMono = IBM_Plex_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500'],
+const ibmPlexMono = localFont({
+  src: [
+    {
+      path: './fonts/ibm-plex-mono-latin-400.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: './fonts/ibm-plex-mono-latin-500.woff2',
+      weight: '500',
+      style: 'normal',
+    },
+  ],
   variable: '--font-mono',
   display: 'swap',
 });
