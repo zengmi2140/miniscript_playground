@@ -226,7 +226,7 @@ export const zh = {
   nav: {
     scenarios: "首页",
     playground: "Playground",
-    compare: "资源",
+    resources: "资源",
     comingSoon: "即将推出",
     toggleMenu: "菜单",
   },
@@ -467,18 +467,6 @@ export const zh = {
       description:
         "完整的三栏工作台与可视化搭建需要更宽的视口。请在电脑、平板横屏或更大屏幕上打开，以获得完整体验。",
       goScenarios: "浏览场景",
-    },
-  },
-
-  compare: {
-    comingSoon: "对比模式即将推出",
-    description: "并排对比两个 Policy 的编译结果与花费路径",
-    featureList: { title: "计划功能" },
-    feature: {
-      "1": "并排对比两个 Policy 的编译结果",
-      "2": "花费路径差异可视化",
-      "3": "脚本大小与手续费对比",
-      "4": "导出 Markdown / JSON 报告",
     },
   },
 

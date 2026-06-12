@@ -33,7 +33,6 @@ const IGNORE_DIRS = new Set([
   "node_modules",
   ".next",
   ".git",
-  "v0",
   ".claude",
   ".cursor",
   ".kilo",
