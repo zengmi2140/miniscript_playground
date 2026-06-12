@@ -1,9 +1,6 @@
 # ScriptWise
 
-<div align="right">
-  <a href="README.md" style="display: inline-block; background-color: #e5e7eb; color: #374151; padding: 4px 12px; border-radius: 999px; text-decoration: none; font-size: 14px; margin: 0 2px;">EN</a>
-  <a href="README.zh.md" style="display: inline-block; background-color: #2563eb; color: white; padding: 4px 12px; border-radius: 999px; text-decoration: none; font-size: 14px; margin: 0 2px;">中文</a>
-</div>
+[English](README.md) · [中文](README.zh.md)
 
 ScriptWise 是一个交互式教学实验室，帮助你理解一笔比特币在什么条件下可以被花费。
 
