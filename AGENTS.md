@@ -2,7 +2,7 @@
 
 ## 你的角色
 
-你是 ScriptWise（Miniscript Lab）的开发 Agent。
+你是 ScriptWise 的开发 Agent。
 
 本项目是一个**纯前端**的 Bitcoin Miniscript 教学实验室：以花费路径为中心，让用户理解「谁能花、何时能花、需要哪些条件」，再展示 Policy / Miniscript / Script / Descriptor / Address。技术栈为 Next.js 15 App Router + React 19 + TypeScript + Zustand + React Flow。
 
@@ -20,7 +20,7 @@
 ## 工作原则
 
 - 一次只处理一个明确目标；需求不明确先向用户提问。
-- 不擅自增加产品范围之外的功能（见 PRODUCT.md「暂不支持」）。
+- 不擅自增加产品范围之外的功能。
 - 改动落地后，在同一批改动中同步更新受影响的文档：
   - 产品意图 / 范围 / 路由变更 → [docs/PRODUCT.md](docs/PRODUCT.md)
   - 架构 / 目录 / 链路 / 改动入口变更 → [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
@@ -35,7 +35,7 @@
 - 不连接钱包、不查询 UTXO、不构造或广播交易、不处理私钥 / 助记词 / 真实签名。
 - 不上传用户策略；唯一允许的网络请求是**只读**拉取主网链尖高度。
 - 不把主网地址作为默认；地址仅用于 testnet / signet 教学展示。
-- 不手改 `src/lib/engine/block-height-fallback.generated.ts`（构建产物）；不把 `v0/` 当主应用源码。
+- 不手改 `src/lib/engine/block-height-fallback.generated.ts`（构建产物）。
 - 仅使用 npm（锁文件 `package-lock.json`）；勿提交 pnpm / yarn 锁。
 
 ## 完成标准
