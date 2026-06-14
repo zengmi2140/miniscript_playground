@@ -2,6 +2,10 @@
 
 [中文](README.md) · [English](README.en.md)
 
+[![CI](https://github.com/zengmi2140/miniscript_playground/actions/workflows/ci.yml/badge.svg)](https://github.com/zengmi2140/miniscript_playground/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/Node-22-339933?logo=node.js&logoColor=white)](.nvmrc)
+
 ScriptWise 是一个交互式教学实验室，帮助你理解一笔比特币在什么条件下可以被花费。
 
 与直接阅读 Policy、Miniscript 或 Bitcoin Script 不同，ScriptWise 先回答三个更直观的问题：
