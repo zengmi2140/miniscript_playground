@@ -20,9 +20,7 @@ read_when: "仅在用户明确要求或需要追溯历史决策时读取"
 - [x] AGENTS 增加最小阅读矩阵、Quick Tasks、文档同步触发矩阵和量化完成标准。
 - [x] ARCHITECTURE 增加 Quick Reference、编码约定与反模式。
 - [x] DESIGN 增加设计 token 与代码的映射方式。
-- [x] 根目录内容建议归档为 `docs/CONTENT-ROADMAP.md`。
-
-详细问题背景与原始建议见 [`DOC-AUDIT-2026-06-12.md`](DOC-AUDIT-2026-06-12.md)。
+- [x] 根目录内容建议归档为 `docs/task/IMPROVEMENT-PROPOSALS.md`（原 `CONTENT-ROADMAP.md` 已合并）。
 
 ## 2026-05：修复与加固
 
