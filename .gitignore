@@ -40,3 +40,6 @@ coverage/
 /.codegraph/
 .superpowers/
 attached_assets/
+
+# Local-only improvement proposals (not for remote)
+docs/task/IMPROVEMENT-PROPOSALS.md
