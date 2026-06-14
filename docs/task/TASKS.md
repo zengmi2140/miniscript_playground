@@ -18,6 +18,12 @@
 
 ## 最近完成
 
+### 2026-06-14：ScriptWise 产品亮点建议文档
+
+- [x] **建议沉淀**：将面向 bitcoiner 与 Miniscript 技术用户的亮点增强建议整理为 `docs/task/IMPROVEMENT-PROPOSALS.md`（原 `SCRIPTWISE-WOW-IDEAS.md` 与 `CONTENT-ROADMAP.md` 合并）。
+- [x] **优先级梳理**：明确路径透镜、Witness Stack 展示、Policy Health Check 为最推荐的前三个方向，并补充威胁模型、反向解释、成本 / 隐私 / 可用性比较等后续增强。
+- 验证结果：`npm run doc:health` 通过。
+
 ### 2026-06-12：README 社区化重写
 
 - [x] **定位重构**：将 README 从产品、工程与内部约束混杂的说明，重写为面向比特币开源社区访客的项目介绍。
