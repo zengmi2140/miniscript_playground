@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { applyPlaygroundSearchParams } from '../apply-playground-search-params';
+import { applyPlaygroundUrlState } from '../apply-playground-search-params';
 import type { SharePayload } from '@/lib/utils/share';
 
 function params(entries: Record<string, string>): URLSearchParams {
@@ -8,8 +8,8 @@ function params(entries: Record<string, string>): URLSearchParams {
   return u;
 }
 
-describe('applyPlaygroundSearchParams', () => {
-  it('prefers s over scenario and mode', () => {
+describe('applyPlaygroundUrlState', () => {
+  it('prefers fragment s over scenario and mode', () => {
     const restoreSession = vi.fn();
     const loadScenario = vi.fn();
     const enterBuildMode = vi.fn();
@@ -21,8 +21,9 @@ describe('applyPlaygroundSearchParams', () => {
       network: 'testnet',
     }));
 
-    applyPlaygroundSearchParams(
-      params({ s: 'x', scenario: '2fa-recovery', mode: 'build' }),
+    applyPlaygroundUrlState(
+      params({ scenario: '2fa-recovery', mode: 'build' }),
+      '#s=x',
       { restoreSession, loadScenario, enterBuildMode, notifyInvalidSharePayload },
       decode,
     );
@@ -34,15 +35,16 @@ describe('applyPlaygroundSearchParams', () => {
     expect(notifyInvalidSharePayload).not.toHaveBeenCalled();
   });
 
-  it('falls back to scenario when s decode fails', () => {
+  it('falls back to scenario when fragment s decode fails', () => {
     const restoreSession = vi.fn();
     const loadScenario = vi.fn();
     const enterBuildMode = vi.fn();
     const notifyInvalidSharePayload = vi.fn();
     const decode = vi.fn(() => null);
 
-    applyPlaygroundSearchParams(
-      params({ s: 'bad', scenario: '2fa-recovery' }),
+    applyPlaygroundUrlState(
+      params({ scenario: '2fa-recovery' }),
+      '#s=bad',
       { restoreSession, loadScenario, enterBuildMode, notifyInvalidSharePayload },
       decode,
     );
@@ -57,8 +59,9 @@ describe('applyPlaygroundSearchParams', () => {
     const loadScenario = vi.fn();
     const enterBuildMode = vi.fn();
 
-    applyPlaygroundSearchParams(
+    applyPlaygroundUrlState(
       params({ mode: 'build' }),
+      '',
       { restoreSession, loadScenario, enterBuildMode },
     );
 
@@ -74,8 +77,9 @@ describe('applyPlaygroundSearchParams', () => {
     const notifyInvalidSharePayload = vi.fn();
     const decode = vi.fn(() => null);
 
-    applyPlaygroundSearchParams(
-      params({ s: 'bad', mode: 'build' }),
+    applyPlaygroundUrlState(
+      params({ mode: 'build' }),
+      '#s=bad',
       { restoreSession, loadScenario, enterBuildMode, notifyInvalidSharePayload },
       decode,
     );
@@ -91,10 +95,32 @@ describe('applyPlaygroundSearchParams', () => {
     const loadScenario = vi.fn();
     const enterBuildMode = vi.fn();
 
-    applyPlaygroundSearchParams(params({}), { restoreSession, loadScenario, enterBuildMode });
+    applyPlaygroundUrlState(params({}), '', {
+      restoreSession,
+      loadScenario,
+      enterBuildMode,
+    });
 
     expect(restoreSession).not.toHaveBeenCalled();
     expect(loadScenario).not.toHaveBeenCalled();
     expect(enterBuildMode).not.toHaveBeenCalled();
+  });
+
+  it('ignores legacy query-string s values', () => {
+    const restoreSession = vi.fn();
+    const loadScenario = vi.fn();
+    const enterBuildMode = vi.fn();
+    const decode = vi.fn();
+
+    applyPlaygroundUrlState(
+      params({ s: 'legacy', scenario: '2fa-recovery' }),
+      '',
+      { restoreSession, loadScenario, enterBuildMode },
+      decode,
+    );
+
+    expect(decode).not.toHaveBeenCalled();
+    expect(restoreSession).not.toHaveBeenCalled();
+    expect(loadScenario).toHaveBeenCalledWith('2fa-recovery');
   });
 });

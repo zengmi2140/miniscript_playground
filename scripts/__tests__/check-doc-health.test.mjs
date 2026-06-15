@@ -40,15 +40,34 @@ function createValidFixture(root) {
   write(
     root,
     '.github/workflows/ci.yml',
-    `steps:
-  - uses: actions/setup-node@v4
+    `permissions:
+  contents: read
+steps:
+  - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+    with:
+      persist-credentials: false
+  - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
     with:
       node-version-file: .nvmrc
+  - run: npm audit --omit=dev --audit-level=high
   - run: npm run doc:health
   - run: npm run lint
   - run: npm run typecheck
   - run: npm run test:coverage
   - run: npm run build:check
+`,
+  );
+  write(
+    root,
+    '.github/dependabot.yml',
+    `version: 2
+updates:
+  - package-ecosystem: npm
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    schedule:
+      interval: weekly
 `,
   );
   write(
@@ -161,6 +180,27 @@ describe('runDocHealth Harness contracts', () => {
     expect(runDocHealth(root)).toEqual([]);
   });
 
+  it('treats query and fragment examples as variants of their base route', () => {
+    write(
+      root,
+      'docs/PRODUCT.md',
+      `# Product
+
+## 路由与信息架构
+
+| 路由 | 用途 |
+|---|---|
+| \`/\` | Home |
+| \`/playground?scenario=<id>\` | Scenario |
+| \`/playground#s=<payload>\` | Share |
+
+## Other
+`,
+    );
+
+    expect(runDocHealth(root)).toEqual([]);
+  });
+
   it('reports a route present in App Router but missing from PRODUCT', () => {
     write(
       root,
@@ -247,6 +287,10 @@ navigator.sendBeacon("/collect", "payload");
         expect.objectContaining({
           file: '.github/workflows/ci.yml',
           detail: expect.stringContaining('node-version-file'),
+        }),
+        expect.objectContaining({
+          file: '.github/workflows/ci.yml',
+          detail: expect.stringContaining('commit SHA'),
         }),
       ]),
     );

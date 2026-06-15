@@ -17,6 +17,7 @@ import { upgradeErrorWithPreflight } from './policy-preflight';
 import { attachErrorHighlight } from './policy-error-highlight';
 import { analyzeSpendingPaths } from './path-analyzer';
 import { replaceManyIdentifierTokens } from '@/lib/utils/policy-identifiers';
+import { validatePolicyCompileInput } from './policy-limits';
 
 const { Output } = DescriptorsFactory(ecc);
 
@@ -57,6 +58,15 @@ export async function compile(
   blockTipHeight?: number,
 ): Promise<CompileOutput> {
   try {
+    const limitError = validatePolicyCompileInput(policy, keyVariables);
+    if (limitError) {
+      return {
+        result: null,
+        paths: [],
+        error: attachErrorHighlight(policy, limitError),
+      };
+    }
+
     await policiesReady;
 
     if (context === 'tr') {

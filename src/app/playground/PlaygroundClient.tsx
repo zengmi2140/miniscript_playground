@@ -15,7 +15,7 @@ import {
   useDesktopBootstrap,
   type ViewportMode,
 } from "@/lib/hooks/useDesktopBootstrap";
-import { applyPlaygroundSearchParams } from "@/lib/playground/apply-playground-search-params";
+import { applyPlaygroundUrlState } from "@/lib/playground/apply-playground-search-params";
 import { useI18n } from "@/lib/i18n/context";
 
 function useViewportMode() {
@@ -82,13 +82,21 @@ function DesktopPlayground() {
   const restoreSession = usePlaygroundStore((s) => s.restoreSession);
   const enterBuildMode = usePlaygroundStore((s) => s.enterBuildMode);
   const [showInvalidShareNotice, setShowInvalidShareNotice] = useState(false);
+  const [hash, setHash] = useState(() => window.location.hash);
   const lastInvalidShareParamRef = useRef<string | null>(null);
   useCompiler();
   useBuilderSync();
 
   useEffect(() => {
-    const shareParam = searchParams.get("s");
-    applyPlaygroundSearchParams(searchParams, {
+    const handleHashChange = () => setHash(window.location.hash);
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
+  useEffect(() => {
+    const fragmentParams = new URLSearchParams(hash.startsWith("#") ? hash.slice(1) : hash);
+    const shareParam = fragmentParams.get("s");
+    applyPlaygroundUrlState(searchParams, hash, {
       restoreSession,
       loadScenario,
       enterBuildMode,
@@ -99,7 +107,7 @@ function DesktopPlayground() {
         setShowInvalidShareNotice(true);
       },
     });
-  }, [searchParams, restoreSession, loadScenario, enterBuildMode]);
+  }, [searchParams, hash, restoreSession, loadScenario, enterBuildMode]);
 
   useEffect(() => {
     if (!showInvalidShareNotice) return;

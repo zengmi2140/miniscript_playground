@@ -2,8 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
-import { compile } from '@/lib/engine/compiler';
-import { parseMiniscript } from '@/lib/engine/miniscript-parser';
+import { CompilerWorkerClient } from '@/lib/engine/compiler-worker';
 
 const DEBOUNCE_MS = 500;
 
@@ -25,6 +24,15 @@ export function useCompiler() {
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef(0);
+  const workerClientRef = useRef<CompilerWorkerClient | null>(null);
+
+  useEffect(
+    () => () => {
+      workerClientRef.current?.dispose();
+      workerClientRef.current = null;
+    },
+    [],
+  );
 
   useEffect(() => {
     if (timerRef.current) {
@@ -43,16 +51,17 @@ export function useCompiler() {
 
     timerRef.current = setTimeout(async () => {
       try {
-        const output = await compile(
+        workerClientRef.current ??= new CompilerWorkerClient();
+        const { output, semanticTree } = await workerClientRef.current.compile({
           policy,
           keyVariables,
           context,
           network,
-          availableKeys,
-          availableHashes,
+          availableKeys: [...availableKeys],
+          availableHashes: [...availableHashes],
           currentTimeBlocks,
-          blockTipHeightReady ? blockTipHeight : undefined,
-        );
+          ...(blockTipHeightReady ? { blockTipHeight } : {}),
+        });
 
         if (abortRef.current !== generation) return;
 
@@ -65,13 +74,7 @@ export function useCompiler() {
         if (output.result) {
           setCompilationResult(output.result);
           setSpendingPaths(output.paths);
-
-          try {
-            const tree = parseMiniscript(output.result.miniscript);
-            setSemanticTree(tree);
-          } catch {
-            setSemanticTree(null);
-          }
+          setSemanticTree(semanticTree);
         } else {
           // Avoid stale semantic tree / paths / results when compile fails (matches no successful output).
           setCompilationResult(null);

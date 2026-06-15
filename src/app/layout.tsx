@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import localFont from 'next/font/local';
 import { Providers } from '@/components/providers';
 import { Header } from '@/components/layout/Header';
@@ -101,6 +101,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const cookieStore = await cookies();
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
   const initialLocale = resolveLocalePreference(cookieStore.get(SCRIPTWISE_LOCALE_COOKIE)?.value);
   const initialTheme = resolveThemePreference(cookieStore.get(SCRIPTWISE_THEME_COOKIE)?.value);
 
@@ -114,6 +115,7 @@ export default async function RootLayout({
       <head>
         <script
           id="scriptwise-theme-init"
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: buildNoFlashThemeScript(initialTheme) }}
         />
         {/* Prefetch the Playground page document so navigation feels instant */}

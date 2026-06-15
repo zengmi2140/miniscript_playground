@@ -91,7 +91,7 @@ npm run test:coverage
 
 1. 在 `parseValidPlaygroundPayload` 中校验类型、枚举、长度、数量、稳定 ID 唯一性和新增字段。
 2. 复核 `MAX_SHARE_*` 与 `SHARE_URL_WARNING_LENGTH`，避免新增字段绕过解码字节限制。
-3. 同步检查 `encodeSharePayload` / `decodeSharePayload`、legacy storage、store 的 `restoreSession` 和 `applyPlaygroundSearchParams`。
+3. 同步检查 `encodeSharePayload` / `decodeSharePayload`、legacy storage、store 的 `restoreSession` 和 `applyPlaygroundUrlState`。
 4. 无效 payload 必须安全返回 `null`，不得部分恢复未经验证的数据。
 
 ### 3. 测试与验收

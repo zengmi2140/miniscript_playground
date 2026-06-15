@@ -8,10 +8,12 @@
   "scripts": {
     "generate:block-height-fallback": "node scripts/generate-block-height-fallback.mjs",
     "prebuild": "npm run generate:block-height-fallback",
-    "dev": "next dev -H 0.0.0.0",
+    "dev": "next dev -H 127.0.0.1",
+    "dev:lan": "next dev -H 0.0.0.0",
     "build": "next build",
     "build:check": "next build",
-    "start": "next start -p 3000 -H 0.0.0.0",
+    "start": "next start -p 3000 -H 127.0.0.1",
+    "start:lan": "next start -p 3000 -H 0.0.0.0",
     "lint": "next lint",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
@@ -62,7 +64,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/coverage-v8": "^4.1.8",
     "autoprefixer": "^10.4.18",
     "eslint": "^8.57.0",
     "eslint-config-next": "^15.5.18",
@@ -71,6 +73,6 @@
     "shadcn": "^4.0.3",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.5.3",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.8"
   }
 }

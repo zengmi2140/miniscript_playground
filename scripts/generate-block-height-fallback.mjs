@@ -14,6 +14,11 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import {
+  BLOCK_TIP_FETCH_OPTIONS,
+  parseBlockHeightResponse,
+  selectConsensusHeight,
+} from '../src/lib/engine/block-height-consensus.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(__dirname, '../src/lib/engine/block-height-fallback.generated.ts');
@@ -28,12 +33,15 @@ const FETCH_TIMEOUT_MS = 5000;
 /** Used only when every endpoint fails AND no previous generated height can be reused. */
 const STUB_ON_FAILURE = 940000;
 
-async function fetchHeight(url) {
-  const res = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+async function fetchHeight(url, referenceHeight) {
+  const res = await fetch(url, {
+    ...BLOCK_TIP_FETCH_OPTIONS,
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+  });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const text = await res.text();
-  const height = parseInt(text.trim(), 10);
-  if (Number.isNaN(height) || height <= 0) throw new Error('Invalid response body');
+  const height = parseBlockHeightResponse(text, referenceHeight);
+  if (height === null) throw new Error('Invalid response body');
   return height;
 }
 
@@ -46,9 +54,7 @@ export function readExistingHeight(filePath) {
     const raw = fs.readFileSync(filePath, 'utf8');
     const match = raw.match(/FALLBACK_BLOCK_HEIGHT\s*=\s*(\d+)/);
     if (!match) return null;
-    const height = parseInt(match[1], 10);
-    if (Number.isNaN(height) || height <= 0) return null;
-    return height;
+    return parseBlockHeightResponse(match[1]);
   } catch {
     return null;
   }
@@ -88,28 +94,31 @@ function writeFallback(filePath, height) {
 }
 
 async function main() {
-  let height = STUB_ON_FAILURE;
-  let ok = false;
-  for (const url of ENDPOINTS) {
-    try {
-      height = await fetchHeight(url);
-      console.log(`[generate-block-height-fallback] ${url} → ${height}`);
-      ok = true;
-      break;
-    } catch (e) {
+  const existingHeight = readExistingHeight(OUT);
+  const referenceHeight = existingHeight ?? STUB_ON_FAILURE;
+  const settled = await Promise.allSettled(
+    ENDPOINTS.map((url) => fetchHeight(url, referenceHeight)),
+  );
+  const heights = [];
+  settled.forEach((result, index) => {
+    const url = ENDPOINTS[index];
+    if (result.status === 'fulfilled') {
+      heights.push(result.value);
+      console.log(`[generate-block-height-fallback] ${url} → ${result.value}`);
+    } else {
       console.warn(
         `[generate-block-height-fallback] ${url} failed:`,
-        e instanceof Error ? e.message : e,
+        result.reason instanceof Error ? result.reason.message : result.reason,
       );
     }
-  }
+  });
+  const consensusHeight = selectConsensusHeight(heights);
 
-  if (ok) {
-    writeFallback(OUT, height);
+  if (consensusHeight !== null) {
+    writeFallback(OUT, consensusHeight);
     return;
   }
 
-  const existingHeight = readExistingHeight(OUT);
   const { height: resolved, source } = resolveFallbackOnFailure({
     existingHeight,
     stub: STUB_ON_FAILURE,

@@ -111,6 +111,21 @@ describe('compiler', () => {
     }
   });
 
+  it('rejects malicious complexity before WASM and still compiles a simple policy afterward', async () => {
+    const malicious = `thresh(1,${Array.from({ length: 20 }, (_, i) => `pk(K${i})`).join(',')})`;
+    const rejected = await compile(malicious, [], 'wsh');
+    expect(rejected.result).toBeNull();
+    expect(rejected.error?.category).toBe('limit');
+
+    const recovered = await compile(
+      'pk(Alice)',
+      [{ name: 'Alice', policyName: 'Alice', publicKey: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798' }],
+      'wsh',
+    );
+    expect(recovered.error).toBeNull();
+    expect(recovered.result?.address).toBeTruthy();
+  });
+
   it('compiles all preset scenarios successfully', async () => {
     for (const scenario of SCENARIOS) {
       const { result, error } = await compile(

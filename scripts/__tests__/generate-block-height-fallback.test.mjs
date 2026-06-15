@@ -44,6 +44,16 @@ describe('readExistingHeight', () => {
     fs.writeFileSync(file, 'export const FALLBACK_BLOCK_HEIGHT = 0;\n', 'utf8');
     expect(readExistingHeight(file)).toBeNull();
   });
+
+  it('returns null when the parsed height is outside the shared reasonable range', () => {
+    const file = path.join(tmpDir, 'block-height-fallback.generated.ts');
+    fs.writeFileSync(
+      file,
+      'export const FALLBACK_BLOCK_HEIGHT = 9007199254740992;\n',
+      'utf8',
+    );
+    expect(readExistingHeight(file)).toBeNull();
+  });
 });
 
 describe('resolveFallbackOnFailure', () => {

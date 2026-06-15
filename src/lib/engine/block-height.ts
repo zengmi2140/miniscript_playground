@@ -1,4 +1,9 @@
 import { FALLBACK_BLOCK_HEIGHT } from './block-height-fallback.generated';
+import {
+  BLOCK_TIP_FETCH_OPTIONS,
+  parseBlockHeightResponse,
+  selectConsensusHeight,
+} from './block-height-consensus.mjs';
 
 /** Ordered list; not exported (order is implementation detail). */
 const BLOCK_TIP_ENDPOINTS = [
@@ -26,17 +31,24 @@ export function resetBlockTipCacheForTests(): void {
 }
 
 async function fetchHeightFromEndpoint(url: string): Promise<number> {
-  const res = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+  const res = await fetch(url, {
+    ...BLOCK_TIP_FETCH_OPTIONS,
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+  });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const text = await res.text();
-  const height = parseInt(text.trim(), 10);
-  if (Number.isNaN(height) || height <= 0) throw new Error('Invalid response');
+  const height = parseBlockHeightResponse(
+    text,
+    cachedHeight ?? FALLBACK_BLOCK_HEIGHT,
+  );
+  if (height === null) throw new Error('Invalid response');
   return height;
 }
 
 /**
- * Fetch the current Bitcoin mainnet block tip height from public APIs (sequential fallback).
- * Caches for 5 minutes; returns the build-time {@link FALLBACK_BLOCK_HEIGHT} when all sources fail and there is no cache.
+ * Fetch the current Bitcoin mainnet block tip height from public APIs in parallel.
+ * Accepts only a 2-source consensus, caches it for 5 minutes, and returns the
+ * previous trusted cache or build-time fallback when no consensus is available.
  */
 export async function fetchBlockTipHeight(): Promise<number> {
   const now = Date.now();
@@ -44,15 +56,17 @@ export async function fetchBlockTipHeight(): Promise<number> {
     return cachedHeight;
   }
 
-  for (const url of BLOCK_TIP_ENDPOINTS) {
-    try {
-      const height = await fetchHeightFromEndpoint(url);
-      cachedHeight = height;
-      cachedAt = now;
-      return height;
-    } catch {
-      // try next endpoint
-    }
+  const settled = await Promise.allSettled(
+    BLOCK_TIP_ENDPOINTS.map((url) => fetchHeightFromEndpoint(url)),
+  );
+  const heights = settled.flatMap((result) =>
+    result.status === 'fulfilled' ? [result.value] : [],
+  );
+  const consensusHeight = selectConsensusHeight(heights);
+  if (consensusHeight !== null) {
+    cachedHeight = consensusHeight;
+    cachedAt = now;
+    return consensusHeight;
   }
 
   return cachedHeight ?? FALLBACK_BLOCK_HEIGHT;

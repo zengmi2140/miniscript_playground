@@ -21,7 +21,7 @@
 | 目标 | 入口 |
 |------|------|
 | 预设场景 | [RUNBOOKS.md「新增预设场景」](RUNBOOKS.md#新增预设场景)；入口为 `scenarios/data.ts`，首页联动、图标与 tags 按条件修改 |
-| Policy 语法 / 编译 | [RUNBOOKS「修改编译或时间锁语义」](RUNBOOKS.md#修改编译或时间锁语义)；`policy-language.ts`、`compiler.ts`、`miniscript-parser.ts`、`glossary/data.ts` |
+| Policy 语法 / 编译 | [RUNBOOKS「修改编译或时间锁语义」](RUNBOOKS.md#修改编译或时间锁语义)；`policy-language.ts`、`policy-limits.ts`、`compiler.ts`、`compiler-worker.ts`、`workers/compiler.worker.ts`、`miniscript-parser.ts`、`glossary/data.ts` |
 | 路径判定 / 模拟 | [RUNBOOKS「修改编译或时间锁语义」](RUNBOOKS.md#修改编译或时间锁语义)；`path-analyzer.ts`、`time-utils.ts`、`block-height.ts`、`StatusBanner`、`TimeSlider` |
 | Key 名替换 / 重命名 | `utils/policy-identifiers.ts`、`compiler.ts`（`replaceKeyNames`）、`playground-store.ts`（`renameKeyVariable`）、`KeyVariableManager.tsx`、`share.ts` |
 | scenario 路径图 | `flow/tree-to-flow.ts`、`PathMap`、`FlowNodes`、`PathEdge` |
@@ -29,6 +29,7 @@
 | Policy 编辑器 | `PolicyEditor.tsx`、`htlc-display-mask.ts`、`policy-errors` |
 | 右栏结果 | `RightPanel.tsx`、`components/results/*` |
 | SSR 语言 / 主题首帧 | `preferences.ts`、`app/layout.tsx`、`providers.tsx`、`i18n/context.tsx`、`theme/context.tsx` |
+| CSP / 安全响应头 | `middleware.ts`、`content-security-policy.ts`、`next.config.mjs`、`app/layout.tsx` |
 | Playground 首屏与桌面 bootstrap | `PlaygroundClient.tsx`、`useDesktopBootstrap.ts`、`apply-playground-search-params.ts` |
 | 分享 payload / URL 恢复 | [RUNBOOKS「修改分享 Payload」](RUNBOOKS.md#修改分享-payload)；`share.ts`、`storage.ts`、`apply-playground-search-params.ts`、`playground-store.ts` |
 | 路由 / SSR 首帧 | [RUNBOOKS「新增路由或修改 SSR 首帧」](RUNBOOKS.md#新增路由或修改-ssr-首帧)；`app/layout.tsx`、`preferences.ts`、Providers |
@@ -46,8 +47,11 @@
 nvm use                # 读取 .nvmrc，统一使用 Node 22
 npm ci
 npm run dev            # 默认 http://localhost:3000
+npm run dev:lan        # 显式监听 0.0.0.0，供局域网联调
 npm run build          # 会先运行 prebuild：生成 block-height-fallback.generated.ts
 npm run build:check    # 直接 next build，不刷新或改写链尖回退文件
+npm run start          # 默认仅监听 localhost:3000
+npm run start:lan      # 显式监听 0.0.0.0:3000
 npm run lint
 npm run typecheck
 npm run test           # vitest run
@@ -111,7 +115,7 @@ npm run generate:block-height-fallback   # 单独刷新链尖回退文件
 |------|------|
 | `stores/` | `playground-store.ts` — Playground 唯一状态源 |
 | `hooks/` | `useCompiler.ts`、`useBuilderSync.ts`、`useDesktopBootstrap.ts` |
-| `engine/` | `compiler.ts`、`miniscript-parser.ts`、`path-analyzer.ts`、`time-utils.ts`、`block-height.ts`、`block-height-fallback.generated.ts`（**构建生成，勿手改**）、policy 错误与预检 |
+| `engine/` | `policy-limits.ts`、`compiler.ts`、`compiler-worker.ts`、`miniscript-parser.ts`、`path-analyzer.ts`、`time-utils.ts`、`block-height.ts`、`block-height-fallback.generated.ts`（**构建生成，勿手改**）、policy 错误与预检 |
 | `builder/` | 策略树模型：`types`、`serialize`、`node-ops`、`from-semantic-tree`、`status`、`tree-to-flow`、`threshold` |
 | `flow/` | scenario：`tree-to-flow.ts`（Dagre） |
 | `editor/` | `policy-language.ts`（CodeMirror 高亮） |
@@ -133,25 +137,33 @@ npm run generate:block-height-fallback   # 单独刷新链尖回退文件
 用户编辑 Policy / 操作画布
     → playground-store（Zustand）
     → PlaygroundClient（desktop 确认后）useDesktopBootstrap：clearSession + fetchBlockTipHeight → blockTipHeight / blockTipHeightReady
-    → useCompiler（debounce 500ms）→ compiler → miniscript、descriptor、地址、spendingPaths
-    → scenario：miniscript-parser → tree-to-flow → PathMap（链尖就绪后传入 blockTipHeight）
+    → useCompiler（debounce 500ms）→ CompilerWorkerClient（generation + 5s timeout）
+    → compiler worker：policy-limits → compiler → miniscript-parser → descriptor、地址、spendingPaths、semanticTree
+    → scenario：semanticTree → tree-to-flow → PathMap（链尖就绪后传入 blockTipHeight）
     → build：strategyTree ↔ useBuilderSync ↔ Policy 文本
     → 右栏 Tabs / StatusBanner / ConditionToggles / TimeSlider
 ```
 
 ### 应用装配
 
-`layout.tsx`（server）通过 `next/font/local` 装配仓库内字体，读取 `scriptwise-locale` / `scriptwise-theme` cookie，输出 `<html lang>` 与主题 class / `color-scheme`，注入 no-flash theme script；`providers.tsx` 把同一初值传给 `I18nProvider` / `ThemeProvider` 避免 hydration mismatch。
+`layout.tsx`（server）通过 `next/font/local` 装配仓库内字体，读取 `scriptwise-locale` / `scriptwise-theme` cookie，输出 `<html lang>` 与主题 class / `color-scheme`，并从 Middleware 注入的 `x-nonce` 读取每请求 nonce 供 no-flash theme script 使用；`providers.tsx` 把同一初值传给 `I18nProvider` / `ThemeProvider` 避免 hydration mismatch。
+
+### 安全响应头与 CSP
+
+- `middleware.ts` 为每个页面请求生成随机 nonce，将 enforced `Content-Security-Policy` 同时写入 request / response headers，供 Next 自动给框架脚本加 nonce。
+- `script-src` 使用 nonce + `strict-dynamic`，仅为 Miniscript WASM 保留 `wasm-unsafe-eval`；开发环境额外允许 React 调试所需的 `unsafe-eval`。`worker-src` 仅允许同源与 blob，`connect-src` 仅允许同源及三个链尖 API。
+- `next.config.mjs` 为所有应用路由设置 `Referrer-Policy: no-referrer`、`nosniff`、frame DENY、Permissions-Policy 与 COOP。nonce 使页面按请求动态渲染。
 
 ### 自动编译
 
-`useCompiler.ts`：500ms debounce；Policy 空或编译失败时清空派生结果。
+`useCompiler.ts`：500ms debounce；Policy 空或编译失败时清空派生结果。完整编译与 Miniscript 解析在 Web Worker 中执行；新请求会终止仍在运行的旧 generation，单次编译 5 秒超时。超时、Worker crash 或 WASM abort / OOM / assertion 会销毁 Worker，下一次请求创建干净实例。
 
 ### 编译管线（`compiler.ts`）
 
-`compilePolicy` → 替换 key → `compileMiniscript` → `wsh(...)` descriptor → 地址 / scriptPubKey → `satisfier` → `analyzeSpendingPaths`。
+`policy-limits` → `compilePolicy` → 替换 key → `compileMiniscript` → `wsh(...)` descriptor → 地址 / scriptPubKey → `satisfier` → `analyzeSpendingPaths`。
 
 - 若 `context === 'tr'`，在编译前即返回 `limit` 类友好错误，不产出地址（与左栏 P2TR 占位一致）。
+- 编译前预算：Policy 最长 4KB、最多 64 个语法节点、嵌套深度最多 32、单个 `thresh` / `multi` 最多 8 个分支、Key 最多 32 个；稳定 ID 最长 64 字符，公钥仅接受 64 字符 x-only 或 66 字符压缩 hex。分享与 legacy session 复用同一验证。
 - 错误链：`policy-errors` → `policy-preflight` → `policy-error-highlight`（编辑器标红区间）。
 - **Descriptor** 从 `@bitcoinerlab/descriptors/dist/descriptors` 细入口导入（避免拉 Ledger）；`@ledgerhq/ledger-bitcoin` → `ledger-bitcoin-stub`（`next.config` / `vitest.config`）。
 - **Key 名替换** `replaceKeyNames` 走共享 helper `src/lib/utils/policy-identifiers.ts` 做 **token-aware**（`\b<name>\b`）替换，保证 `pk(A)` 与 `pk(Alice)`、`Key1` 与 `Key10`、名为 `or` 的 key 与 `or_b` / `or_i` 不互相吞噬（同一 helper 也用于原子重命名）。
@@ -159,8 +171,8 @@ npm run generate:block-height-fallback   # 单独刷新链尖回退文件
 ### 链尖高度与 `after(<height>)`
 
 - `compile()` 接受可选 `blockTipHeight`；`useCompiler` 在 `blockTipHeightReady` 之前传 `undefined`。
-- `block-height.ts` 多端点顺序回退 + 短 TTL 内存缓存；全部失败时用 `block-height-fallback.generated.ts` 的构建时高度。
-- 该文件由 `npm run build` 的 `prebuild`（`scripts/generate-block-height-fallback.mjs`）抓取主网链尖生成；抓取失败时**优先保留**已有高度（不回退到更旧值）；若文件不存在或解析失败，CI（`process.env.CI`）下非零退出失败，本地写入脚本内桩值以免阻塞构建。
+- `block-height.ts` 并行请求三个端点，显式使用 GET、`credentials: omit`、`referrerPolicy: no-referrer` 与 `cache: no-store`；响应必须是纯数字安全整数、处于合理高度区间且相对可信参考漂移不超过 10,080 块。至少两个来源在 2 块容差内一致才更新 5 分钟内存缓存，无共识时使用既有可信缓存或构建回退高度。
+- 运行时与 `scripts/generate-block-height-fallback.mjs` 共用 `block-height-consensus.mjs` 的解析、漂移和共识规则。generated 文件由 `npm run build` 的 `prebuild` 抓取主网链尖生成；无共识时**优先保留**已有高度（不回退到更旧值）；若文件不存在或解析失败，CI（`process.env.CI`）下非零退出失败，本地写入脚本内桩值以免阻塞构建。
 - `path-analyzer`、scenario `tree-to-flow`、`StatusBanner` 以及 build 的 `builder/status.ts` 共用 `time-utils.ts` 的 `isPathTimelockSatisfied` / `getPathTimelockRemainingBlocks`，确保 `after(<height>)` 与 `older()` 在「编译 → 路径分析 → 路径图 → 状态横幅 → build 节点状态」全链路语义一致（`blockTipHeight + currentTimeBlocks ≥ afterValue`）。
 
 ### 语义树与路径图（scenario）
@@ -182,8 +194,8 @@ npm run generate:block-height-fallback   # 单独刷新链尖回退文件
 
 ### 分享与会话
 
-- 不自动持久化 Playground；`share.ts` 将状态编码为 `?s=`（Base64 JSON），并校验 `network` / `context` / `keyVariables` 形状；`storage.ts` 的 legacy `loadSession` 用相同规则。
-- `PlaygroundClient`：`searchParams` 每次变化按 `applyPlaygroundSearchParams` 应用——`s` 解码成功 → `restoreSession`；否则有 `scenario` → `loadScenario`；否则 `mode=build` → `enterBuildMode`。无上述参数时不 `reset()`。`s` 解码失败触发一次性 `invalidPayload` 提示。桌面初始化（`clearSession` + 拉链尖）由 `useDesktopBootstrap` 在 `mode === 'desktop'` 时触发。
+- 不自动持久化 Playground；`share.ts` 将状态编码为 `#s=`（无 padding Base64URL JSON），在解码前校验字符集和 encoded 长度，并统一限制 decoded payload、Policy、Key 数量与字段长度；不读取旧 `?s=`。`storage.ts` 的 legacy `loadSession` 复用字段校验。
+- `PlaygroundClient`：fragment 或 `searchParams` 变化时按 `applyPlaygroundUrlState` 应用——fragment `s` 解码成功 → `restoreSession`；否则 query 有 `scenario` → `loadScenario`；否则 `mode=build` → `enterBuildMode`。无上述参数时不 `reset()`。fragment `s` 解码失败触发一次性 `invalidPayload` 提示。桌面初始化（`clearSession` + 拉链尖）由 `useDesktopBootstrap` 在 `mode === 'desktop'` 时触发。
 - 分享链接过长时 `PolicyEditor` 提示（阈值见 `share.ts`）。
 
 ## 关键 UI 结构
