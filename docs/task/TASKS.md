@@ -20,6 +20,13 @@
 
 ## 最近完成
 
+### 2026-06-15：降低 Dependabot 版本更新噪声
+
+- [x] **过滤常规主版本升级**：npm 与 GitHub Actions 的版本更新仅允许 minor / patch；安全更新不受 `allow.update-types` 限制。
+- [x] **合并更新 PR**：npm 与 GitHub Actions 分别将同周的 minor / patch 更新归并为单个 PR。
+- [x] **收紧并发数量**：两类生态的版本更新 PR 上限分别从 5 降至 2。
+- 验证结果：Dependabot YAML 解析通过；`lint`、`typecheck`、`test:coverage`（51 files / 355 tests）与 `doc:health` 全部通过。
+
 ### 2026-06-15：SEC-P3-02 生产偏好 Cookie 添加 Secure 标记
 
 - [x] **Secure 按协议追加**：`toPreferenceCookie()` 在 `https:` 环境追加 `; Secure`，`http:` 本地开发保持不变；新增 `typeof window !== 'undefined'` SSR 安全守卫。
