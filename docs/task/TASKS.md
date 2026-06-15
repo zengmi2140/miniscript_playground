@@ -6,7 +6,7 @@
 
 ## 当前任务
 
-暂无进行中的任务。
+- [ ] **SEC-P2-07 GitHub Actions 供应链加固**：仓库内加固已完成；待在 GitHub 为 `main` 启用 branch protection，要求 `checks` CI、严格同步分支并禁止管理员绕过。
 
 ## 接下来
 
@@ -15,18 +15,7 @@
 
 ### P1：发布硬门槛
 
-- [ ] **SEC-P1-01 分享链接隐私迁移**：将新分享链接从 query 改为 fragment，兼容并清理旧 `?s=`，采用 Base64URL，并补齐 Referrer-Policy 与回归测试。详见[安全审查：分享链接泄露策略与公钥](SECURITY-REVIEW-2026-06-15.md#p1分享链接-s-可能泄露用户策略与公钥)。
-- [ ] **SEC-P1-02 Policy 编译资源隔离**：增加文本、节点数、嵌套深度和门限分支预算；将编译管线移入可超时终止、异常后重建的 Web Worker。详见[安全审查：Policy 编译复杂度与 WASM 实例污染](SECURITY-REVIEW-2026-06-15.md#p1policy-编译前缺少明确长度--复杂度上限)。
-
 ### P2：发布前建议完成
-
-- [ ] **SEC-P2-01 分享 payload 解码前限长**：在 `atob()` 前校验 encoded 长度与规范字符集，并统一生成端、fragment、旧 query 和 decoded payload 的业务上限。须与 SEC-P1-01 同批完成。详见[安全审查：超大分享参数客户端 DoS](SECURITY-REVIEW-2026-06-15.md#p1超大-s-参数可能导致浏览器端-dos)。
-- [ ] **SEC-P2-02 基础安全响应头与 CSP**：增加 Referrer-Policy、nosniff、frame、Permissions-Policy、COOP；CSP 先 Report-Only，再迁移到 nonce-based enforced CSP，并验证生产响应。详见[安全审查：基础安全响应头与 CSP](SECURITY-REVIEW-2026-06-15.md#p1缺少基础安全响应头--csp)。
-- [ ] **SEC-P2-03 修复 dev 依赖 advisory**：同步升级 Vitest、coverage、Vite 与 esbuild，确认传递依赖无残留，并在 CI 增加生产依赖 audit 门禁和依赖自动更新。详见[安全审查：dev 依赖 audit advisory](SECURITY-REVIEW-2026-06-15.md#p2dev-依赖存在-audit-advisory)。
-- [ ] **SEC-P2-04 默认开发服务仅监听 localhost**：默认 `dev` / `start` 收紧为 localhost，另提供显式 `dev:lan` / `start:lan`。详见[安全审查：本地服务默认绑定 0.0.0.0](SECURITY-REVIEW-2026-06-15.md#p2本地-dev--start-默认绑定-0000)。
-- [ ] **SEC-P2-05 链尖请求隐私最小化**：显式设置只读 GET、`credentials: omit`、`referrerPolicy: no-referrer`、`cache: no-store`，并以 CSP 限定连接域名。详见[安全审查：链尖高度请求隐私](SECURITY-REVIEW-2026-06-15.md#p2链尖高度请求可进一步隐私最小化)。
-- [ ] **SEC-P2-06 链尖响应完整性与多源共识**：严格校验纯数字、安全整数、合理区间和高度漂移；运行时与构建脚本共享校验，并采用多源一致结果。详见[安全审查：链尖响应完整性校验](SECURITY-REVIEW-2026-06-15.md#补充发现链尖响应完整性校验不足)。
-- [ ] **SEC-P2-07 GitHub Actions 供应链加固**：Actions 固定完整 SHA，声明 `contents: read`，关闭 checkout 凭据持久化，配置依赖自动更新和 main 分支保护。详见[安全审查：GitHub Actions 供应链与权限](SECURITY-REVIEW-2026-06-15.md#p2github-actions-供应链与权限未收紧)。
 
 ### P3：低风险加固
 
@@ -36,9 +25,62 @@
 
 ## 阻塞
 
-暂无阻塞项。
+- **SEC-P2-07 外部设置**：内置浏览器当前未登录 GitHub，本机无 `gh`，现有 GitHub connector 未提供 branch protection API。用户登录 GitHub 后继续配置。
 
 ## 最近完成
+
+### 2026-06-15：SEC-P2-03 修复 dev 依赖 advisory
+
+- [x] **测试工具链升级**：Vitest 与 coverage 同步升级至 4.1.8，传递 Vite 升至 8.0.16；Vite 8 不再保留旧 esbuild 依赖，完整 `npm audit` 从 2 critical / 3 high 降为 0。
+- [x] **Vite 8 兼容**：Vitest 配置改用 Oxc automatic JSX transform，保持项目 `tsconfig` 的 Next.js `jsx: preserve` 契约不变。
+- [x] **持续门禁**：CI 新增 `npm audit --omit=dev --audit-level=high`，Dependabot 每周检查 npm 与 GitHub Actions。
+- 验证结果：完整 audit 与生产 audit 均 0 漏洞；lint 0 error，typecheck、doc:health、build:check 通过；coverage 50 files / 347 tests 全过，engine lines 88.73% / functions 96.2%。
+
+### 2026-06-15：SEC-P2-06 链尖响应完整性与多源共识
+
+- [x] **共享严格校验**：运行时与构建脚本共用 `block-height-consensus.mjs`，仅接受纯数字安全整数、合理主网高度范围，以及相对可信参考不超过 10,080 块的漂移。
+- [x] **并行双源共识**：三个端点并行请求，至少两个来源在 2 块容差内一致才采用；双源分歧时取较低值，单源离群值被忽略。
+- [x] **可信回退**：无共识时运行时使用既有可信缓存或 generated fallback；构建保留现有 generated 高度，缺失时继续遵守 CI fail-closed 契约。
+- 验证结果：响应格式、漂移、离群值、双源一致、无共识与构建回退共 27 项定向测试通过；doc:health、build:check 通过。
+
+### 2026-06-15：SEC-P2-05 链尖请求隐私最小化
+
+- [x] **最小化 fetch**：三个链尖端点统一显式使用只读 GET、`credentials: omit`、`referrerPolicy: no-referrer`、`cache: no-store` 与单请求超时。
+- [x] **网络白名单**：enforced CSP 的 `connect-src` 仅允许同源与 mempool.space、blockstream.info、blockchain.info。
+- 验证结果：fetch options 与 CSP 契约测试通过；lint 0 error，typecheck、doc:health、build:check 通过。
+
+### 2026-06-15：SEC-P2-02 基础安全响应头与 CSP
+
+- [x] **baseline headers**：全站设置 `Referrer-Policy: no-referrer`、`X-Content-Type-Options: nosniff`、`X-Frame-Options: DENY`、Permissions-Policy 与 `Cross-Origin-Opener-Policy: same-origin`。
+- [x] **nonce enforced CSP**：Middleware 每请求生成 nonce，Next 框架脚本与主题首帧脚本共用 nonce；`script-src` 使用 `strict-dynamic`，连接域名与 Worker 来源按最小集合限制。
+- [x] **生产验证**：本地 production response 返回 enforced CSP 和全部 baseline headers；fragment 恢复与 Worker / WASM 编译在 CSP 下正常，浏览器控制台无 warning/error。
+- 验证结果：CSP / header 契约测试 3 项通过；lint 0 error，typecheck、doc:health、build:check 通过。
+
+### 2026-06-15：SEC-P1-02 Policy 编译资源隔离
+
+- [x] **确定性输入预算**：编译、分享与 legacy session 共用 4KB 文本、64 节点、32 层嵌套、单门限 8 分支、32 个 Key、64 字符 ID 与规范公钥校验；超限返回 `limit` 友好错误，不调用 WASM。
+- [x] **Worker 故障边界**：完整 `compile + parseMiniscript` 移入 Web Worker；主线程保留 500ms debounce、generation 淘汰和 5 秒超时，超时、crash、WASM abort / OOM / assertion 后终止并重建 Worker。
+- [x] **恢复回归**：覆盖预算真值表、超时、fatal 重建、旧请求淘汰，以及恶意门限输入失败后 `pk(Alice)` 仍可成功编译。
+- 验证结果：lint 0 error；typecheck、doc:health、build:check 通过；coverage 47 files / 337 tests 全过，engine lines 88.09% / functions 95.89%；浏览器实测 2-of-3 Worker 编译出 3 条路径且控制台无 warning/error。
+
+### 2026-06-15：SEC-P2-04 默认开发服务仅监听 localhost
+
+- [x] **安全默认值**：`dev` / `start` 显式绑定 `127.0.0.1`；当前 Next 15 默认不传 `-H` 仍会暴露 Network 地址，因此未依赖框架默认值。
+- [x] **显式 LAN 入口**：新增 `dev:lan` / `start:lan`，仅在贡献者主动选择时监听 `0.0.0.0`；ARCHITECTURE 运行命令同步更新。
+- 验证结果：`npm run dev` 启动输出的 Local 与 Network 均为 `http://127.0.0.1:3000`。
+
+### 2026-06-15：SEC-P1-01 分享链接隐私迁移
+
+- [x] **fragment-only 分享**：分享链接改为 `/playground#s=<payload>`，使用无 padding Base64URL；Playground 监听初始 hash 与 `hashchange` 恢复会话。
+- [x] **清理旧格式**：按本轮产品决定不兼容旧 `?s=`，query 中的 `s` 不再读取，场景与 build query 仍按原优先级工作。
+- [x] **隐私防线**：全站增加 `Referrer-Policy: no-referrer`，PRODUCT / ARCHITECTURE / Runbook 与文档路由契约同步更新。
+- 验证结果：分享、URL 状态和 doc-health 定向测试 29 项通过；typecheck、doc:health、build:check 通过。
+
+### 2026-06-15：SEC-P2-01 分享 payload 解码前限长
+
+- [x] **统一分享上限**：生成端与恢复端共用 4KB Policy、32 个 Key、64 字符名称 / ID、66 字符公钥与 16KB decoded payload 上限；应用不再生成自身无法恢复的链接。
+- [x] **解码前拒绝恶意输入**：在 `atob()` 前校验 Base64URL 规范字符集、padding 禁止、encoded 字符数与预估 decoded bytes，覆盖超长和非法字符回归。
+- 验证结果：定向测试 22 项通过；typecheck、doc:health、build:check 通过。
 
 ### 2026-06-15：发布前安全审查文档
 
