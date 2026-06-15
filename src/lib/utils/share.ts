@@ -1,19 +1,32 @@
 import type { KeyVariable, ScriptContext, Network, PlaygroundMode } from '@/lib/engine/types';
 import { isValidPolicyIdentifier } from '@/lib/utils/policy-identifiers';
+import {
+  MAX_POLICY_KEY_NAME_LENGTH,
+  MAX_POLICY_KEY_VARIABLES,
+  MAX_POLICY_LENGTH,
+  MAX_POLICY_PUBLIC_KEY_LENGTH,
+  isSupportedPublicKey,
+  validatePolicyCompileInput,
+} from '@/lib/engine/policy-limits';
 
 const PLAYGROUND_MODES = new Set<PlaygroundMode>(['scenario', 'build']);
 
 const NETWORKS = new Set<Network>(['testnet', 'signet']);
 const CONTEXTS = new Set<ScriptContext>(['wsh', 'tr']);
 
-/** Policy text upper bound (share / session JSON). */
-export const MAX_SHARE_POLICY_LENGTH = 200_000;
-/** Per-field bound for key variable strings. */
-export const MAX_SHARE_KEY_FIELD_LENGTH = 50_000;
+/** Policy text upper bound shared by compile, share, and session validation. */
+export const MAX_SHARE_POLICY_LENGTH = MAX_POLICY_LENGTH;
+/** Display label and stable identifier upper bound. */
+export const MAX_SHARE_KEY_NAME_LENGTH = MAX_POLICY_KEY_NAME_LENGTH;
+/** Compressed or x-only public key upper bound. */
+export const MAX_SHARE_PUBLIC_KEY_LENGTH = MAX_POLICY_PUBLIC_KEY_LENGTH;
 /** Key variables upper bound for share payloads. */
-export const MAX_SHARE_KEY_VARIABLES = 32;
+export const MAX_SHARE_KEY_VARIABLES = MAX_POLICY_KEY_VARIABLES;
 /** Decoded JSON payload upper bound (bytes). */
 export const MAX_SHARE_DECODED_PAYLOAD_BYTES = 16 * 1024;
+/** Base64URL characters needed to represent the largest accepted decoded payload. */
+export const MAX_SHARE_ENCODED_PAYLOAD_CHARS =
+  Math.ceil(MAX_SHARE_DECODED_PAYLOAD_BYTES / 3) * 4;
 
 /** Full URL length above which we warn the user (proxies / older browsers). */
 export const SHARE_URL_WARNING_LENGTH = 2048;
@@ -45,13 +58,14 @@ function validateKeyVariablesList(arr: unknown): KeyVariable[] | null {
     if (
       typeof name !== 'string' ||
       name.length === 0 ||
-      name.length > MAX_SHARE_KEY_FIELD_LENGTH ||
+      name.length > MAX_SHARE_KEY_NAME_LENGTH ||
       typeof policyName !== 'string' ||
       policyName.length === 0 ||
-      policyName.length > MAX_SHARE_KEY_FIELD_LENGTH ||
+      policyName.length > MAX_SHARE_KEY_NAME_LENGTH ||
       typeof publicKey !== 'string' ||
       publicKey.length === 0 ||
-      publicKey.length > MAX_SHARE_KEY_FIELD_LENGTH
+      publicKey.length > MAX_SHARE_PUBLIC_KEY_LENGTH ||
+      !isSupportedPublicKey(publicKey)
     ) {
       return null;
     }
@@ -77,6 +91,7 @@ export function parseValidPlaygroundPayload(
   }
   const keyVariables = validateKeyVariablesList(parsed.keyVariables);
   if (keyVariables === null) return null;
+  if (validatePolicyCompileInput(parsed.policy, keyVariables)) return null;
   if (typeof parsed.context !== 'string' || !CONTEXTS.has(parsed.context as ScriptContext)) {
     return null;
   }
@@ -115,8 +130,17 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-function decodeBase64ToBytes(encoded: string): Uint8Array {
-  const binary = atob(encoded);
+function bytesToBase64Url(bytes: Uint8Array): string {
+  return bytesToBase64(bytes)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/u, '');
+}
+
+function decodeBase64UrlToBytes(encoded: string): Uint8Array {
+  const paddingLength = (4 - (encoded.length % 4)) % 4;
+  const base64 = encoded.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat(paddingLength);
+  const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
@@ -125,13 +149,31 @@ function decodeBase64ToBytes(encoded: string): Uint8Array {
 }
 
 export function encodeSharePayload(payload: SharePayload): string {
+  const validated = parseValidPlaygroundPayload(payload as unknown as Record<string, unknown>);
+  if (!validated) {
+    throw new Error('Share payload exceeds allowed field limits or has an invalid shape');
+  }
   const json = JSON.stringify(payload);
-  return bytesToBase64(UTF8_ENCODER.encode(json));
+  const bytes = UTF8_ENCODER.encode(json);
+  if (bytes.length > MAX_SHARE_DECODED_PAYLOAD_BYTES) {
+    throw new Error('Share payload exceeds the decoded byte limit');
+  }
+  return bytesToBase64Url(bytes);
 }
 
 export function decodeSharePayload(encoded: string): SharePayload | null {
   try {
-    const bytes = decodeBase64ToBytes(encoded);
+    if (
+      encoded.length === 0 ||
+      encoded.length > MAX_SHARE_ENCODED_PAYLOAD_CHARS ||
+      !/^[A-Za-z0-9_-]+$/u.test(encoded)
+    ) {
+      return null;
+    }
+    const estimatedBytes = Math.floor((encoded.length * 3) / 4);
+    if (estimatedBytes > MAX_SHARE_DECODED_PAYLOAD_BYTES) return null;
+
+    const bytes = decodeBase64UrlToBytes(encoded);
     if (bytes.length > MAX_SHARE_DECODED_PAYLOAD_BYTES) return null;
     const json = UTF8_DECODER.decode(bytes);
     const parsed: unknown = JSON.parse(json);
@@ -153,7 +195,7 @@ export function decodeSharePayload(encoded: string): SharePayload | null {
 export function buildShareUrl(payload: SharePayload): string {
   const encoded = encodeSharePayload(payload);
   const url = new URL(window.location.origin + '/playground');
-  url.searchParams.set('s', encoded);
+  url.hash = new URLSearchParams({ s: encoded }).toString();
   return url.toString();
 }
 

@@ -216,7 +216,7 @@ function extractProductRoutes(content) {
 
   const routes = new Set();
   for (const match of section.matchAll(/^\|\s*`(\/[^`]*)`\s*\|/gm)) {
-    routes.add(match[1].split("?")[0]);
+    routes.add(match[1].split(/[?#]/u)[0]);
   }
   return routes;
 }
@@ -569,7 +569,29 @@ function checkConfigContracts(root) {
       detail: "setup-node 必须通过 node-version-file 读取 .nvmrc",
     });
   }
+  if (/uses:\s*actions\/(?:checkout|setup-node)@(?![0-9a-f]{40}\b)/.test(ci)) {
+    problems.push({
+      kind: "config",
+      file: ".github/workflows/ci.yml",
+      detail: "GitHub Actions 必须固定到完整 40 字符 commit SHA",
+    });
+  }
+  if (!/permissions:\s*\n\s+contents:\s*read/.test(ci)) {
+    problems.push({
+      kind: "config",
+      file: ".github/workflows/ci.yml",
+      detail: "CI 必须声明只读 contents 权限",
+    });
+  }
+  if (!/persist-credentials:\s*false/.test(ci)) {
+    problems.push({
+      kind: "config",
+      file: ".github/workflows/ci.yml",
+      detail: "checkout 必须关闭凭据持久化",
+    });
+  }
   for (const command of [
+    "npm audit --omit=dev --audit-level=high",
     "npm run doc:health",
     "npm run lint",
     "npm run typecheck",
@@ -581,6 +603,20 @@ function checkConfigContracts(root) {
         kind: "config",
         file: ".github/workflows/ci.yml",
         detail: `缺少 CI 命令 \`${command}\``,
+      });
+    }
+  }
+
+  const dependabot = readText(root, ".github/dependabot.yml") ?? "";
+  for (const ecosystem of ["npm", "github-actions"]) {
+    if (
+      !dependabot.includes(`package-ecosystem: ${ecosystem}`) ||
+      !dependabot.includes("interval: weekly")
+    ) {
+      problems.push({
+        kind: "config",
+        file: ".github/dependabot.yml",
+        detail: `Dependabot 必须每周更新 ${ecosystem}`,
       });
     }
   }

@@ -112,28 +112,30 @@ describe('renameKeyVariable (P1-02)', () => {
 
 describe('share payload validation (P1-02)', () => {
   it('rejects payloads where policyName is not a valid identifier', async () => {
-    const { decodeSharePayload, encodeSharePayload } = await import('../../utils/share');
-    const bad = encodeSharePayload({
-      policy: 'pk(A)',
-      keyVariables: [{ name: 'A', policyName: '1bad', publicKey: PUB_A }],
-      context: 'wsh',
-      network: 'testnet',
-    });
-    expect(decodeSharePayload(bad)).toBeNull();
+    const { encodeSharePayload } = await import('../../utils/share');
+    expect(() =>
+      encodeSharePayload({
+        policy: 'pk(A)',
+        keyVariables: [{ name: 'A', policyName: '1bad', publicKey: PUB_A }],
+        context: 'wsh',
+        network: 'testnet',
+      }),
+    ).toThrow();
   });
 
   it('rejects payloads with duplicate policyName', async () => {
-    const { decodeSharePayload, encodeSharePayload } = await import('../../utils/share');
-    const bad = encodeSharePayload({
-      policy: 'or(pk(Alice),pk(Alice))',
-      keyVariables: [
-        { name: 'Alice', policyName: 'Alice', publicKey: PUB_A },
-        { name: 'Alice2', policyName: 'Alice', publicKey: PUB_B },
-      ],
-      context: 'wsh',
-      network: 'testnet',
-    });
-    expect(decodeSharePayload(bad)).toBeNull();
+    const { encodeSharePayload } = await import('../../utils/share');
+    expect(() =>
+      encodeSharePayload({
+        policy: 'or(pk(Alice),pk(Alice))',
+        keyVariables: [
+          { name: 'Alice', policyName: 'Alice', publicKey: PUB_A },
+          { name: 'Alice2', policyName: 'Alice', publicKey: PUB_B },
+        ],
+        context: 'wsh',
+        network: 'testnet',
+      }),
+    ).toThrow();
   });
 
   it('accepts payloads with name !== policyName (display label may differ)', async () => {

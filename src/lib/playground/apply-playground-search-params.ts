@@ -9,15 +9,17 @@ export interface ApplyPlaygroundSearchParamsActions {
 }
 
 /**
- * Applies Playground URL query: `s` (share) &gt; `scenario` &gt; `mode=build`.
- * Call when `searchParams` changes (including client-side navigation).
+ * Applies Playground URL state: fragment `s` (share) &gt; query `scenario`
+ * &gt; query `mode=build`. Legacy query-string `s` values are intentionally ignored.
  */
-export function applyPlaygroundSearchParams(
+export function applyPlaygroundUrlState(
   searchParams: Pick<URLSearchParams, 'get'>,
+  hash: string,
   actions: ApplyPlaygroundSearchParamsActions,
   decode: (encoded: string) => SharePayload | null = decodeSharePayload,
 ): void {
-  const s = searchParams.get('s');
+  const fragmentParams = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash);
+  const s = fragmentParams.get('s');
   if (s) {
     const payload = decode(s);
     if (payload) {

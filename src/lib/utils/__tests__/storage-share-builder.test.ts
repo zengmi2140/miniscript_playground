@@ -4,9 +4,22 @@ import {
   encodeSharePayload,
   decodeSharePayload,
   MAX_SHARE_DECODED_PAYLOAD_BYTES,
+  MAX_SHARE_ENCODED_PAYLOAD_CHARS,
   MAX_SHARE_KEY_VARIABLES,
+  MAX_SHARE_POLICY_LENGTH,
+  buildShareUrl,
 } from '../share';
 import type { SharePayload } from '../share';
+
+const ALICE_KEY = '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798';
+const BOB_KEY = '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5';
+
+function encodeRawPayload(payload: unknown): string {
+  const bytes = new TextEncoder().encode(JSON.stringify(payload));
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/u, '');
+}
 
 describe('storage (legacy key cleanup)', () => {
   beforeEach(() => {
@@ -17,7 +30,7 @@ describe('storage (legacy key cleanup)', () => {
     saveSession({
       policy: 'pk(Alice)',
       keyVariables: [
-        { name: 'Alice', policyName: 'Alice', publicKey: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798' },
+        { name: 'Alice', policyName: 'Alice', publicKey: ALICE_KEY },
       ],
       context: 'wsh',
       network: 'testnet',
@@ -50,8 +63,8 @@ describe('share with playgroundMode', () => {
     const payload: SharePayload = {
       policy: 'and(pk(User),or(pk(Service),older(4320)))',
       keyVariables: [
-        { name: 'User', policyName: 'User', publicKey: 'user123' },
-        { name: 'Service', policyName: 'Service', publicKey: 'service456' },
+        { name: 'User', policyName: 'User', publicKey: ALICE_KEY },
+        { name: 'Service', policyName: 'Service', publicKey: BOB_KEY },
       ],
       context: 'wsh',
       network: 'signet',
@@ -85,7 +98,7 @@ describe('share with playgroundMode', () => {
 
   it('decodeSharePayload returns null for invalid network', () => {
     const bad = { policy: 'pk(A)', keyVariables: [], context: 'wsh', network: 'mainnet' };
-    const encoded = encodeSharePayload(bad as SharePayload);
+    const encoded = encodeRawPayload(bad);
     expect(decodeSharePayload(encoded)).toBeNull();
   });
 
@@ -96,7 +109,7 @@ describe('share with playgroundMode', () => {
       context: 'p2pkh',
       network: 'testnet',
     };
-    const encoded = encodeSharePayload(bad as SharePayload);
+    const encoded = encodeRawPayload(bad);
     expect(decodeSharePayload(encoded)).toBeNull();
   });
 
@@ -107,7 +120,7 @@ describe('share with playgroundMode', () => {
       context: 'wsh',
       network: 'testnet',
     };
-    const encoded = encodeSharePayload(bad as SharePayload);
+    const encoded = encodeRawPayload(bad);
     expect(decodeSharePayload(encoded)).toBeNull();
   });
 
@@ -120,7 +133,7 @@ describe('share with playgroundMode', () => {
       playgroundMode: 'invalid',
     };
 
-    const encoded = encodeSharePayload(payload as SharePayload);
+    const encoded = encodeRawPayload(payload);
     const decoded = decodeSharePayload(encoded);
 
     expect(decoded).not.toBeNull();
@@ -128,23 +141,22 @@ describe('share with playgroundMode', () => {
   });
 });
 
-describe('share payload hardening (P2-13)', () => {
-  it('rejects payloads whose decoded JSON exceeds 16KB', () => {
+describe('share payload hardening', () => {
+  it('rejects generation when policy exceeds the shared business limit', () => {
     const payload: SharePayload = {
-      policy: 'a'.repeat(MAX_SHARE_DECODED_PAYLOAD_BYTES + 128),
+      policy: 'a'.repeat(MAX_SHARE_POLICY_LENGTH + 1),
       keyVariables: [],
       context: 'wsh',
       network: 'testnet',
     };
-    const encoded = encodeSharePayload(payload);
-    expect(decodeSharePayload(encoded)).toBeNull();
+    expect(() => encodeSharePayload(payload)).toThrow();
   });
 
   it('rejects payloads with more than 32 key variables', () => {
     const keyVariables = Array.from({ length: MAX_SHARE_KEY_VARIABLES + 1 }, (_, i) => ({
       name: `K${i}`,
       policyName: `K${i}`,
-      publicKey: `pub-${i}`,
+      publicKey: ALICE_KEY,
     }));
     const payload: SharePayload = {
       policy: 'pk(K0)',
@@ -152,18 +164,24 @@ describe('share payload hardening (P2-13)', () => {
       context: 'wsh',
       network: 'testnet',
     };
-    const encoded = encodeSharePayload(payload);
-    expect(decodeSharePayload(encoded)).toBeNull();
+    expect(() => encodeSharePayload(payload)).toThrow();
   });
 
-  it('rejects corrupted base64 payloads', () => {
-    expect(decodeSharePayload('!@#$%^&*not-base64')).toBeNull();
+  it('rejects oversized input before Base64URL decoding', () => {
+    expect(decodeSharePayload('A'.repeat(MAX_SHARE_ENCODED_PAYLOAD_CHARS + 1))).toBeNull();
+  });
+
+  it('rejects non-canonical Base64URL characters and padding', () => {
+    expect(decodeSharePayload('abc+def')).toBeNull();
+    expect(decodeSharePayload('abc/def')).toBeNull();
+    expect(decodeSharePayload('abc=')).toBeNull();
+    expect(decodeSharePayload('!not-base64url')).toBeNull();
   });
 
   it('accepts valid payloads within limits', () => {
     const payload: SharePayload = {
       policy: 'pk(Alice)',
-      keyVariables: [{ name: 'Alice', policyName: 'Alice', publicKey: 'pub-Alice' }],
+      keyVariables: [{ name: 'Alice', policyName: 'Alice', publicKey: ALICE_KEY }],
       context: 'wsh',
       network: 'testnet',
       playgroundMode: 'scenario',
@@ -173,5 +191,42 @@ describe('share payload hardening (P2-13)', () => {
     const decoded = decodeSharePayload(encoded);
 
     expect(decoded).toEqual(payload);
+  });
+
+  it('uses URL-safe characters without padding', () => {
+    const encoded = encodeSharePayload({
+      policy: 'pk(Alice)',
+      keyVariables: [{ name: 'Alice', policyName: 'Alice', publicKey: ALICE_KEY }],
+      context: 'wsh',
+      network: 'testnet',
+    });
+
+    expect(encoded).toMatch(/^[A-Za-z0-9_-]+$/u);
+    expect(encoded).not.toContain('=');
+  });
+
+  it('builds fragment share URLs and never emits query s', () => {
+    const url = new URL(
+      buildShareUrl({
+        policy: 'pk(Alice)',
+        keyVariables: [{ name: 'Alice', policyName: 'Alice', publicKey: ALICE_KEY }],
+        context: 'wsh',
+        network: 'testnet',
+      }),
+    );
+
+    expect(url.pathname).toBe('/playground');
+    expect(url.searchParams.has('s')).toBe(false);
+    expect(new URLSearchParams(url.hash.slice(1)).get('s')).toBeTruthy();
+  });
+
+  it('rejects decoded JSON above the byte limit', () => {
+    const oversized = encodeRawPayload({
+      policy: 'a'.repeat(MAX_SHARE_DECODED_PAYLOAD_BYTES),
+      keyVariables: [],
+      context: 'wsh',
+      network: 'testnet',
+    });
+    expect(decodeSharePayload(oversized)).toBeNull();
   });
 });
