@@ -26,7 +26,7 @@
 - [x] **i18n 文案收尾**：补齐 Key 变量编辑、画布加载、Script Hex、弹窗关闭与提示关闭等中英文文案，移除组件中的硬编码 fallback；将 Intro 的限制与权衡区块完整迁入 i18n，并增加双语渲染回归测试。
 - [x] **Git 历史清理**：从全部本地分支历史移除误提交的 `.next` 构建产物并清理孤立 LFS 对象；Git pack 从约 493 MiB 降至 2.22 MiB，重写前备份保存在 `/tmp/miniscript-playground-pre-history-rewrite.bundle`。
 - 验证结果：lint 0 error，typecheck、doc:health、build:check 通过；coverage 52 files / 357 tests 全过，engine lines 88.73% / functions 96.2%，builder lines 84.71% / functions 90.72%；生产依赖 audit 0 漏洞；本地 production HTML 的 Open Graph / Twitter 图片 URL 均使用正式域名，安全响应头保持完整，链尖 generated 文件构建前后 SHA-256 一致。
-- 发布说明：本地 Git 历史已重写；远端仓库需在明确授权后 force-with-lease 更新，随后重新部署才会让线上站点采用本次配置。
+- 发布结果：远端 `main` 已通过精确 lease 强制更新，Vercel production 部署成功；正式域名已使用本次生产 URL 与元数据配置。
 
 ### 2026-06-15：降低 Dependabot 版本更新噪声
 
