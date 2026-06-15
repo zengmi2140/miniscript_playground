@@ -10,13 +10,43 @@
 
 ## 接下来
 
-暂无排队任务。
+> 发布前安全任务按 P1 → P2 → P3 执行。每项的风险依据、复现信息和推荐实现均链接至
+> [`SECURITY-REVIEW-2026-06-15.md`](SECURITY-REVIEW-2026-06-15.md)。
+
+### P1：发布硬门槛
+
+- [ ] **SEC-P1-01 分享链接隐私迁移**：将新分享链接从 query 改为 fragment，兼容并清理旧 `?s=`，采用 Base64URL，并补齐 Referrer-Policy 与回归测试。详见[安全审查：分享链接泄露策略与公钥](SECURITY-REVIEW-2026-06-15.md#p1分享链接-s-可能泄露用户策略与公钥)。
+- [ ] **SEC-P1-02 Policy 编译资源隔离**：增加文本、节点数、嵌套深度和门限分支预算；将编译管线移入可超时终止、异常后重建的 Web Worker。详见[安全审查：Policy 编译复杂度与 WASM 实例污染](SECURITY-REVIEW-2026-06-15.md#p1policy-编译前缺少明确长度--复杂度上限)。
+
+### P2：发布前建议完成
+
+- [ ] **SEC-P2-01 分享 payload 解码前限长**：在 `atob()` 前校验 encoded 长度与规范字符集，并统一生成端、fragment、旧 query 和 decoded payload 的业务上限。须与 SEC-P1-01 同批完成。详见[安全审查：超大分享参数客户端 DoS](SECURITY-REVIEW-2026-06-15.md#p1超大-s-参数可能导致浏览器端-dos)。
+- [ ] **SEC-P2-02 基础安全响应头与 CSP**：增加 Referrer-Policy、nosniff、frame、Permissions-Policy、COOP；CSP 先 Report-Only，再迁移到 nonce-based enforced CSP，并验证生产响应。详见[安全审查：基础安全响应头与 CSP](SECURITY-REVIEW-2026-06-15.md#p1缺少基础安全响应头--csp)。
+- [ ] **SEC-P2-03 修复 dev 依赖 advisory**：同步升级 Vitest、coverage、Vite 与 esbuild，确认传递依赖无残留，并在 CI 增加生产依赖 audit 门禁和依赖自动更新。详见[安全审查：dev 依赖 audit advisory](SECURITY-REVIEW-2026-06-15.md#p2dev-依赖存在-audit-advisory)。
+- [ ] **SEC-P2-04 默认开发服务仅监听 localhost**：默认 `dev` / `start` 收紧为 localhost，另提供显式 `dev:lan` / `start:lan`。详见[安全审查：本地服务默认绑定 0.0.0.0](SECURITY-REVIEW-2026-06-15.md#p2本地-dev--start-默认绑定-0000)。
+- [ ] **SEC-P2-05 链尖请求隐私最小化**：显式设置只读 GET、`credentials: omit`、`referrerPolicy: no-referrer`、`cache: no-store`，并以 CSP 限定连接域名。详见[安全审查：链尖高度请求隐私](SECURITY-REVIEW-2026-06-15.md#p2链尖高度请求可进一步隐私最小化)。
+- [ ] **SEC-P2-06 链尖响应完整性与多源共识**：严格校验纯数字、安全整数、合理区间和高度漂移；运行时与构建脚本共享校验，并采用多源一致结果。详见[安全审查：链尖响应完整性校验](SECURITY-REVIEW-2026-06-15.md#补充发现链尖响应完整性校验不足)。
+- [ ] **SEC-P2-07 GitHub Actions 供应链加固**：Actions 固定完整 SHA，声明 `contents: read`，关闭 checkout 凭据持久化，配置依赖自动更新和 main 分支保护。详见[安全审查：GitHub Actions 供应链与权限](SECURITY-REVIEW-2026-06-15.md#p2github-actions-供应链与权限未收紧)。
+
+### P3：低风险加固
+
+- [ ] **SEC-P3-01 自托管钱包展示图标**：将授权明确的固定图标放入 `public/`，其余使用 initials，移除 Google favicon 取源依赖并收紧图片白名单。详见[安全审查：Google favicon 静态资源外连](SECURITY-REVIEW-2026-06-15.md#p3google-favicon-静态资源外连)。
+- [ ] **SEC-P3-02 生产偏好 Cookie 添加 Secure**：HTTPS 环境追加 `Secure`，本地 HTTP 开发保持可用；继续使用固定 Cookie 名和值白名单。详见[安全审查：偏好 Cookie 缺少 Secure](SECURITY-REVIEW-2026-06-15.md#p3偏好-cookie-缺少-secure-标记)。
+- [ ] **SEC-P3-03 建立开源漏洞报告渠道**：新增 `SECURITY.md`，声明支持版本、私密报告入口、响应时限和协调披露流程。详见[安全审查：缺少开源漏洞报告渠道](SECURITY-REVIEW-2026-06-15.md#p3缺少开源漏洞报告渠道)。
 
 ## 阻塞
 
 暂无阻塞项。
 
 ## 最近完成
+
+### 2026-06-15：发布前安全审查文档
+
+- [x] **安全风险梳理**：从发布前安全视角审查纯前端部署、分享 payload、外部网络请求、XSS sink、依赖审计、Vercel / Next 安全头与客户端 DoS 风险。
+- [x] **审查报告沉淀**：新增 `docs/task/SECURITY-REVIEW-2026-06-15.md`，记录风险分级、潜在后果、发布前推荐修复顺序与已确认的正面安全项。
+- [x] **二次复核完善**：逐项对照代码与生产响应，补充每个问题的复核结论和最佳解决方案；新增 WASM 编译实例污染、链尖响应完整性、GitHub Actions 供应链与 `SECURITY.md` 风险，并修正 HSTS、query 长度和 favicon 隐私影响判断。
+- [x] **安全任务排期**：将 12 项风险按 P1 / P2 / P3 写入「接下来」，每项使用稳定 ID，并链接回安全审查中的问题详情与最佳解决方案。
+- 验证结果：`npm audit --omit=dev --json` 生产依赖 0 漏洞；完整 audit 为 2 critical / 3 high；lint / typecheck / doc:health / coverage（45 files、320 tests）/ build:check 全部通过，构建未改写链尖 generated 文件；生产站点已有 HSTS，约 36KB query 返回 414。
 
 ### 2026-06-14：ScriptWise 产品亮点建议文档
 
