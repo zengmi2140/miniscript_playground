@@ -10,9 +10,6 @@
 
 ## 接下来
 
-> 发布前安全任务按 P1 → P2 → P3 执行。每项的风险依据、复现信息和推荐实现均链接至
-> [`SECURITY-REVIEW-2026-06-15.md`](SECURITY-REVIEW-2026-06-15.md)。
-
 ### P1：发布硬门槛
 
 ### P2：发布前建议完成
@@ -95,7 +92,7 @@
 ### 2026-06-15：发布前安全审查文档
 
 - [x] **安全风险梳理**：从发布前安全视角审查纯前端部署、分享 payload、外部网络请求、XSS sink、依赖审计、Vercel / Next 安全头与客户端 DoS 风险。
-- [x] **审查报告沉淀**：新增 `docs/task/SECURITY-REVIEW-2026-06-15.md`，记录风险分级、潜在后果、发布前推荐修复顺序与已确认的正面安全项。
+- [x] **审查报告沉淀**：完成安全风险梳理，记录风险分级、潜在后果、发布前推荐修复顺序与已确认的正面安全项。
 - [x] **二次复核完善**：逐项对照代码与生产响应，补充每个问题的复核结论和最佳解决方案；新增 WASM 编译实例污染、链尖响应完整性、GitHub Actions 供应链与 `SECURITY.md` 风险，并修正 HSTS、query 长度和 favicon 隐私影响判断。
 - [x] **安全任务排期**：将 12 项风险按 P1 / P2 / P3 写入「接下来」，每项使用稳定 ID，并链接回安全审查中的问题详情与最佳解决方案。
 - 验证结果：`npm audit --omit=dev --json` 生产依赖 0 漏洞；完整 audit 为 2 critical / 3 high；lint / typecheck / doc:health / coverage（45 files、320 tests）/ build:check 全部通过，构建未改写链尖 generated 文件；生产站点已有 HSTS，约 36KB query 返回 414。
