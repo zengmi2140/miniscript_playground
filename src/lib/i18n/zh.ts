@@ -251,6 +251,57 @@ export const zh = {
       scriptSizeLabel: "脚本大小优化",
       witnessLabel: "证明大小",
     },
+    limitations: {
+      title: "限制与权衡",
+      subtitle:
+        "Miniscript 虽然强大，但也有其局限性。了解这些权衡有助于做出更合适的设计决策。",
+      limits: {
+        title: "当前限制",
+        scriptSize: {
+          title: "脚本大小上限",
+          description:
+            "Bitcoin 对脚本大小有限制（P2WSH 脚本上限为 10,000 字节，P2SH 赎回脚本受 520 字节推送限制），复杂策略可能会超出。",
+        },
+        stackDepth: {
+          title: "栈深度限制",
+          description:
+            "脚本执行栈对元素个数与深度有限制，过度复杂的条件组合可能受限。",
+        },
+        opcodeCount: {
+          title: "操作码数量",
+          description:
+            "执行时非推送操作码数量加上多签密钥数量之和不能超过 201。",
+        },
+        derivationPaths: {
+          title: "密钥派生路径",
+          description:
+            "Descriptor 中密钥数量过多时，派生路径管理会变得复杂。",
+        },
+      },
+      tradeoffs: {
+        title: "权衡考虑",
+        securityFlexibility: {
+          title: "安全 vs 灵活",
+          description:
+            "Miniscript 的类型系统提高了安全性，但也限制了某些高级用法。",
+        },
+        optimizationReadability: {
+          title: "优化 vs 可读",
+          description:
+            "优化后的脚本更小，但中间表示可能降低人类可读性。",
+        },
+        expressivenessSimplicity: {
+          title: "表达力 vs 简洁",
+          description:
+            "某些 Bitcoin Script 的底层技巧无法直接用 Miniscript 表达。",
+        },
+        learningCurve: {
+          title: "学习曲线",
+          description:
+            "虽然比直接编写 Bitcoin Script 简单，但仍需理解类型系统和约束。",
+        },
+      },
+    },
   },
 
   builder: {
@@ -369,9 +420,13 @@ export const zh = {
       restore: "恢复默认",
       empty: "暂无角色变量",
       hint: "MVP 使用压缩公钥（66 字符 hex，用于 P2WSH）",
+      namePlaceholder: "名称",
+      publicKeyPlaceholder: "公钥（十六进制）",
       aria: {
         edit: "编辑 {name}",
         delete: "删除 {name}",
+        save: "保存角色变量",
+        cancel: "取消编辑角色变量",
       },
     },
     context: {
@@ -436,6 +491,7 @@ export const zh = {
       keysPlaceholder: "选择场景后自动填充角色变量",
     },
     center: {
+      loading: "正在加载画布…",
       compilePlaceholder: "编译成功后将在此显示路径图",
       staleWarning: "Policy 有语法错误，显示的是上一次成功编译的结果",
       hasError: "编译失败，请检查左侧 Policy 语法",
@@ -444,6 +500,7 @@ export const zh = {
       waiting: "等待编译结果...",
       tabPlaceholder: "编译结果将在此显示",
       divider: "调整路径列表与结果面板的高度",
+      scriptHex: "脚本十六进制",
     },
     panels: {
       collapseLeft: "收起左侧面板",
@@ -498,6 +555,8 @@ export const zh = {
   common: {
     aria: {
       copy: "复制代码",
+      close: "关闭",
+      dismiss: "关闭提示",
     },
   },
 

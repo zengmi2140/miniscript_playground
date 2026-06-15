@@ -13,10 +13,12 @@ import { StatusBanner } from './StatusBanner';
 
 // Skeleton shown while the heavy canvas chunks are downloading
 function CanvasSkeleton() {
+  const { t } = useI18n();
+
   return (
     <div className="flex h-full w-full flex-col items-center justify-center bg-surface-base">
       <div className="mb-3 h-8 w-8 animate-spin rounded-full border-2 border-border-subtle border-t-btc-500" />
-      <p className="text-sm text-text-muted">Loading...</p>
+      <p className="text-sm text-text-muted">{t('playground.center.loading')}</p>
     </div>
   );
 }

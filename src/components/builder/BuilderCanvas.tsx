@@ -114,11 +114,11 @@ function BuilderCanvasInner() {
       {builderDepthWarning && (
         <div className="absolute bottom-4 left-1/2 z-50 -translate-x-1/2 flex items-center gap-2 rounded-lg border border-yellow-500/40 bg-yellow-500/10 px-4 py-2.5 text-sm text-yellow-400 shadow-lg">
           <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-          <span>{t('builder.wrap.depthWarning') || '嵌套较深，建议保持在 5 层以内'}</span>
+          <span>{t('builder.wrap.depthWarning')}</span>
           <button
             onClick={clearDepthWarning}
             className="ml-2 text-yellow-500/60 hover:text-yellow-400"
-            aria-label="dismiss"
+            aria-label={t('common.aria.dismiss')}
           >
             ×
           </button>
@@ -131,7 +131,7 @@ function BuilderCanvasInner() {
           <button
             onClick={clearBinaryTrimNotice}
             className="ml-2 text-btc-500/60 hover:text-btc-400"
-            aria-label="dismiss"
+            aria-label={t('common.aria.dismiss')}
           >
             ×
           </button>

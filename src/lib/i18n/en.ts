@@ -257,6 +257,57 @@ export const en = {
       scriptSizeLabel: "Script size optimization",
       witnessLabel: "Witness",
     },
+    limitations: {
+      title: "Limitations & Tradeoffs",
+      subtitle:
+        "Miniscript is powerful, but it still has constraints. Understanding these tradeoffs helps you make better design decisions.",
+      limits: {
+        title: "Current Limitations",
+        scriptSize: {
+          title: "Script Size Limits",
+          description:
+            "Bitcoin limits script size: P2WSH scripts may be up to 10,000 bytes, while P2SH redeem scripts are constrained by the 520-byte push limit. Complex policies can exceed these bounds.",
+        },
+        stackDepth: {
+          title: "Stack Limits",
+          description:
+            "The execution stack limits its number and depth of elements, which can constrain deeply nested conditions.",
+        },
+        opcodeCount: {
+          title: "Opcode Count",
+          description:
+            "The total of non-push opcodes and public keys used by multisig operations cannot exceed 201 during execution.",
+        },
+        derivationPaths: {
+          title: "Key Derivation Paths",
+          description:
+            "Managing derivation paths becomes more complex as a descriptor includes more keys.",
+        },
+      },
+      tradeoffs: {
+        title: "Design Tradeoffs",
+        securityFlexibility: {
+          title: "Security vs. Flexibility",
+          description:
+            "Miniscript's type system improves safety but restricts some advanced techniques.",
+        },
+        optimizationReadability: {
+          title: "Optimization vs. Readability",
+          description:
+            "Optimized scripts are smaller, but their intermediate representation can be harder for people to read.",
+        },
+        expressivenessSimplicity: {
+          title: "Expressiveness vs. Simplicity",
+          description:
+            "Some low-level Bitcoin Script techniques cannot be expressed directly in Miniscript.",
+        },
+        learningCurve: {
+          title: "Learning Curve",
+          description:
+            "Miniscript is easier than writing Bitcoin Script directly, but its type system and constraints still require study.",
+        },
+      },
+    },
   },
 
   builder: {
@@ -385,9 +436,13 @@ export const en = {
       restore: "Restore Defaults",
       empty: "No key variables",
       hint: "MVP uses compressed public keys (66 hex chars, for P2WSH)",
+      namePlaceholder: "Name",
+      publicKeyPlaceholder: "Public key (hex)",
       aria: {
         edit: "Edit {name}",
         delete: "Delete {name}",
+        save: "Save key variable",
+        cancel: "Cancel key variable editing",
       },
     },
     context: {
@@ -453,6 +508,7 @@ export const en = {
         "Key variables will auto-fill after selecting a scenario",
     },
     center: {
+      loading: "Loading canvas…",
       compilePlaceholder: "Path map will appear here after compilation",
       staleWarning:
         "Policy has a syntax error. Showing the last successful compilation result.",
@@ -463,6 +519,7 @@ export const en = {
       waiting: "Waiting for compilation...",
       tabPlaceholder: "Compilation results will appear here",
       divider: "Resize spending paths and results panels",
+      scriptHex: "Script Hex",
     },
     panels: {
       collapseLeft: "Collapse left panel",
@@ -521,6 +578,8 @@ export const en = {
   common: {
     aria: {
       copy: "Copy code",
+      close: "Close",
+      dismiss: "Dismiss notice",
     },
   },
 

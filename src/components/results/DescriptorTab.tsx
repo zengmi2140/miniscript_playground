@@ -20,7 +20,9 @@ export function DescriptorTab() {
     <div className="flex flex-col gap-3">
       <CodeBlock code={compilationResult.descriptor} />
       <div className="rounded-card border border-border-subtle bg-surface-base p-3">
-        <p className="mb-1 text-[12px] font-medium text-text-muted">Script Hex</p>
+        <p className="mb-1 text-[12px] font-medium text-text-muted">
+          {t('playground.right.scriptHex')}
+        </p>
         <p className="break-all font-mono text-[11px] leading-relaxed text-text-secondary">
           {compilationResult.scriptHex}
         </p>

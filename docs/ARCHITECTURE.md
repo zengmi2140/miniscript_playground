@@ -61,6 +61,7 @@ npm run generate:block-height-fallback   # 单独刷新链尖回退文件
 
 - **Node 22 是唯一受支持的开发 / CI 主版本**，以 `.nvmrc` 为单一事实源；`package.json` 的 engines 为 `>=22 <23`。
 - **仅使用 npm**；锁文件为 `package-lock.json`（勿提交 pnpm / yarn 锁）。
+- 生产公开 URL 由已跟踪的 `.env.production` 提供 `NEXT_PUBLIC_APP_URL`，供 metadata、Open Graph 与 OG 图片使用；本地未设置时回退到 `http://localhost:3000`。
 - 测试配置：`vitest.config.ts`；全局 setup：`src/test/setup.ts`。
 - `build` 用于正式构建 / 部署，会先联网刷新链尖回退高度；`build:check` 用于 CI 和代码验收，只验证生产构建，不运行 `prebuild`。
 
@@ -71,6 +72,7 @@ npm run generate:block-height-fallback   # 单独刷新链尖回退文件
 | 文件 / 目录 | 作用 |
 |-------------|------|
 | `package.json` / `package-lock.json` | 依赖与脚本（含 `prebuild` → 链尖回退生成） |
+| `.env.production` | 生产公开 URL（非敏感配置），用于 metadata / Open Graph |
 | `.nvmrc` | Node 22 版本单一事实源；CI、Vercel 与本地 `nvm use` 共用 |
 | `scripts/generate-block-height-fallback.mjs` | 构建前抓取主网高度 → `block-height-fallback.generated.ts` |
 | `next.config.mjs` | Next 配置；Ledger 等别名 |

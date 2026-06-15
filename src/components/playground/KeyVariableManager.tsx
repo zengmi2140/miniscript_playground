@@ -47,20 +47,28 @@ function KeyRow({ kv, onRemove }: { kv: KeyVariable; onRemove: () => void }) {
           value={editName}
           onChange={(e) => setEditName(e.target.value)}
           className="rounded border border-border-default bg-surface-elevated px-2 py-1 text-[12px] text-text-primary outline-none focus:border-border-active"
-          placeholder="Name"
+          placeholder={t('playground.keys.namePlaceholder')}
         />
         <input
           value={editKey}
           onChange={(e) => setEditKey(e.target.value)}
           className="rounded border border-border-default bg-surface-elevated px-2 py-1 font-mono text-[11px] text-text-secondary outline-none focus:border-border-active"
-          placeholder="Public key (hex)"
+          placeholder={t('playground.keys.publicKeyPlaceholder')}
         />
         <div className="flex gap-1">
-          <button onClick={handleSave} className="flex h-5 w-5 items-center justify-center rounded text-semantic-satisfied hover:bg-semantic-satisfied/10">
-            <Check className="h-3 w-3" />
+          <button
+            onClick={handleSave}
+            aria-label={t('playground.keys.aria.save')}
+            className="flex h-5 w-5 items-center justify-center rounded text-semantic-satisfied hover:bg-semantic-satisfied/10"
+          >
+            <Check className="h-3 w-3" aria-hidden="true" />
           </button>
-          <button onClick={handleCancel} className="flex h-5 w-5 items-center justify-center rounded text-text-muted hover:bg-surface-elevated">
-            <X className="h-3 w-3" />
+          <button
+            onClick={handleCancel}
+            aria-label={t('playground.keys.aria.cancel')}
+            className="flex h-5 w-5 items-center justify-center rounded text-text-muted hover:bg-surface-elevated"
+          >
+            <X className="h-3 w-3" aria-hidden="true" />
           </button>
         </div>
       </div>
