@@ -25,10 +25,10 @@ export const en = {
     },
 
     hook: {
-      eyebrow: "Why does it matter?",
-      q1: "You want to leave some Bitcoin for your family — will they be able to claim it if you are gone?",
-      q2: "You want a 2-of-3 multisig — what happens if one of the keys is lost?",
-      q3: "You want a third party to custody your assets while you keep an emergency recovery path?",
+      eyebrow: "Real-world asset control challenges",
+      q1: "You want to leave Bitcoin for your family — how do you set up an inheritance plan?",
+      q2: "If any one of three keys is lost, can a 2-of-3 multisig still work?",
+      q3: "How do you retain emergency control while entrusting assets to a third party?",
       outro: "Every scenario maps to a kind of spending condition.",
     },
 
