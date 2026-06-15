@@ -21,5 +21,6 @@ export function localeToHtmlLang(locale: LocalePreference): 'zh-CN' | 'en' {
 }
 
 export function toPreferenceCookie(name: string, value: string): string {
-  return `${name}=${value}; Path=/; Max-Age=${SCRIPTWISE_PREFERENCE_COOKIE_MAX_AGE}; SameSite=Lax`;
+  const secure = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : '';
+  return `${name}=${value}; Path=/; Max-Age=${SCRIPTWISE_PREFERENCE_COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
 }
