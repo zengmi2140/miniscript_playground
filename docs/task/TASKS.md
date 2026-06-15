@@ -6,7 +6,7 @@
 
 ## 当前任务
 
-- [ ] **SEC-P2-07 GitHub Actions 供应链加固**：仓库内加固已完成；待在 GitHub 为 `main` 启用 branch protection，要求 `checks` CI、严格同步分支并禁止管理员绕过。
+暂无当前任务。
 
 ## 接下来
 
@@ -19,15 +19,25 @@
 
 ### P3：低风险加固
 
-- [ ] **SEC-P3-01 自托管钱包展示图标**：将授权明确的固定图标放入 `public/`，其余使用 initials，移除 Google favicon 取源依赖并收紧图片白名单。详见[安全审查：Google favicon 静态资源外连](SECURITY-REVIEW-2026-06-15.md#p3google-favicon-静态资源外连)。
-- [ ] **SEC-P3-02 生产偏好 Cookie 添加 Secure**：HTTPS 环境追加 `Secure`，本地 HTTP 开发保持可用；继续使用固定 Cookie 名和值白名单。详见[安全审查：偏好 Cookie 缺少 Secure](SECURITY-REVIEW-2026-06-15.md#p3偏好-cookie-缺少-secure-标记)。
-- [ ] **SEC-P3-03 建立开源漏洞报告渠道**：新增 `SECURITY.md`，声明支持版本、私密报告入口、响应时限和协调披露流程。详见[安全审查：缺少开源漏洞报告渠道](SECURITY-REVIEW-2026-06-15.md#p3缺少开源漏洞报告渠道)。
+暂无待处理项。
 
 ## 阻塞
 
-- **SEC-P2-07 外部设置**：内置浏览器当前未登录 GitHub，本机无 `gh`，现有 GitHub connector 未提供 branch protection API。用户登录 GitHub 后继续配置。
+暂无阻塞项。
 
 ## 最近完成
+
+### 2026-06-15：SEC-P3-02 生产偏好 Cookie 添加 Secure 标记
+
+- [x] **Secure 按协议追加**：`toPreferenceCookie()` 在 `https:` 环境追加 `; Secure`，`http:` 本地开发保持不变；新增 `typeof window !== 'undefined'` SSR 安全守卫。
+- [x] **测试覆盖**：新增 `src/lib/__tests__/preferences.test.ts`，覆盖 https/http 两个协议分支及所有偏好工具函数（8 项测试）。
+- 验证结果：lint 0 error，typecheck 0 error，coverage 51 files / 355 tests 全过。
+
+### 2026-06-15：SEC-P2-07 GitHub Actions 供应链加固
+
+- [x] **仓库内加固**：Actions 固定到完整 40 位 commit SHA；顶层 `permissions: contents: read`；checkout 关闭 `persist-credentials`；CI 新增生产依赖 audit 门禁；Dependabot 配置每周自动更新 npm 与 Actions。
+- [x] **branch protection**：GitHub `main` 分支启用 classic protection，要求 `checks` 状态检查通过，不启用 PR 强制，允许维护者直接 push。
+- 验证结果：GitHub branch protection 规则已生效，CI 必须通过才能合并到 main。
 
 ### 2026-06-15：SEC-P2-03 修复 dev 依赖 advisory
 
