@@ -579,7 +579,7 @@ export function BuilderPopover() {
       {mode === 'edit-group' && selectedNode?.kind === 'group' && (
         <div className="space-y-3">
           <p className="text-xs text-text-muted">
-            {selectedNode.op === 'all' ? '所有子条件都必须满足' : '只需满足其中一个子条件'}
+            {selectedNode.op === 'all' ? t('builder.popover.editGroupAll') : t('builder.popover.editGroupAny')}
           </p>
 
           <WrapSection />

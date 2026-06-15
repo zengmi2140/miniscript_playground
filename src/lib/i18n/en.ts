@@ -18,6 +18,7 @@ export const en = {
         statusNote: "Example: compilation walkthrough",
         replay: "↻ Replay",
       },
+      policyComment: "// ≈ 30 days",
       paths: {
         path1: "Alice + Bob co-sign",
         path2: "Alice + wait 30 days",
@@ -92,7 +93,7 @@ export const en = {
             role: "How you think",
             desc: 'Describe "who can spend" in human-readable form. Any combinatorial logic is valid — no need to worry about whether the compiled script ends up valid.',
             code: "or(pk(Alice), and(pk(Bob), older(144)))",
-            note: "Either Alice alone, or Bob once the block height passes 144.",
+            note: "Either Alice alone, or Bob after 144 blocks have passed since output confirmation.",
           },
           miniscript: {
             layer: "Miniscript",
@@ -329,6 +330,8 @@ export const en = {
       "180days": "180 days",
       "1year": "1 year",
       custom: "Custom",
+      editGroupAll: "All child conditions must be satisfied",
+      editGroupAny: "Only one child condition needs to be satisfied",
     },
     action: {
       wrapAll: 'Wrap as "All Required"',

@@ -16,6 +16,7 @@ export const zh = {
         statusNote: "示例：编译过程示意",
         replay: "↻ 重播",
       },
+      policyComment: "// ≈ 30 天",
       paths: {
         path1: "Alice + Bob 共同签名",
         path2: "Alice + 等待 30 天",
@@ -89,7 +90,7 @@ export const zh = {
             role: "你怎么想",
             desc: '用人类可读的方式描述"谁能花"。支持任意组合逻辑，无需担心编译后的有效性。',
             code: "or(pk(Alice), and(pk(Bob), older(144)))",
-            note: "要么 Alice 一人签；要么 Bob 签且区块高度过了 144。",
+            note: "要么 Alice 一人签；要么 Bob 签且输出确认后经过 144 个区块。",
           },
           miniscript: {
             layer: "Miniscript",
@@ -315,6 +316,8 @@ export const zh = {
       "180days": "180 天",
       "1year": "1 年",
       custom: "自定义",
+      editGroupAll: "所有子条件都必须满足",
+      editGroupAny: "只需满足其中一个子条件",
     },
     action: {
       wrapAll: "包装为「都需要」",

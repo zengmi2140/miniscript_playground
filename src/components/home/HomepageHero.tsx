@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Bitcoin } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
@@ -8,7 +8,7 @@ import { useI18n } from "@/lib/i18n/context";
 // ── Policy tokens (Panel A) ───────────────────────────────────────────
 type Token = { text: string; color: string };
 
-const POLICY_TOKENS: Token[] = [
+const POLICY_TOKENS_BASE: Token[] = [
   { text: "or", color: "text-btc-500" },
   { text: "(\n  ", color: "text-text-primary" },
   { text: "and", color: "text-btc-500" },
@@ -23,11 +23,9 @@ const POLICY_TOKENS: Token[] = [
   { text: ", ", color: "text-text-primary" },
   { text: "older(4320)", color: "text-emerald-400" },
   { text: ")   ", color: "text-text-primary" },
-  { text: "// ≈ 30 天", color: "text-text-muted" },
+  // comment token injected at runtime via i18n
   { text: "\n)", color: "text-text-primary" },
 ];
-
-const FULL_POLICY_LENGTH = POLICY_TOKENS.reduce((s, t) => s + t.text.length, 0);
 
 // ── Script lines (Panel B) ────────────────────────────────────────────
 type ScriptToken = { text: string; color: string };
@@ -61,12 +59,16 @@ const SCRIPT_LINES: ScriptLine[] = [
 // ── Helpers ───────────────────────────────────────────────────────────
 
 /** Render all policy characters, with characters after charCount set to opacity-0 to reserve space */
-function renderPolicySpans(charCount: number, showCursor: boolean) {
+function renderPolicySpans(
+  tokens: Token[],
+  charCount: number,
+  showCursor: boolean,
+) {
   const typedSpans: React.ReactNode[] = [];
   const untypedSpans: React.ReactNode[] = [];
   let remaining = charCount;
 
-  POLICY_TOKENS.forEach((token, idx) => {
+  tokens.forEach((token, idx) => {
     if (remaining <= 0) {
       // Entirely untyped
       untypedSpans.push(
@@ -126,6 +128,21 @@ export function HomepageHero() {
   const cardRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
+  // Build localized policy tokens (comment injected via i18n)
+  const policyTokens = useMemo<Token[]>(() => {
+    const comment = t("home.hero.policyComment");
+    const base = POLICY_TOKENS_BASE.slice(0, -1); // all but last "\n)"
+    return [
+      ...base,
+      { text: comment, color: "text-text-muted" },
+      ...POLICY_TOKENS_BASE.slice(-1), // "\n)"
+    ];
+  }, [t]);
+  const fullPolicyLength = useMemo(
+    () => policyTokens.reduce((s, tok) => s + tok.text.length, 0),
+    [policyTokens],
+  );
+
   // Animation state
   const [started, setStarted] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -144,14 +161,12 @@ export function HomepageHero() {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     skipAnimation.current = mq.matches || window.innerWidth < 768;
     if (skipAnimation.current) {
-      setTypedChars(FULL_POLICY_LENGTH);
+      setTypedChars(fullPolicyLength);
       setVisibleLines(new Array(6).fill(true));
       setPhase("done");
       setFinished(true);
     }
-  }, []);
-
-  // Clear all pending timers
+  }, [fullPolicyLength]);
   const clearTimers = useCallback(() => {
     timerRef.current.forEach(clearTimeout);
     timerRef.current = [];
@@ -166,8 +181,8 @@ export function HomepageHero() {
     setFinished(false);
 
     // Phase 1: typewriter over 1500ms
-    const charInterval = 1500 / FULL_POLICY_LENGTH;
-    for (let i = 1; i <= FULL_POLICY_LENGTH; i++) {
+    const charInterval = 1500 / fullPolicyLength;
+    for (let i = 1; i <= fullPolicyLength; i++) {
       const t = setTimeout(() => setTypedChars(i), charInterval * i);
       timerRef.current.push(t);
     }
@@ -195,7 +210,7 @@ export function HomepageHero() {
       setFinished(true);
     }, 3000);
     timerRef.current.push(tDone);
-  }, [clearTimers]);
+  }, [clearTimers, fullPolicyLength]);
 
   // IntersectionObserver trigger (once)
   useEffect(() => {
@@ -301,7 +316,7 @@ export function HomepageHero() {
               {/* Panel A — Policy */}
               <div className="px-5 pt-5 pb-3">
                 <pre className="font-mono text-sm leading-7 whitespace-pre-wrap">
-                  {renderPolicySpans(typedChars, showCursor)}
+                  {renderPolicySpans(policyTokens, typedChars, showCursor)}
                 </pre>
               </div>
 
