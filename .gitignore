@@ -41,5 +41,6 @@ coverage/
 .superpowers/
 attached_assets/
 
-# Local-only improvement proposals (not for remote)
+# Local-only documents (not for remote)
 docs/task/IMPROVEMENT-PROPOSALS.md
+docs/task/SECURITY-REVIEW-2026-06-15.md
