@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Sun, Moon, Bitcoin, Menu, X } from 'lucide-react';
+import { Sun, Moon, Bitcoin, Menu, X, Github } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
 import { useTheme } from '@/lib/theme/context';
 import { cn } from '@/lib/utils/cn';
@@ -66,6 +66,16 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-1">
+          <a
+            href="https://github.com/zengmi2140/miniscript_playground"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex h-8 w-8 items-center justify-center rounded-button text-text-secondary transition-colors hover:bg-surface-elevated hover:text-text-primary"
+            aria-label="GitHub"
+          >
+            <Github className="h-4 w-4" />
+          </a>
+
           <button
             onClick={() => setLocale(locale === 'zh' ? 'en' : 'zh')}
             className="rounded-button px-3 py-1.5 text-small text-text-secondary transition-colors hover:bg-surface-elevated hover:text-text-primary"
