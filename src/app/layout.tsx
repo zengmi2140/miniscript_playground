@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 import { cookies, headers } from 'next/headers';
 import localFont from 'next/font/local';
 import { Providers } from '@/components/providers';
@@ -130,6 +131,7 @@ export default async function RootLayout({
             </main>
           </div>
         </Providers>
+        <Analytics />
       </body>
     </html>
   );

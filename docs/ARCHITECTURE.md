@@ -39,7 +39,7 @@
 
 ## 项目性质
 
-纯前端、本地优先应用：无业务后端 API / 数据库，所有计算在浏览器本地完成。自动网络行为限于**只读**拉取主网链尖高度（见下文「链尖高度」）和加载公共静态展示资源；不上传策略、密钥、会话数据或遥测信息。
+纯前端、本地优先应用：无业务后端 API / 数据库，所有计算在浏览器本地完成。自动网络行为限于**只读**拉取主网链尖高度（见下文「链尖高度」）、加载公共静态展示资源，以及 Vercel Web Analytics 访问统计；不上传策略、密钥或会话数据。
 
 ## 运行与验证
 
@@ -148,12 +148,12 @@ npm run generate:block-height-fallback   # 单独刷新链尖回退文件
 
 ### 应用装配
 
-`layout.tsx`（server）通过 `next/font/local` 装配仓库内字体，读取 `scriptwise-locale` / `scriptwise-theme` cookie，输出 `<html lang>` 与主题 class / `color-scheme`，并从 Middleware 注入的 `x-nonce` 读取每请求 nonce 供 no-flash theme script 使用；`providers.tsx` 把同一初值传给 `I18nProvider` / `ThemeProvider` 避免 hydration mismatch。
+`layout.tsx`（server）通过 `next/font/local` 装配仓库内字体，读取 `scriptwise-locale` / `scriptwise-theme` cookie，输出 `<html lang>` 与主题 class / `color-scheme`，并从 Middleware 注入的 `x-nonce` 读取每请求 nonce 供 no-flash theme script 使用；`providers.tsx` 把同一初值传给 `I18nProvider` / `ThemeProvider` 避免 hydration mismatch；`@vercel/analytics/next` 的 `Analytics` 组件在 root layout 挂载，用于 Vercel Web Analytics 页面访问统计。
 
 ### 安全响应头与 CSP
 
 - `middleware.ts` 为每个页面请求生成随机 nonce，将 enforced `Content-Security-Policy` 同时写入 request / response headers，供 Next 自动给框架脚本加 nonce。
-- `script-src` 使用 nonce + `strict-dynamic`，仅为 Miniscript WASM 保留 `wasm-unsafe-eval`；开发环境额外允许 React 调试所需的 `unsafe-eval`。`worker-src` 仅允许同源与 blob，`connect-src` 仅允许同源及三个链尖 API。
+- `script-src` 使用 nonce + `strict-dynamic`，仅为 Miniscript WASM 保留 `wasm-unsafe-eval`；开发环境额外允许 React 调试所需的 `unsafe-eval`。`worker-src` 仅允许同源与 blob，`connect-src` 仅允许同源及三个链尖 API；Vercel Analytics 生产脚本与上报走 Vercel 的同源 `/_vercel/insights/*` 代理路径。
 - `next.config.mjs` 为所有应用路由设置 `Referrer-Policy: no-referrer`、`nosniff`、frame DENY、Permissions-Policy 与 COOP。nonce 使页面按请求动态渲染。
 
 ### 自动编译

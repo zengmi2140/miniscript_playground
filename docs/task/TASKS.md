@@ -20,6 +20,13 @@
 
 ## 最近完成
 
+### 2026-06-16：接入 Vercel Web Analytics
+
+- [x] **硬边界调整**：允许 Vercel Web Analytics 访问统计，仍禁止上传 Policy、密钥、会话数据或分享 payload 内容。
+- [x] **Analytics 接入**：安装 `@vercel/analytics`，在 App Router root layout 挂载 `Analytics` 组件，用于 Vercel 后台查看访问情况。
+- [x] **文档同步**：PRODUCT / ARCHITECTURE 同步更新自动网络行为、root layout 装配与 CSP 说明。
+- 验证结果：lint 0 error；typecheck 0 error；doc:health 通过；生产依赖 audit 0 漏洞；coverage 52 files / 357 tests 全过，engine lines 88.73% / functions 96.2%，builder lines 84.71% / functions 90.72%；build:check 成功（仅保留既有 edge runtime 静态生成提示）。
+
 ### 2026-06-16：v0.1.0 开源首发准备
 
 - [x] **版本标记**：将仓库内版本从 `0.0.0` 更新为 `0.1.0`，保持 `private: true`，明确这是网站首发而非 npm 包发布。
