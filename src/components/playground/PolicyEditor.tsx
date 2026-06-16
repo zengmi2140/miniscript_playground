@@ -10,7 +10,7 @@ import { EditorView, keymap, placeholder as cmPlaceholder } from '@codemirror/vi
 import { Compartment, EditorState } from '@codemirror/state';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { lineNumbers } from '@codemirror/view';
-import { AlignLeft, Trash2, Copy, Share2, Check, ChevronDown, ChevronRight } from 'lucide-react';
+import { Trash2, Copy, Share2, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { buildErrorHighlightExtensions, policyExtensions } from '@/lib/editor/policy-language';
 import { clampHighlightsToDoc } from '@/lib/engine/policy-error-highlight';
 import { usePlaygroundStore } from '@/lib/stores/playground-store';
@@ -19,7 +19,8 @@ import { buildShareUrl, isShareUrlLikelyTooLong } from '@/lib/utils/share';
 import { cn } from '@/lib/utils/cn';
 import type { FriendlyError } from '@/lib/engine/types';
 
-function formatPolicy(raw: string): string {
+// Kept for a future formatter entry point; the toolbar button is currently hidden.
+export function formatPolicy(raw: string): string {
   let result = '';
   let depth = 0;
   const trimmed = raw.replace(/\s+/g, '');
@@ -161,15 +162,6 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
     });
   }, [compilationError, highlightCompartment, policy, shouldMask]);
 
-  const handleFormat = useCallback(() => {
-    const view = viewRef.current;
-    if (!view) return;
-    const display = view.state.doc.toString();
-    const stored = shouldMask ? unmaskHash160DigestInPolicy(display) : display;
-    const formatted = formatPolicy(stored);
-    setPolicy(formatted);
-  }, [setPolicy, shouldMask]);
-
   const handleClear = useCallback(() => {
     const view = viewRef.current;
     if (!view) return;
@@ -212,7 +204,6 @@ export function PolicyEditor({ compilationError }: PolicyEditorProps) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-1">
-        <ToolbarButton icon={AlignLeft} label={t('playground.editor.format')} onClick={handleFormat} />
         <ToolbarButton icon={Trash2} label={t('playground.editor.clear')} onClick={handleClear} />
         <ToolbarButton icon={Copy} label={t('playground.editor.copy')} onClick={handleCopy} />
         <ToolbarButton

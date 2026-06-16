@@ -20,6 +20,12 @@
 
 ## 最近完成
 
+### 2026-06-16：Playground Policy 编辑器隐藏格式化入口
+
+- [x] **移除格式化按钮入口**：Playground 中栏 Policy 编辑器顶部不再展示“格式化”按钮；`formatPolicy()` 实现保留，后续需要时可重新接回。
+- [x] **回归测试**：新增 `PolicyEditor` 工具栏测试，确认 Format 入口隐藏且 Clear / Copy / Share 保持可用。
+- 验证结果：定向测试 `PolicyEditor.test.tsx` 通过；lint 0 warning / 0 error；typecheck 0 error；doc:health 通过；coverage 53 files / 358 tests 全过，engine lines 88.73% / functions 96.2%，builder lines 84.71% / functions 90.72%；build:check 成功；Browser 实测 `/playground` 工具栏仅有「清空 / 复制 / 分享」，`hasFormat=false` 且无 `[compile error]`。
+
 ### 2026-06-16：站点标签页图标
 
 - [x] **Bitcoin favicon**：新增 `src/app/icon.svg`，使用经典橙色 Bitcoin 风格图标作为浏览器标签页 logo。
