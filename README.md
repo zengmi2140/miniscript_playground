@@ -59,8 +59,6 @@ npm ci
 npm run dev
 ```
 
-启动后打开终端显示的本地地址，通常为 [http://localhost:3000](http://localhost:3000)。
-
 完整的 npm scripts 及验证命令见 [AGENTS.md](AGENTS.md)。
 
 ## 参与项目

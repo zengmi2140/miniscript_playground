@@ -59,8 +59,6 @@ npm ci
 npm run dev
 ```
 
-Open the local address shown in your terminal — typically [http://localhost:3000](http://localhost:3000).
-
 For the full list of npm scripts and verification commands, see [AGENTS.md](AGENTS.md).
 
 ## Contributing
