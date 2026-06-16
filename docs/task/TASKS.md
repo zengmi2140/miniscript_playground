@@ -20,6 +20,12 @@
 
 ## 最近完成
 
+### 2026-06-16：首页移动端横向溢出修复
+
+- [x] **Transition 卡片收缩**：单签 / 多签对比卡片补齐移动端 `min-w-0` 约束，保留代码换行、地址截断与桌面两列视觉。
+- [x] **钱包 Marquee 收缩**：钱包行根容器允许收缩，移动端压缩行标签宽度，保持桌面端 `w-24` 标签、动画、暂停与可访问链接行为。
+- 验证结果：lint 0 error；typecheck 0 error；doc:health 通过；coverage 52 files / 357 tests 全过，engine lines 88.73% / functions 96.2%，builder lines 84.71% / functions 90.72%；Browser 390x844 实测首页 `scrollWidth=390` 且无横向溢出，单签 / 多签卡片宽 358px，钱包 marquee track 在容器内裁切；`/playground` 手机端仍显示桌面端提示且未加载三栏工作台；Browser 1280x720 实测首页无横向溢出，Transition 保持两列，钱包标签宽 96px。
+
 ### 2026-06-16：接入 Vercel Web Analytics
 
 - [x] **硬边界调整**：允许 Vercel Web Analytics 访问统计，仍禁止上传 Policy、密钥、会话数据或分享 payload 内容。

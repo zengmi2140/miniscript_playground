@@ -19,9 +19,9 @@ export function TransitionSection() {
           {t('home.transition.subtitle')}
         </p>
 
-        <div className="grid gap-8 md:grid-cols-2 md:items-stretch">
+        <div className="grid min-w-0 gap-8 md:grid-cols-2 md:items-stretch">
           {/* 单签 */}
-          <div className="flex flex-col rounded-xl border border-border-default bg-surface-elevated p-6 md:p-8">
+          <div className="min-w-0 flex flex-col rounded-xl border border-border-default bg-surface-elevated p-6 md:p-8">
             <p className="mb-4 text-xs font-medium uppercase tracking-widest text-text-muted">
               {t('home.transition.singleSig.label')}
             </p>
@@ -31,7 +31,7 @@ export function TransitionSection() {
             <p className="mb-6 text-sm text-text-secondary">
               {t('home.transition.singleSig.desc')}
             </p>
-            <div className="mt-auto">
+            <div className="mt-auto min-w-0">
               <div className="mb-2 text-center text-sm text-text-muted">↓</div>
               <p className="truncate rounded-lg bg-surface-base px-3 py-2 font-mono text-xs text-text-muted">
                 {SINGLE_SIG_ADDRESS}
@@ -40,7 +40,7 @@ export function TransitionSection() {
           </div>
 
           {/* 多签 */}
-          <div className="flex flex-col rounded-xl border border-btc-500/20 bg-surface-elevated p-6 md:p-8">
+          <div className="min-w-0 flex flex-col rounded-xl border border-btc-500/20 bg-surface-elevated p-6 md:p-8">
             <p className="mb-4 text-xs font-medium uppercase tracking-widest text-btc-500">
               {t('home.transition.multiSig.label')}
             </p>
@@ -50,7 +50,7 @@ export function TransitionSection() {
             <p className="mb-6 text-sm text-text-secondary">
               {t('home.transition.multiSig.desc')}
             </p>
-            <div className="mt-auto">
+            <div className="mt-auto min-w-0">
               <div className="mb-2 text-center text-sm text-text-muted">↓</div>
               <p className="truncate rounded-lg bg-surface-base px-3 py-2 font-mono text-xs text-text-muted">
                 {MULTISIG_ADDRESS}

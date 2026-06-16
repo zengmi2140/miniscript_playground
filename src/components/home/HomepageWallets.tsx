@@ -99,8 +99,8 @@ function MarqueeRow({
   const COPIES = 4;
 
   return (
-    <div className="flex items-center gap-5">
-      <span className="w-24 shrink-0 text-right text-xs font-medium text-text-muted">{label}</span>
+    <div className="flex min-w-0 items-center gap-3 md:gap-5">
+      <span className="w-16 shrink-0 text-right text-xs font-medium text-text-muted sm:w-20 md:w-24">{label}</span>
 
       <div
         className="marquee-track relative min-w-0 flex-1 overflow-hidden"
