@@ -26,7 +26,7 @@
 - [x] **Release 入口**：README 中文 / 英文版增加 GitHub Release badge，指向最新 release 页面。
 - [x] **发布说明准备**：采用 `v0.1.0` tag 与 `ScriptWise v0.1.0 - Public Launch` 标题；GitHub Release 正文使用中英双语首发说明。
 - 验证结果：lint 0 error；typecheck 通过；doc:health 通过；build:check 成功；coverage 52 files / 357 tests 全过，engine lines 88.73% / functions 96.2%，builder lines 84.71% / functions 90.72%；生产依赖 audit 0 漏洞。
-- 发布跟进：待创建 `v0.1.0` tag、推送远端并创建 GitHub Release。
+- 发布跟进：`v0.1.0` tag 已推送远端，GitHub Release 已发布（`ScriptWise v0.1.0 - Public Launch`）。
 
 ### 2026-06-15：生产站点配置、i18n 收尾与 Git 历史瘦身
 
