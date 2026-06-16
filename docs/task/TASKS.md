@@ -20,6 +20,11 @@
 
 ## 最近完成
 
+### 2026-06-16：站点标签页图标
+
+- [x] **Bitcoin favicon**：新增 `src/app/icon.svg`，使用经典橙色 Bitcoin 风格图标作为浏览器标签页 logo。
+- 验证结果：lint 0 error；typecheck 0 error；doc:health 通过；build:check 成功，路由表包含静态 `/icon.svg`；coverage 52 files / 357 tests 全过，engine lines 88.73% / functions 96.2%，builder lines 84.71% / functions 90.72%。
+
 ### 2026-06-16：首页移动端横向溢出修复
 
 - [x] **Transition 卡片收缩**：单签 / 多签对比卡片补齐移动端 `min-w-0` 约束，保留代码换行、地址截断与桌面两列视觉。
@@ -36,7 +41,7 @@
 ### 2026-06-16：v0.1.0 开源首发准备
 
 - [x] **版本标记**：将仓库内版本从 `0.0.0` 更新为 `0.1.0`，保持 `private: true`，明确这是网站首发而非 npm 包发布。
-- [x] **Release 入口**：README 中文 / 英文版增加 GitHub Release badge，指向最新 release 页面。
+- [x] **Release 入口**：GitHub Release 已发布；README 中文 / 英文版不再展示 Release badge，避免 shields.io GitHub token 池异常影响首页展示。
 - [x] **发布说明准备**：采用 `v0.1.0` tag 与 `ScriptWise v0.1.0 - Public Launch` 标题；GitHub Release 正文使用中英双语首发说明。
 - 验证结果：lint 0 error；typecheck 通过；doc:health 通过；build:check 成功；coverage 52 files / 357 tests 全过，engine lines 88.73% / functions 96.2%，builder lines 84.71% / functions 90.72%；生产依赖 audit 0 漏洞。
 - 发布跟进：`v0.1.0` tag 已推送远端，GitHub Release 已发布（`ScriptWise v0.1.0 - Public Launch`）。
