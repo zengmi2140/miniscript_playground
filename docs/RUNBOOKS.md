@@ -55,7 +55,7 @@ npm run test:coverage
 
 涉及路由、SSR 或编译管线时运行 `npm run build:check`。正式部署仍使用
 `npm run build`，由 `prebuild` 刷新链尖回退高度后再执行生产构建。完成后按
-`AGENTS.md` 要求更新 `docs/task/TASKS.md`。
+`AGENTS.md` 要求更新根目录 `progress.md`。
 
 ## 修改编译或时间锁语义
 

@@ -71,7 +71,7 @@ Before contributing, please read:
 - [Product scope & roadmap](docs/PRODUCT.md)
 - [Architecture & conventions](docs/ARCHITECTURE.md)
 - [Development boundaries & completion criteria](AGENTS.md)
-- [Current task board](docs/task/TASKS.md)
+- [Current task board](progress.md)
 
 For larger changes, please open an issue first to discuss the direction before submitting a pull request.
 

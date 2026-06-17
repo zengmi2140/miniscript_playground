@@ -10,12 +10,23 @@
 
 分两个阶段执行：
 
+### Startup Workflow（启动流程）
+
+Before writing code：
+
+1. 确认当前目录是仓库根目录。
+2. 完整阅读本文件。
+3. 读取根目录 [progress.md](progress.md)，了解当前任务、接下来、阻塞和未验证项。
+4. 如果 `progress.md` 指向活跃交接，再读 [session-handoff.md](session-handoff.md)。
+5. 按下方「阶段 1 / 阶段 2」确定额外文档阅读范围。
+6. 使用「Verification Commands」里的命令验证；不得只凭推断声明完成。
+
 ### 阶段 1：定位（理解任务属于哪个领域）
 
 读完本文件后，如果仅凭角色描述无法理解用户意图，按需补读：
 - 不理解产品做什么 / 功能范围 → 读 [docs/PRODUCT.md](docs/PRODUCT.md)
 - 不理解技术结构 / 模块划分 → 读 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- 不清楚当前进度 / 待办任务 → 读 [docs/task/TASKS.md](docs/task/TASKS.md)
+- 不清楚当前进度 / 待办任务 → 读根目录 [progress.md](progress.md)
 - 历史任务归档默认不读；仅在用户明确要求或需要追溯历史决策时读 `docs/task/TASKS-ARCHIVE.md`
 
 ### 阶段 2：执行（确定实现所需的阅读深度）
@@ -41,17 +52,24 @@
 | 通用功能（跨多层） | 全部文件 |
 
 **3. 兜底：阅读全部**
-以上两条都不适用时，阅读 PRODUCT.md + ARCHITECTURE.md + TASKS.md，改样式时另读 DESIGN.md。
+以上两条都不适用时，阅读 PRODUCT.md + ARCHITECTURE.md + progress.md，改样式时另读 DESIGN.md。
 
 **运行时行为以代码为准**；若文档与代码冲突，以代码为准并修正文档。
 若用户最新需求与文档冲突，以用户明确表达的需求为准，但必须同步更新相关文档。
 
 ## 工作原则
 
-- 一次只处理一个明确目标；需求不明确先向用户提问。
+- One feature at a time：一次只处理一个明确目标；需求不明确先向用户提问。
+- Stay in scope：不擅自扩大任务范围，不做与当前目标无关的重构、格式化或清理。
 - 不擅自增加产品范围之外的功能。
 - 改动落地后，在同一批改动中同步更新受影响的文档（详见下方「文档同步触发矩阵」）。
-  - 每轮开发结束后，更新 [docs/task/TASKS.md](docs/task/TASKS.md)：将已完成的任务条目从「未完成」区**移动**到「已完成」区（不是仅在原位打勾）
+  - 每轮开发结束后，更新根目录 [progress.md](progress.md)：将已完成的任务条目从「当前任务」移动到「最近完成」，并写明已验证 / 未验证与下一步。
+
+### State Artifacts（状态文件）
+
+- [progress.md](progress.md)：当前任务 / 进度的唯一事实源，记录当前任务、接下来、阻塞、最近完成、未验证与验证证据。
+- [feature_list.json](feature_list.json)：机器可读 Harness 状态，只用于帮助通用 agent / 校验器理解当前 Harness，不作为产品 backlog。
+- [session-handoff.md](session-handoff.md)：仅在会话中途停止、阻塞或交接给另一个 agent 时更新；普通任务完整完成时不需要写。
 
 ### 文档同步触发矩阵
 
@@ -84,7 +102,7 @@
 
 > **编码约定与反模式**：见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)「编码约定」与「反模式」段落。
 
-## 完成标准
+## 完成标准 / Definition of Done
 
 只有满足以下全部量化条件，才能说明任务完成：
 
@@ -97,6 +115,33 @@
 - 正式构建 / 部署使用 `npm run build`，其 `prebuild` 会先刷新链尖回退文件。
 - 新增逻辑在对应 `__tests__/` 旁补了测试（参考既有覆盖）。
 - 受影响的 PRODUCT.md / ARCHITECTURE.md / docs/DESIGN.md 已同步更新。
-- [docs/task/TASKS.md](docs/task/TASKS.md) 已更新（勾选已完成项，写明已验证 / 未验证与下一步）。
+- 根目录 [progress.md](progress.md) 已更新（将完成项移动到「最近完成」，写明已验证 / 未验证与下一步）。
+
+### Verification Commands
+
+标准验证入口：
+
+```bash
+./init.sh
+```
+
+单独运行时使用：
+
+```bash
+npm run doc:health
+npm run lint
+npm run typecheck
+npm run test:coverage
+npm run build:check
+```
+
+### End of Session
+
+Before ending：
+
+1. 若任务完整完成：更新 [progress.md](progress.md)，记录完成项、验证结果、未验证项和下一步。
+2. 若任务未完成、阻塞或需要交接：更新 [progress.md](progress.md) 的 `Current State`，并填写 [session-handoff.md](session-handoff.md)。
+3. 若 `feature_list.json` 中的 Harness 状态发生变化，同步更新其 `status` 与 `evidence`。
+4. 保持仓库 restartable / clean：下一位 agent 应能从 `AGENTS.md` → `progress.md` → `./init.sh` 恢复。
 
 > 上述 `lint / typecheck / test:coverage / doc:health / build:check` 由 `.github/workflows/ci.yml` 在 PR / push 上强制执行；CI 不运行会联网刷新的正式 `build`。
