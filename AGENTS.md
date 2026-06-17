@@ -2,15 +2,9 @@
 
 ## 你的角色
 
-你是 ScriptWise 的开发 Agent。
-
-本项目是一个**纯前端**的 Bitcoin Miniscript 教学实验室：以花费路径为中心，让用户理解「谁能花、何时能花、需要哪些条件」，再展示 Policy / Miniscript / Script / Descriptor / Address。技术栈为 Next.js App Router + React + TypeScript + Zustand + React Flow（版本号以 `package.json` 为准）。
+你是 ScriptWise 的开发 Agent。本项目是一个**纯前端**的 Bitcoin Miniscript 教学实验室：以花费路径为中心，让用户理解「谁能花、何时能花、需要哪些条件」，再展示 Policy / Miniscript / Script / Descriptor / Address。技术栈为 Next.js App Router + React + TypeScript + Zustand + React Flow（版本号以 `package.json` 为准）。
 
 ## 开始前阅读
-
-分两个阶段执行：
-
-### Startup Workflow（启动流程）
 
 Before writing code：
 
@@ -18,75 +12,29 @@ Before writing code：
 2. 完整阅读本文件。
 3. 读取根目录 [progress.md](progress.md)，了解当前任务、接下来、阻塞和未验证项。
 4. 如果 `progress.md` 指向活跃交接，再读 [session-handoff.md](session-handoff.md)。
-5. 按下方「阶段 1 / 阶段 2」确定额外文档阅读范围。
-6. 使用「Verification Commands」里的命令验证；不得只凭推断声明完成。
+5. 按下方阅读路由补读最小必要文档；历史归档默认不读，仅在用户要求或需要追溯决策时读 `docs/task/TASKS-ARCHIVE.md`。
+6. 完成前按「Verification Commands」实际验证；不得只凭推断声明完成。
 
-### 阶段 1：定位（理解任务属于哪个领域）
+| 任务类型 | 最小阅读集 |
+|----------|------------|
+| i18n 文案 | `src/lib/i18n/zh.ts` + `src/lib/i18n/en.ts` |
+| 样式 / 设计 token | [docs/DESIGN.md](docs/DESIGN.md) + 目标组件 |
+| 引擎 / 编译 / 路径分析 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| 路由 / 产品范围 / 预设场景 | [docs/PRODUCT.md](docs/PRODUCT.md) |
+| 新增 `src/lib/` 子目录或跨模块重构 | ARCHITECTURE + PRODUCT |
+| 新增预设、编译语义、分享 payload、SSR 首帧、设计 token | [docs/RUNBOOKS.md](docs/RUNBOOKS.md) 对应章节 |
+| 通用功能或无法归类 | PRODUCT + ARCHITECTURE + progress.md |
 
-读完本文件后，如果仅凭角色描述无法理解用户意图，按需补读：
-- 不理解产品做什么 / 功能范围 → 读 [docs/PRODUCT.md](docs/PRODUCT.md)
-- 不理解技术结构 / 模块划分 → 读 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- 不清楚当前进度 / 待办任务 → 读根目录 [progress.md](progress.md)
-- 历史任务归档默认不读；仅在用户明确要求或需要追溯历史决策时读 `docs/task/TASKS-ARCHIVE.md`
-
-### 阶段 2：执行（确定实现所需的阅读深度）
-
-理解任务后，按以下优先级确定最小阅读集；如果任务涉及多个改动维度，取各匹配项的并集：
-
-**1. Quick Tasks（仅读括号内文件）**
-- i18n 文案修改（仅改 `zh.ts` / `en.ts`，必须中英文同时添加）
-- CSS / Tailwind 类名微调（仅 `DESIGN.md` + 目标组件）
-- 测试快照更新（仅目标测试文件）
-- 文档 typo 修复（仅目标文档）
-- 依赖版本升级（仅 `package.json` + `package-lock.json`，不跨大版本）
-
-**2. 按改动类型的最小阅读集**
-
-| 改动类型 | 最小阅读集 |
-|----------|----------|
-| i18n 文案 | `zh.ts` / `en.ts` |
-| 样式 / 设计 token | DESIGN.md + 目标组件 |
-| 引擎 / 编译 / 路径分析 | ARCHITECTURE.md |
-| 路由 / 产品范围 / 预设场景 | PRODUCT.md |
-| 新增 `src/lib/` 子目录或跨模块重构 | ARCHITECTURE.md + PRODUCT.md |
-| 通用功能（跨多层） | 全部文件 |
-
-**3. 兜底：阅读全部**
-以上两条都不适用时，阅读 PRODUCT.md + ARCHITECTURE.md + progress.md，改样式时另读 DESIGN.md。
-
-**运行时行为以代码为准**；若文档与代码冲突，以代码为准并修正文档。
-若用户最新需求与文档冲突，以用户明确表达的需求为准，但必须同步更新相关文档。
+Quick tasks 可只读目标文件和必要上下文：文案双语文件、样式目标组件、目标测试、目标文档、或 `package.json` / `package-lock.json`。运行时行为以代码为准；若文档与代码冲突，以代码为准并修正文档；若用户最新需求与文档冲突，以用户明确需求为准，并同步更新相关文档。
 
 ## 工作原则
 
 - One feature at a time：一次只处理一个明确目标；需求不明确先向用户提问。
 - Stay in scope：不擅自扩大任务范围，不做与当前目标无关的重构、格式化或清理。
 - 不擅自增加产品范围之外的功能。
-- 改动落地后，在同一批改动中同步更新受影响的文档（详见下方「文档同步触发矩阵」）。
-  - 每轮开发结束后，更新根目录 [progress.md](progress.md)：将已完成的任务条目从「当前任务」移动到「最近完成」，并写明已验证 / 未验证与下一步。
-
-### State Artifacts（状态文件）
-
-- [progress.md](progress.md)：当前任务 / 进度的唯一事实源，记录当前任务、接下来、阻塞、最近完成、未验证与验证证据。
-- [feature_list.json](feature_list.json)：机器可读 Harness 状态，只用于帮助通用 agent / 校验器理解当前 Harness，不作为产品 backlog。
-- [session-handoff.md](session-handoff.md)：仅在会话中途停止、阻塞或交接给另一个 agent 时更新；普通任务完整完成时不需要写。
-
-### 文档同步触发矩阵
-
-| 改动类型 | 需更新的文档 |
-|----------|-------------|
-| 新增 / 删除路由 | PRODUCT.md |
-| 新增 / 删除 `src/lib/` 子目录 | ARCHITECTURE.md |
-| 新增 / 修改颜色变量、字号或设计 token | DESIGN.md |
-| 新增 / 修改预设场景 | PRODUCT.md「预设场景」段 |
-| 改变编译管线、数据流或核心链路 | ARCHITECTURE.md「核心运行链路」段 |
-| 修改硬边界（如新增允许的网络请求） | AGENTS.md「不允许做的事」段 |
-| 仅修改组件内部实现、不改变对外接口 | 无需更新文档 |
-
-> 判断原则：如果改动影响了文档中**事实性描述**的准确性，就必须同步更新；仅涉及内部实现细节且未改变对外行为时可跳过。
-- 新增预设场景时，按 [docs/RUNBOOKS.md「新增预设场景」](docs/RUNBOOKS.md#新增预设场景) 执行必改项、条件联动点与验收清单。
-- 修改编译 / 时间锁语义、分享 payload、路由 / SSR 首帧或设计 token 时，分别按 [docs/RUNBOOKS.md](docs/RUNBOOKS.md) 对应章节执行。
-- 文档「最低标准」：合并后的文档不得与本次改动在事实层面矛盾；改动与文档已有描述完全无关时不必为改而改。
+- 改动落地后，在同一批改动中同步更新事实受影响的文档；触发条件见 [docs/RUNBOOKS.md](docs/RUNBOOKS.md#文档同步触发矩阵)。
+- 每轮开发结束后更新根目录 [progress.md](progress.md)：记录完成项、验证结果、未验证项与下一步。
+- 状态文件：[progress.md](progress.md) 是当前任务 / 进度唯一事实源；[feature_list.json](feature_list.json) 只记录机器可读 Harness 状态，不作为产品 backlog；[session-handoff.md](session-handoff.md) 只在中断、阻塞或交接时填写。
 - 面向用户的界面文案优先走 i18n（`zh.ts` / `en.ts`），不在引擎或组件里写死中文串。
 
 ## 不允许做的事（硬边界）
@@ -104,8 +52,6 @@ Before writing code：
 
 ## 完成标准 / Definition of Done
 
-只有满足以下全部量化条件，才能说明任务完成：
-
 - 改动按预期工作，并已实际验证（运行 / 测试 / 查看输出，而非仅推断）。
 - `npm run lint` → **0 error**（warning 不阻塞）。
 - `npm run typecheck` → **0 error**。
@@ -114,8 +60,8 @@ Before writing code：
 - `npm run build:check` → 成功（可选，视改动范围；涉及编译管线、路由、SSR 时必须验证），且不得刷新链尖回退文件。
 - 正式构建 / 部署使用 `npm run build`，其 `prebuild` 会先刷新链尖回退文件。
 - 新增逻辑在对应 `__tests__/` 旁补了测试（参考既有覆盖）。
-- 受影响的 PRODUCT.md / ARCHITECTURE.md / docs/DESIGN.md 已同步更新。
-- 根目录 [progress.md](progress.md) 已更新（将完成项移动到「最近完成」，写明已验证 / 未验证与下一步）。
+- 受影响的 PRODUCT.md / ARCHITECTURE.md / DESIGN.md / RUNBOOKS.md 已同步更新。
+- 根目录 [progress.md](progress.md) 已更新，写明完成项、验证结果、未验证项与下一步。
 
 ### Verification Commands
 
@@ -137,11 +83,9 @@ npm run build:check
 
 ### End of Session
 
-Before ending：
-
-1. 若任务完整完成：更新 [progress.md](progress.md)，记录完成项、验证结果、未验证项和下一步。
-2. 若任务未完成、阻塞或需要交接：更新 [progress.md](progress.md) 的 `Current State`，并填写 [session-handoff.md](session-handoff.md)。
-3. 若 `feature_list.json` 中的 Harness 状态发生变化，同步更新其 `status` 与 `evidence`。
-4. 保持仓库 restartable / clean：下一位 agent 应能从 `AGENTS.md` → `progress.md` → `./init.sh` 恢复。
+1. 完整完成：更新 [progress.md](progress.md)，记录完成项、验证结果、未验证项和下一步。
+2. 未完成、阻塞或需要交接：更新 `progress.md` 的 `Current State`，并填写 [session-handoff.md](session-handoff.md)。
+3. `feature_list.json` 的 Harness 状态发生变化时，同步更新其 `status` 与 `evidence`。
+4. 保持仓库 restartable：下一位 agent 应能从 `AGENTS.md` → `progress.md` → `./init.sh` 恢复。
 
 > 上述 `lint / typecheck / test:coverage / doc:health / build:check` 由 `.github/workflows/ci.yml` 在 PR / push 上强制执行；CI 不运行会联网刷新的正式 `build`。

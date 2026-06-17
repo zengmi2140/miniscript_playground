@@ -28,6 +28,13 @@
 
 ## 最近完成
 
+### 2026-06-17：AGENTS.md 瘦身与 Harness 复评
+
+- [x] **根指令压缩**：`AGENTS.md` 从 147 行压缩到 91 行，保留启动流程、阅读路由、硬边界、验证入口和结束会话规则。
+- [x] **低频细节下沉**：文档同步触发矩阵迁入 `docs/RUNBOOKS.md`，`AGENTS.md` 改为引用该章节，减少每轮启动上下文。
+- [x] **Harness evidence 更新**：`feature_list.json` 的 Harness 证据已同步记录本次瘦身后的复评结果。
+- 验证结果：harness 校验 100/100；`npm run doc:health` 通过；`./init.sh` 全流程通过，lint 0 warning / 0 error，typecheck 0 error，coverage 53 files / 358 tests 全过，engine lines 88.73% / functions 96.2%，builder lines 84.71% / functions 90.72%；`build:check` 成功，仅保留既有 edge runtime 静态生成提示。
+
 ### 2026-06-17：Harness 架构入口收敛
 
 - [x] **当前进度入口迁移**：根级 `progress.md` 成为当前任务 / 进度唯一事实源；旧 `docs/task/TASKS.md` 入口已移除；README、Runbook、历史归档入口同步更新。

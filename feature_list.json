@@ -6,7 +6,7 @@
       "description": "Consolidate the current task state into root progress.md, remove the old docs/task/TASKS.md current-state entrypoint, and add machine-readable Harness entrypoints. Product task state remains canonical in progress.md; this file is not a product backlog.",
       "dependencies": [],
       "status": "done",
-      "evidence": "Harness validation 100/100; doc:health passed; lint 0 warning / 0 error; typecheck 0 error; ./init.sh passed including test:coverage 53 files / 358 tests and build:check."
+      "evidence": "Harness validation 100/100 after AGENTS.md reduction to 91 lines; doc:health passed; lint 0 warning / 0 error; typecheck 0 error; ./init.sh passed including test:coverage 53 files / 358 tests and build:check."
     }
   ]
 }
